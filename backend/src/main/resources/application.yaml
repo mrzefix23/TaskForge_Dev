@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: taskforge 
+  datasource:
+    url: jdbc:postgresql://database:5432/taskforge_db
+    username: admin
+    password: admin
+  jpa:
+    database: POSTGRESQL
+    hibernate:
+      ddl-auto: update
