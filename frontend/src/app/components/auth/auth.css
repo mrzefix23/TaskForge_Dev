@@ -1,0 +1,40 @@
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  background: #fff;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.brand {
+  color: #1976d2;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.primary-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: background 0.2s;
+}
+
+.primary-btn:hover {
+  background: #125ea7;
+}
+
+.register-link {
+  text-decoration: none;
+}
