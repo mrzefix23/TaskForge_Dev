@@ -12,3 +12,7 @@ spring:
     database: POSTGRESQL
     hibernate:
       ddl-auto: update
+  security:
+    user:
+      name: user
+      password: password
