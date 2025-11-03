@@ -2,9 +2,11 @@ package com.taskforge.controller;
 
 import com.taskforge.model.User;
 import com.taskforge.service.UserService;
+import com.taskforge.dto.UserDto;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -17,17 +19,30 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public UserDto createUser(@RequestBody UserDto userDto) {
+        User user = userService.createUser(userDto);
+        return toUserDto(user);
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers().stream()
+                .map(this::toUserDto)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public User getUser(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public UserDto getUser(@PathVariable Long id) {
+        User user = userService.getUserById(id);
+        return user != null ? toUserDto(user) : null;
+    }
+
+    private UserDto toUserDto(User user) {
+        UserDto dto = new UserDto();
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        // never expose password
+        dto.setPassword(null);
+        return dto;
     }
 }
