@@ -5,6 +5,7 @@ import com.taskforge.repository.UserRepository;
 import com.taskforge.dto.UserDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 
@@ -20,6 +21,12 @@ public class UserService {
     }
 
     public User createUser(UserDto userDto) {
+        if(userRepo.existsByUsername(userDto.getUsername())) {
+            throw new DataIntegrityViolationException("Username already exists");
+        }
+        if(userRepo.existsByEmail(userDto.getEmail())) {
+            throw new DataIntegrityViolationException("Email already exists");
+        }
         User user = new User();
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
