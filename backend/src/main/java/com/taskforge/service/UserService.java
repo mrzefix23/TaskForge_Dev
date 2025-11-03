@@ -21,6 +21,15 @@ public class UserService {
     }
 
     public User createUser(UserDto userDto) {
+        if(userDto.getUsername() == null || userDto.getUsername().isEmpty() || userDto.getEmail() == null || userDto.getPassword() == null) {
+            throw new IllegalArgumentException("Username, email, and password must not be null");
+        }
+        if(userDto.getEmail().isEmpty() || !userDto.getEmail().contains("@")) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+        if(userDto.getPassword().length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long");
+        }
         if(userRepo.existsByUsername(userDto.getUsername())) {
             throw new DataIntegrityViolationException("Username already exists");
         }
