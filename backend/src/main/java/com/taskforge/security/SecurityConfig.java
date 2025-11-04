@@ -34,12 +34,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Only for development/testing purposes
-    @Bean
-    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails user = User.withUsername("user")
-                           .password(passwordEncoder.encode("password"))
-                           .build();
-        return new InMemoryUserDetailsManager(user);
-}
 }
