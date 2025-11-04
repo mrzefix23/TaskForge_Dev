@@ -26,14 +26,14 @@ export class RegisterComponent {
 
   onSubmit() {
     if (this.registerForm.valid) {
-      this.http.post('/api/users', this.registerForm.value).subscribe({
+      this.http.post('/auth/register', this.registerForm.value, {responseType: 'text'}).subscribe({
         next: () => {
           this.success = true;
           this.error = '';
           this.registerForm.reset();
         },
         error: (err: any) => {
-          this.error = err.error?.message || 'Erreur lors de la création du compte';
+          this.error = typeof err.error === 'string' ? err.error : 'Erreur lors de la création du compte.';
           this.success = false;
         }
       });
