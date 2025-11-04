@@ -1,0 +1,42 @@
+import { Component } from '@angular/core';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, HttpClientModule],
+  templateUrl: './login.html',
+  styleUrl: './login.css'
+})
+export class LoginComponent {
+  loginForm;
+  success = false;
+  error = '';
+  token = '';
+
+  constructor(private fb: FormBuilder, private http: HttpClient) {
+    this.loginForm = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', Validators.required]
+    });
+  }
+
+  onSubmit() {
+    if (this.loginForm.valid) {
+      this.http.post<{token: string}>('/auth/login', this.loginForm.value).subscribe({
+        next: (res) => {
+          this.success = true;
+          this.error = '';
+          this.token = res.token;
+          this.loginForm.reset();
+        },
+        error: (err: any) => {
+          this.error = typeof err.error === 'string' ? err.error : 'Erreur lors de la connexion.';
+          this.success = false;
+        }
+      });
+    }
+  }
+}
