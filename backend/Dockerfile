@@ -6,7 +6,7 @@ COPY pom.xml .
 RUN mvn clean package -DskipTests
 
 # Production stage using OpenJDK
-FROM openjdk:21-jdk-slim AS production
+FROM eclipse-temurin:21-jdk AS production
 WORKDIR /app
 COPY --from=build /app/target/taskforge-0.0.1-SNAPSHOT.jar app.jar
 
