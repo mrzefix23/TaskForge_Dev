@@ -6,11 +6,20 @@
 }
 
 .auth-card {
+  display:flex;
+  flex-direction: column;
+  align-items: center;
   background: #fff;
   padding: 2.5rem 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.08);
   text-align: center;
+}
+
+.auth-card a {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 .brand {

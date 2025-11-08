@@ -4,36 +4,36 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-login',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, HttpClientModule],
-  templateUrl: './register.html',
-  styleUrl: './register.css'
+  templateUrl: './login.html',
+  styleUrl: './login.css'
 })
-export class RegisterComponent {
-  registerForm;
-
+export class LoginComponent {
+  loginForm;
   success = false;
   error = '';
+  token = '';
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
-    this.registerForm = this.fb.group({
+    this.loginForm = this.fb.group({
       username: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
   }
 
   onSubmit() {
-    if (this.registerForm.valid) {
-      this.http.post('/auth/register', this.registerForm.value, {responseType: 'text'}).subscribe({
-        next: () => {
+    if (this.loginForm.valid) {
+      this.http.post<{token: string}>('/auth/login', this.loginForm.value).subscribe({
+        next: (res) => {
           this.success = true;
           this.error = '';
-          this.registerForm.reset();
+          this.token = res.token;
+          this.loginForm.reset();
         },
         error: (err: any) => {
-          this.error = typeof err.error === 'string' ? err.error : 'Erreur lors de la création du compte.';
+          this.error = typeof err.error === 'string' ? err.error : 'Erreur lors de la connexion.';
           this.success = false;
         }
       });
