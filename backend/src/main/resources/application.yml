@@ -13,5 +13,10 @@ spring:
     hibernate:
       ddl-auto: update
 
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET}
+    expiration-ms: ${SECURITY_JWT_EXPIRATION-MS}
+
 dotenv:
   enabled: true
