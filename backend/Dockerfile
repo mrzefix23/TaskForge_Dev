@@ -3,6 +3,7 @@ FROM maven:3.9.4-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY src ./src
 COPY pom.xml .
+COPY src/main/resources/.env ./src/main/resources/.env
 RUN mvn clean package -DskipTests
 
 # Production stage using OpenJDK
