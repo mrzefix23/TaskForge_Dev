@@ -88,6 +88,9 @@
 		<dependency>
 		    <groupId>jakarta.validation</groupId>
 		    <artifactId>jakarta.validation-api</artifactId>
+    		<groupId>me.paulschwarz</groupId>
+    		<artifactId>spring-dotenv</artifactId>
+    		<version>4.0.0</version>
 		</dependency>
 	</dependencies>
 

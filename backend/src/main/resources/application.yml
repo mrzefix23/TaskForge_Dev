@@ -5,15 +5,13 @@ spring:
   application:
     name: taskforge 
   datasource:
-    url: jdbc:postgresql://database:5432/taskforge_db
-    username: admin
-    password: admin
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     database: POSTGRESQL
     hibernate:
       ddl-auto: update
 
-security:
-  jwt:
-    secret: dGhpc19pc19hX3ZhbGlkX2Jhc2U2NF9rZXlfZm9yX3Rhc2tmb3JnZQ==
-    expiration-ms: 3600000 # 1 hour in milliseconds
+dotenv:
+  enabled: true
