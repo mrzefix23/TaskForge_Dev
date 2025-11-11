@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,7 @@ export class LoginComponent {
   error = '';
   token = '';
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required]
@@ -30,7 +31,9 @@ export class LoginComponent {
           this.success = true;
           this.error = '';
           this.token = res.token;
+          localStorage.setItem('token', res.token);
           this.loginForm.reset();
+          this.router.navigate(['/accueil']); // Redirect to accueil on successful login
         },
         error: (err: any) => {
           this.error = typeof err.error === 'string' ? err.error : 'Erreur lors de la connexion.';
