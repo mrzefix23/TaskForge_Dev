@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, feature/setup-ci ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Build with Maven
+        run: mvn clean compile
+      - name: Run tests
+        run: mvn test
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Angular app
+        run: npm run build
+      - name: Run frontend tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
