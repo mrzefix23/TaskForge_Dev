@@ -10,8 +10,8 @@ TaskForge is a web-based project management application that allows users to cre
 ## Prerequisites
 
 - **Java**: Version 21 or higher
+- **Node.js**: Version 20 or higher
 - **Maven**
-- **Node.js**
 - **NPM**
 
 ---
