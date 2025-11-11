@@ -8,4 +8,6 @@ import { RouterModule } from '@angular/router';
   templateUrl: './auth.html',
   styleUrl: './auth.css'
 })
-export class AuthComponent {}
+export class AuthComponent {
+  currentYear = new Date().getFullYear();
+}
