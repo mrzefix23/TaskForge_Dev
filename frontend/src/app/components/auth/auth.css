@@ -3,47 +3,128 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 }
 
 .auth-card {
-  display:flex;
-  flex-direction: column;
-  align-items: center;
-  background: #fff;
-  padding: 2.5rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  padding: 60px 50px;
+  max-width: 400px;
+  width: 100%;
   text-align: center;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
 }
 
-.auth-card a {
-  width: 100%;
-  margin-bottom: 0.5rem;
-  display: block;
+.auth-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.auth-header {
+  margin-bottom: 40px;
 }
 
 .brand {
-  color: #1976d2;
+  font-size: 2.5rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  color: #1d1d1f;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.welcome-text {
+  font-size: 1.1rem;
+  color: #6e6e73;
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-link {
+  text-decoration: none;
+  width: 100%;
 }
 
 .primary-btn {
-  background: #1976d2;
-  color: #fff;
+  background: #007aff;
+  color: #ffffff;
   border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 1.5rem;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  letter-spacing: -0.01em;
 }
 
 .primary-btn:hover {
-  background: #125ea7;
+  background: #0051d0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
-.register-link {
-  text-decoration: none;
+.primary-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.secondary-btn {
+  background: transparent;
+  color: #007aff;
+  border: 2px solid #007aff;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+}
+
+.secondary-btn:hover {
+  background: #007aff;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+}
+
+.secondary-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 40px 30px;
+    margin: 20px;
+    border-radius: 16px;
+  }
+  
+  .brand {
+    font-size: 2rem;
+  }
+  
+  .welcome-text {
+    font-size: 1rem;
+  }
 }

@@ -1,20 +1,60 @@
 <div class="register-container">
-  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-    <h2>Créer un compte</h2>
-    <div class="form-group">
-      <label for="username">Nom d'utilisateur</label>
-      <input id="username" formControlName="username" required />
+  <div class="register-card">
+    <div class="form-header">
+      <h1>Créer un compte</h1>
+      <p>Rejoignez TaskForge et organisez vos projets</p>
     </div>
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input id="email" formControlName="email" type="email" required />
+    
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <div class="form-group">
+        <input 
+          id="username" 
+          formControlName="username" 
+          placeholder="Nom d'utilisateur" 
+          class="form-input"
+          [class.error]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+        />
+      </div>
+      
+      <div class="form-group">
+        <input 
+          id="email" 
+          formControlName="email" 
+          type="email" 
+          placeholder="Adresse email"
+          class="form-input"
+          [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+        />
+      </div>
+      
+      <div class="form-group">
+        <input 
+          id="password" 
+          formControlName="password" 
+          type="password" 
+          placeholder="Mot de passe (8 caractères min.)"
+          class="form-input"
+          [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+        />
+      </div>
+      
+      <button type="submit" [disabled]="registerForm.invalid" class="submit-btn">
+        Créer mon compte
+      </button>
+      
+      <div class="form-footer">
+        <a routerLink="/login" class="link-text">Déjà un compte ? Se connecter</a>
+      </div>
+    </form>
+    
+    <div *ngIf="success" class="success-msg">
+      <div class="message-icon">✓</div>
+      <span>Compte créé avec succès !</span>
     </div>
-    <div class="form-group">
-      <label for="password">Mot de passe</label>
-      <input id="password" formControlName="password" type="password" required />
+    
+    <div *ngIf="error" class="error-msg">
+      <div class="message-icon">!</div>
+      <span>{{ error }}</span>
     </div>
-    <button type="submit" [disabled]="registerForm.invalid" class="primary-btn">Créer un compte</button>
-    <div *ngIf="success" class="success-msg">Compte créé avec succès !</div>
-    <div *ngIf="error" class="error-msg">{{ error }}</div>
-  </form>
+  </div>
 </div>

@@ -1,11 +1,17 @@
 <div class="auth-container">
   <div class="auth-card">
-    <h2>Bienvenue sur <span class="brand">TaskForge</span></h2>
-    <a routerLink="/register" class="register-link">
-      <button class="primary-btn">Créer un compte</button>
-    </a>
-    <a routerLink="/login" class="login-link">
-      <button class="primary-btn" style="margin-top:0.5rem;">Se connecter</button>
-    </a>
+    <div class="auth-header">
+      <h1 class="brand">TaskForge</h1>
+      <p class="welcome-text">Organisez vos projets avec simplicité</p>
+    </div>
+    
+    <div class="auth-actions">
+      <a routerLink="/register" class="auth-link">
+        <button class="primary-btn">Créer un compte</button>
+      </a>
+      <a routerLink="/login" class="auth-link">
+        <button class="secondary-btn">Se connecter</button>
+      </a>
+    </div>
   </div>
 </div>
