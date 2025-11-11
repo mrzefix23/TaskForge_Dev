@@ -1,3 +1,16 @@
+<div class="accueil-header">
+  <div class="user-menu-container" (click)="toggleMenu()" tabindex="0" (blur)="closeMenu()" [attr.aria-expanded]="menuOpen">
+    <span class="username">{{ username }}</span>
+    <span class="arrow" [class.open]="menuOpen">&#9662;</span>
+    <div class="dropdown-menu" *ngIf="menuOpen">
+      <button (click)="logout()">Se déconnecter</button>
+    </div>
+  </div>
+</div>
 <div class="accueil-container">
-  <h1>Bienvenue sur <span class="brand">TaskForge</span></h1>
+  <div>
+    <h1>
+      Bienvenue sur <span class="brand">TaskForge</span>
+    </h1>
+  </div>
 </div>

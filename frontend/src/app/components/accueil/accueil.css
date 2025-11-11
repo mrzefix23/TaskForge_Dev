@@ -16,3 +16,71 @@
 .brand {
   color: #3098dc;
 }
+
+.accueil-header {
+  width: 100vw;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1.2rem 2.5rem 0.5rem 0;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.user-menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.username {
+  font-weight: 600;
+  color: #1976d2;
+  margin-right: 0.5rem;
+  font-size: 1.08rem;
+}
+
+.arrow {
+  font-size: 0.9rem;
+  transition: transform 0.2s;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 150px;
+  padding: 0.5rem 0;
+  z-index: 100;
+}
+
+.dropdown-menu button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #d32f2f;
+  padding: 0.7rem 1.2rem;
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 0.15s;
+}
+
+.dropdown-menu button:hover {
+  background: #f5f5f5;
+}

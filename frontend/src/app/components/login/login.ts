@@ -26,12 +26,13 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.http.post<{token: string}>('/auth/login', this.loginForm.value).subscribe({
+      this.http.post<{token: string, username: string}>('/auth/login', this.loginForm.value).subscribe({
         next: (res) => {
           this.success = true;
           this.error = '';
           this.token = res.token;
           localStorage.setItem('token', res.token);
+          localStorage.setItem('username', res.username); // Store username in localStorage
           this.loginForm.reset();
           this.router.navigate(['/accueil']); // Redirect to accueil on successful login
         },
