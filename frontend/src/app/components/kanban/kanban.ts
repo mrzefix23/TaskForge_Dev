@@ -12,16 +12,24 @@ import { Task, TaskStatus } from './types/task';
 })
 export class Kanban {
   tasks: Task[] = [
-    { id: 1, title: 'Design layout', status: 'Open', description: 'Create wireframes for the dashboard UI' },
-    { id: 2, title: 'Implement backend', status: 'In Progress', description: 'Set up REST APIs for task management' },
-    { id: 3, title: 'Write unit tests', status: 'Done', description: 'Add test cases for authentication module' },
-    { id: 4, title: 'Create login screen', status: 'Open', description: 'Build responsive login form with validations' },
-    { id: 5, title: 'Integrate database', status: 'In Progress', description: 'Connect to MongoDB and model schemas' },
-    { id: 6, title: 'Setup CI/CD pipeline', status: 'Done', description: 'Deploy app automatically with GitHub Actions' },
+    { id: 1, title: 'Design layout', status: 'Open', description: 'Create wireframes for the dashboard UI', priority: 'High', sprintId: 1 },
+    { id: 2, title: 'Implement backend', status: 'In Progress', description: 'Set up REST APIs for task management' , priority: 'Medium', sprintId: 1 },
+    { id: 3, title: 'Write unit tests', status: 'Done', description: 'Add test cases for authentication module' , priority: 'Low', sprintId: 2 },
+    { id: 4, title: 'Create login screen', status: 'Open', description: 'Build responsive login form with validations' , priority: 'High', sprintId: 2 },
+    { id: 5, title: 'Integrate database', status: 'In Progress', description: 'Connect to MongoDB and model schemas', priority: 'Medium', sprintId: 1 },
+    { id: 6, title: 'Setup CI/CD pipeline', status: 'Done', description: 'Deploy app automatically with GitHub Actions' , priority: 'Low', sprintId: 3 },
   ];
 
+  // Filters
+  selectedPriority: 'High' | 'Medium' | 'Low' | '' = '';
+  selectedSprint: string = '';
+
+  // Get tasks by status with applied filters
   getTaskByStatus(status: string) {
-    return this.tasks.filter(it => it.status === status)
+    return this.tasks
+      .filter(t => t.status === status)
+      .filter(t => !this.selectedPriority || t.priority === this.selectedPriority)
+      .filter(t => !this.selectedSprint || t.sprintId === Number(this.selectedSprint));
   }
 
   // Editing state

@@ -1,3 +1,23 @@
+<div class="kanban-filters">
+  <div>
+    <label>Sprint: </label>
+    <select [(ngModel)]="selectedSprint">
+      <option value="">All</option>
+      <option *ngFor="let sprintId of [1, 2, 3]" [value]="sprintId">Sprint {{ sprintId }}</option>
+    </select>
+  </div>
+  <div>
+    <label>Priority: </label>
+    <select [(ngModel)]="selectedPriority">
+      <option value="">All</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+  </div>
+</div>
+
+
 <div class="flex max-w-7xl mx-auto gap-4 mt-4">
   <div *ngFor="let status of ['Open', 'In Progress', 'Done']" class="relative bg-gray-200 w-full rounded-md p-4 flex-1 transition-colors duration-300" (drop)="onDrop($event, status)" (dragover)="$event.preventDefault()">
     <div class="flex items-center justify-between mb-4">
