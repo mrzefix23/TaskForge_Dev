@@ -67,6 +67,10 @@
 
 .kanban-filters { display:flex; gap:1rem; justify-content:flex-start; align-items:center; }
 
+/* Header shows grab cursor when draggable */
+.column-header { cursor: grab; }
+.column-header:active { cursor: grabbing; }
+
 /* Kanban filter bar */
 .kanban-filters {
   display: flex;
