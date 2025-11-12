@@ -1,7 +1,7 @@
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Task, TaskStatus } from './types/task';
+import { Task, TaskComment, TaskStatus } from './types/task';
 
 @Component({
   selector: 'app-kanban',
@@ -12,17 +12,41 @@ import { Task, TaskStatus } from './types/task';
 })
 export class Kanban {
   tasks: Task[] = [
-    { id: 1, title: 'Design layout', status: 'Open', description: 'Create wireframes for the dashboard UI', priority: 'High', sprintId: 1 },
-    { id: 2, title: 'Implement backend', status: 'In Progress', description: 'Set up REST APIs for task management' , priority: 'Medium', sprintId: 1 },
-    { id: 3, title: 'Write unit tests', status: 'Done', description: 'Add test cases for authentication module' , priority: 'Low', sprintId: 2 },
-    { id: 4, title: 'Create login screen', status: 'Open', description: 'Build responsive login form with validations' , priority: 'High', sprintId: 2 },
-    { id: 5, title: 'Integrate database', status: 'In Progress', description: 'Connect to MongoDB and model schemas', priority: 'Medium', sprintId: 1 },
+    { id: 1, title: 'Design layout', status: 'Open', description: 'Create wireframes for the dashboard UI', priority: 'High', sprintId: 1 ,deadline: '2025-11-15', peopleAssigned: [1, 2]},
+    { id: 2, title: 'Implement backend', status: 'In Progress', description: 'Set up REST APIs for task management' , priority: 'Medium', sprintId: 1, deadline: '2025-11-20', peopleAssigned: [2]},
+    { id: 3, title: 'Write unit tests', status: 'Done', description: 'Add test cases for authentication module' , priority: 'Low', sprintId: 2 , deadline: '2025-11-10', peopleAssigned: [3]},
+    { id: 4, title: 'Create login screen', status: 'Open', description: 'Build responsive login form with validations' , priority: 'High', sprintId: 2, deadline: '2025-11-18'},
+    { id: 5, title: 'Integrate database', status: 'In Progress', description: 'Connect to MongoDB and model schemas', priority: 'Medium', sprintId: 1 ,peopleAssigned: [1,3]},
     { id: 6, title: 'Setup CI/CD pipeline', status: 'Done', description: 'Deploy app automatically with GitHub Actions' , priority: 'Low', sprintId: 3 },
+  ];
+
+  members = [
+    { id: 1, username: 'alice' },
+    { id: 2, username: 'bob' },
+    { id: 3, username: 'charlie' },
   ];
 
   // Filters
   selectedPriority: 'High' | 'Medium' | 'Low' | '' = '';
   selectedSprint: string = '';
+
+  // task selected
+  selectedTask: Task | null = null;
+
+  // comment editing state
+  editingCommentId: number | null = null;
+
+  // new comment content
+  newCommentContent: string = '';
+
+  // show/hide members dropdown
+  showPriorityDropdown = false;
+
+  // show/hide deadline picker
+  showDeadlinePicker = false;
+
+  // show/hide members dropdown
+  showMembersDropdown = false;
 
   // Get tasks by status with applied filters
   getTaskByStatus(status: string) {
@@ -244,5 +268,150 @@ export class Kanban {
   onDragEnd(event: DragEvent) {
     (event.target as HTMLElement).classList.remove("dragging");
   }
+
+  // task details panel
+  openTaskDetails(task: Task) {
+    this.selectedTask = task; 
+    this.closeContextMenu();
+
+    this.showMembersDropdown = false;
+    this.showDeadlinePicker = false;
+    this.showPriorityDropdown = false;
+  }
+
+
+  // close task details panel
+  closeTaskDetails() {
+    this.selectedTask = null;
+  }
+
+  // save task details from panel
+  saveTaskDetails() {
+    if (!this.selectedTask) return;
+    const t = this.tasks.find(x => x.id === this.selectedTask!.id);
+    if (t) {
+      Object.assign(t, this.selectedTask);
+    }
+    this.selectedTask = null;
+  }
+
+  // get column label by status
+  getColumnLabel(status: string): string {
+    const col = this.columns.find(c => c.id === status);
+    return col ? col.label : status;
+  }
+
+  // get member username by id
+  getMemberUsername(memberId: number): string {
+    const member = this.members.find(m => m.id === memberId);
+    return member ? member.username : 'Unknown';
+  }
+
+  // get assigned members as string
+  getAssignedMembers(task: Task): string {
+    if (!task.peopleAssigned || task.peopleAssigned.length === 0) {
+      return 'None';
+    }
+    return task.peopleAssigned.map(id => this.getMemberUsername(id)).join(', ');
+  }
+
+  // edit comment
+  editComment(comment: TaskComment) {
+    const newContent = prompt('Edit comment:', comment.content);
+    if (newContent !== null) {
+      comment.content = newContent;
+    }
+  }
+
+  // delete comment
+  deleteComment(comment: TaskComment, task?: Task) {
+    if (!task || !task.comments) return;
+    task.comments = task.comments.filter(c => c.id !== comment.id);
+  }
+
+  // show/hide members dropdown
+  toggleMembersDropdown() {
+    this.showMembersDropdown = !this.showMembersDropdown;
+  }
+
+  // assign/unassign member
+  toggleMember(task: Task | null, memberId: number) {
+    if (!task) return;
+    if (!task.peopleAssigned) {
+      task.peopleAssigned = [];
+    }
+    const index = task.peopleAssigned.indexOf(memberId);
+    if (index === -1) {
+      task.peopleAssigned.push(memberId);
+    } else {
+      task.peopleAssigned.splice(index, 1);
+    }
+  }
+
+  // show/hide deadline picker
+  toggleDeadlinePicker() {
+    this.showDeadlinePicker = !this.showDeadlinePicker;
+  }
+
+  // save deadline
+  saveDeadline(task: Task | null, deadline: string) {
+    if (!task) return;
+    task.deadline = deadline;
+    this.showDeadlinePicker = false;
+  }
+
+  // show/hide priority dropdown
+  togglePriorityDropdown() {
+    this.showPriorityDropdown = !this.showPriorityDropdown;
+  }
+
+  // check if member is assigned to task
+  isMemberAssigned(task: Task | null, memberId: number): boolean {
+    if (!task || !task.peopleAssigned) return false;
+    return task.peopleAssigned.includes(memberId);
+  }
+
+  // update task description
+  updateTaskDescription(newDesc: string) {
+    if (!this.selectedTask) return;
+    this.selectedTask.description = newDesc;
+
+    const t = this.tasks.find(task => task.id === this.selectedTask!.id);
+    if (t) {
+      t.description = newDesc; 
+    }
+  }
+
+  // add a new comment
+  addComment() {
+    if (!this.selectedTask || !this.newCommentContent.trim()) return;
+
+    const newComment: TaskComment = {
+      id: Date.now(), 
+      authorId: 1, 
+      content: this.newCommentContent.trim(),
+      date: new Date().toISOString(),
+      taskId: this.selectedTask.id
+    };
+
+    if (!this.selectedTask.comments) {
+      this.selectedTask.comments = [];
+    }
+
+    this.selectedTask.comments.push(newComment);
+    this.newCommentContent = ''; 
+  }
+
+  // start editing a comment
+  startEditingComment(commentId: number) {
+    this.editingCommentId = commentId;
+  }
+
+  // Save edited comment
+  saveComment(comment: TaskComment) {
+    this.editingCommentId = null;
+  }
+
+
 
 }

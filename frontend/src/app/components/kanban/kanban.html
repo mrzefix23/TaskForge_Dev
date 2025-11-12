@@ -50,9 +50,8 @@
            [class.prio-medium]="task.priority === 'Medium'"
            [class.prio-high]="task.priority === 'High'">
         <ng-container *ngIf="editingTaskId !== task.id; else editBlock">
-          <div (click)="startEdit(task)">
-            <!-- Titles removed: show only description -->
-            <p class="task-desc">{{ task.description }}</p>
+          <div (click)="openTaskDetails(task)">
+            {{ task.title }}
           </div>
         </ng-container>
 
@@ -77,5 +76,135 @@
   </div>
   <div class="context-section">
     <button class="context-item danger" (click)="deleteTaskById(contextMenuTaskId)">Supprimer</button>
+  </div>
+</div>
+
+<!-- Task Details Modal -->
+<div *ngIf="selectedTask" class="modal-backdrop" (click)="closeTaskDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="modal-header" 
+        [ngClass]="{
+          'prio-low': selectedTask?.priority === 'Low',
+          'prio-medium': selectedTask?.priority === 'Medium',
+          'prio-high': selectedTask?.priority === 'High'
+        }">
+      <input 
+        type="text" 
+        [(ngModel)]="selectedTask.title" 
+        class="task-title-input"
+      />
+      <button class="close-btn" (click)="closeTaskDetails()">✖</button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <!-- Left section -->
+      <div class="modal-left">
+        <!-- Buttons -->
+        <div class="task-buttons-container">
+          <div class="task-buttons">
+            <button (click)="showMembersDropdown = !showMembersDropdown">Assign Members</button>
+            <button (click)="showDeadlinePicker = !showDeadlinePicker">Deadline</button>
+            <button (click)="showPriorityDropdown = !showPriorityDropdown">Priority</button>
+          </div>
+
+          <!-- Members Dropdown -->
+          <div *ngIf="showMembersDropdown" class="dropdown-box">
+            <button class="close-box-btn" (click)="showMembersDropdown = false">✖</button>
+            <div *ngFor="let member of members" class="dropdown-item">
+              <label class="checkbox-label">
+                <input type="checkbox"
+                      [checked]="isMemberAssigned(selectedTask, member.id)"
+                      (change)="toggleMember(selectedTask, member.id)">
+                {{ member.username }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Deadline Picker -->
+          <div *ngIf="showDeadlinePicker" class="dropdown-box">
+            <button class="close-box-btn" (click)="showDeadlinePicker = false">✖</button>
+            <input type="date" [(ngModel)]="selectedTask.deadline">
+          </div>
+
+          <!-- Priority Dropdown -->
+          <div *ngIf="showPriorityDropdown" class="dropdown-box">
+            <button class="close-box-btn" (click)="showPriorityDropdown = false">✖</button>
+            <div class="dropdown-item" (click)="selectedTask.priority = 'Low'; showPriorityDropdown = false;">Low</div>
+            <div class="dropdown-item" (click)="selectedTask.priority = 'Medium'; showPriorityDropdown = false;">Medium</div>
+            <div class="dropdown-item" (click)="selectedTask.priority = 'High'; showPriorityDropdown = false;">High</div>
+          </div>
+
+
+
+          <!-- Task Info -->
+          <div class="task-info">
+            <p><strong>Members:</strong> {{ getAssignedMembers(selectedTask) }}</p>
+            <p><strong>Deadline:</strong> {{ selectedTask.deadline || 'Not set' }}</p>
+            <p><strong>Priority:</strong> {{ selectedTask.priority || 'Not set' }}</p>
+          </div>
+        </div>
+
+        <!-- Middle section: Description -->
+        <div class="modal-middle">
+          <h3>Description</h3>
+          <textarea 
+            [(ngModel)]="selectedTask.description" 
+            (ngModelChange)="updateTaskDescription($event)" 
+            rows="5" 
+            class="description-textarea">
+          </textarea>
+        </div>
+
+      </div>
+
+
+      <!-- Right section: Comments -->
+      <div class="modal-right">
+        <div class="comments-container">
+          <!-- Comment list -->
+          <div class="comments-list">
+            <div *ngFor="let comment of selectedTask.comments" class="comment">
+              <div class="comment-header">
+                <span>{{ getMemberUsername(comment.authorId) }}</span>
+                <span>{{ comment.date | date:'short' }}</span>
+              </div>
+              
+              <!-- Texte ou textarea selon si on édite -->
+              <div class="comment-body">
+                <textarea *ngIf="editingCommentId === comment.id"
+                          [(ngModel)]="comment.content"
+                          rows="3"
+                          class="edit-comment-textarea">
+                </textarea>
+                <div *ngIf="editingCommentId !== comment.id">
+                  {{ comment.content }}
+                </div>
+              </div>
+
+              <div class="comment-actions">
+                <!-- Edit / Save -->
+                <button *ngIf="editingCommentId !== comment.id" (click)="startEditingComment(comment.id)">Edit</button>
+                <button *ngIf="editingCommentId === comment.id" (click)="saveComment(comment)">Save</button>
+                
+                <!-- Delete -->
+                <button (click)="deleteComment(comment, selectedTask)">Delete</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add new comment (fixed at bottom) -->
+          <div class="new-comment">
+            <textarea [(ngModel)]="newCommentContent" rows="2" placeholder="Write a comment..."></textarea>
+            <button (click)="addComment()">Add Comment</button>
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
   </div>
 </div>

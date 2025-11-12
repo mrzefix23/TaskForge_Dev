@@ -110,3 +110,305 @@
   border-color: #3b82f6; /* blue-600 */
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
+
+/* === Color Variables === */
+:root {
+  --primary-color: #007bff;
+  --primary-hover: #0056b3;
+  --bg-light: #fafafa;
+  --border-light: #ccc;
+  --text-dark: #333;
+  --text-muted: #555;
+}
+
+/* --- Modal Backdrop --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* --- Modal Content --- */
+.modal-content {
+  background: #fff;
+  width: 80%;
+  max-width: 900px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Modal Header --- */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 15px 20px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  color: var(--text-dark);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* --- Layout Modal Body --- */
+.modal-body {
+  display: flex;
+  gap: 20px;
+}
+
+.modal-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.modal-right {
+  flex: 1;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* --- Buttons Factorisés --- */
+.btn {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: #f0f0f0;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+/* --- Task Buttons --- */
+.task-buttons button {
+  padding: 5px 10px;
+  border: 1px solid #e0e0e0; 
+  border-radius: 4px;
+  background: #f9f9f9; 
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.task-buttons button:hover {
+  background: #e8e8e8; 
+}
+
+/* --- Dropdowns & Pickers --- */
+.dropdown, .datepicker {
+  margin-top: 5px;
+  padding: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-light);
+}
+
+.dropdown-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  background-color: #fff;
+  margin-bottom: 3px;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #e0e0e0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+  gap: 6px;
+  padding: 4px 6px;
+}
+
+.checkbox-label:hover {
+  background-color: #f0f0f0;
+}
+
+/* --- Task Info --- */
+.task-info p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* --- Textareas Factorisés --- */
+textarea {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.description-textarea,
+.new-comment textarea {
+  background: #f9f9f9; 
+  border: 1px solid #e0e0e0; 
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 14px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.description-textarea:focus,
+.new-comment textarea:focus {
+  border-color: var(--primary-color);
+  background: #f0f0f0; 
+}
+
+.edit-comment-textarea {
+  min-height: 50px;
+  margin-bottom: 5px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* --- Task Title Input --- */
+.task-title-input {
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  color: var(--text-dark);
+}
+
+.task-title-input:focus {
+  border-bottom: 1px solid var(--primary-color);
+}
+
+/* --- Comments --- */
+.comments-container {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  border: 1px solid #e0e0e0; 
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.comments-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment {
+  padding: 8px 10px;
+  background: #f9f9f9; 
+  border: 1px solid #e0e0e0; 
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--text-dark);
+}
+
+.comment-body {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 5px;
+}
+
+/* --- New Comment --- */
+.new-comment {
+  padding: 10px;
+  border-top: 1px solid #e0e0e0; 
+  background: #f9f9f9; 
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.new-comment button {
+  align-self: flex-end;
+}
+
+/* --- Dropdown / Picker Box --- */
+.dropdown-box {
+  position: relative;
+  margin-top: 5px;
+  padding: 10px;
+  border: 1px solid #e0e0e0; 
+  border-radius: 6px;
+  background: #f9f9f9; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.close-box-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: #666;
+  padding: 2px 5px;
+  line-height: 1;
+}
+
+.close-box-btn:hover {
+  color: #000;
+}
+
+.dropdown-box .dropdown-item,
+.dropdown-box input[type="date"] {
+  margin-top: 5px;
+}
