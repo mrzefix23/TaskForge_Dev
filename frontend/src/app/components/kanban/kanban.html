@@ -18,15 +18,30 @@
 </div>
 
 
+<div class="flex items-center max-w-7xl mx-auto gap-4 mt-4 mb-2">
+  <div class="flex-1"></div>
+  <div>
+    <button class="add-task-btn" (click)="addColumn()">＋</button>
+  </div>
+</div>
+
 <div class="flex max-w-7xl mx-auto gap-4 mt-4">
-  <div *ngFor="let status of ['Open', 'In Progress', 'Done']" class="relative bg-gray-200 w-full rounded-md p-4 flex-1 transition-colors duration-300" (drop)="onDrop($event, status)" (dragover)="$event.preventDefault()">
+  <div *ngFor="let col of columns" class="relative bg-gray-200 w-full rounded-md p-4 flex-1 transition-colors duration-300" (drop)="onDrop($event, col.id)" (dragover)="$event.preventDefault()">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="font-bold text-lg text-gray-600">{{ status | titlecase }}</h3>
-      <button class="add-task-btn" (click)="addTask(status)" title="Ajouter une tâche">＋</button>
+      <ng-container *ngIf="editingColumnId !== col.id; else editCol">
+        <h3 class="font-bold text-lg text-gray-600">{{ col.label }}</h3>
+        <div class="flex gap-2">
+          <button class="add-task-btn" (click)="addTask(col.id)" title="Ajouter une tâche">＋</button>
+          <button class="add-task-btn" (click)="startEditColumn(col)" title="Renommer la colonne">✎</button>
+        </div>
+      </ng-container>
+      <ng-template #editCol>
+        <input [id]="'col-input-' + getSafeId(col.id)" class="kanban-input" [(ngModel)]="editedColumnLabel" (keydown.enter)="saveColumn(col)" (blur)="saveColumn(col)" />
+      </ng-template>
     </div>
 
     <div class="flex flex-col gap-4">
-      <div *ngFor="let task of getTaskByStatus(status)" class="bg-white px-5 py-3 rounded-md cursor-pointer transition-transform duration-200 ease-in-out animate-fade-in"
+      <div *ngFor="let task of getTaskByStatus(col.id)" class="bg-white px-5 py-3 rounded-md cursor-pointer transition-transform duration-200 ease-in-out animate-fade-in"
            [draggable]="editingTaskId !== task.id"
            (dragstart)="onDragStart($event, task)"
            (dragend)="onDragEnd($event)"

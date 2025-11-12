@@ -6,7 +6,7 @@ import { Task, TaskStatus } from './types/task';
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [CommonModule, FormsModule, TitleCasePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './kanban.html',
   styleUrls: ['./kanban.css'],
 })
@@ -32,6 +32,17 @@ export class Kanban {
       .filter(t => !this.selectedSprint || t.sprintId === Number(this.selectedSprint));
   }
 
+  // columns configuration (id is the status value stored on tasks, label is the editable name)
+  columns: Array<{ id: string; label: string }> = [
+    { id: 'Open', label: 'Open' },
+    { id: 'In Progress', label: 'In Progress' },
+    { id: 'Done', label: 'Done' },
+  ];
+
+  // column edit state
+  editingColumnId: string | null = null;
+  editedColumnLabel = '';
+
   // Editing state
   editingTaskId: number | null = null;
   editedDescription = '';
@@ -53,6 +64,44 @@ export class Kanban {
         el.select();
       }
     }, 0);
+  }
+
+  // column operations
+  startEditColumn(col: { id: string; label: string }) {
+    this.editingColumnId = col.id;
+    this.editedColumnLabel = col.label;
+    setTimeout(() => {
+      const safeId = col.id.replace(/\s+/g, '-');
+      const el = document.getElementById(`col-input-${safeId}`) as HTMLInputElement | null;
+      if (el) {
+        el.focus();
+        el.select();
+      }
+    }, 0);
+  }
+
+  saveColumn(col: { id: string; label: string }) {
+    if (!this.editingColumnId) return;
+    const c = this.columns.find(x => x.id === col.id);
+    if (!c) return;
+    c.label = this.editedColumnLabel.trim() || c.label;
+    this.editingColumnId = null;
+  }
+
+  cancelEditColumn() {
+    this.editingColumnId = null;
+  }
+
+  addColumn() {
+    const id = `col-${Date.now()}`;
+    const newCol = { id, label: 'Nouvelle colonne' };
+    this.columns.push(newCol);
+    // open for editing
+    setTimeout(() => this.startEditColumn(newCol), 0);
+  }
+
+  getSafeId(id: string) {
+    return id.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
   }
 
   openContextMenu(event: MouseEvent, task: Task) {
@@ -99,7 +148,6 @@ export class Kanban {
   }
 
   private onWindowClick = (e: MouseEvent) => {
-    // close context menu when clicking outside
     if (this.contextMenuVisible) this.closeContextMenu();
   }
 
