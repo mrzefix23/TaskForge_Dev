@@ -1,5 +1,5 @@
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Task, TaskStatus } from './types/task';
 
@@ -35,6 +35,11 @@ export class Kanban {
   // Editing state
   editingTaskId: number | null = null;
   editedDescription = '';
+  // context menu state
+  contextMenuVisible = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  contextMenuTaskId: number | null = null;
 
   startEdit(task: Task) {
     this.editingTaskId = task.id;
@@ -48,6 +53,68 @@ export class Kanban {
         el.select();
       }
     }, 0);
+  }
+
+  openContextMenu(event: MouseEvent, task: Task) {
+    event.preventDefault();
+    this.contextMenuTaskId = task.id;
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.contextMenuVisible = true;
+  }
+
+  setPriority(task: Task, priority: 'Low' | 'Medium' | 'High') {
+    const t = this.tasks.find(x => x.id === task.id);
+    if (!t) return;
+    t.priority = priority;
+    this.contextMenuVisible = false;
+  }
+
+  deleteTask(task: Task) {
+    this.tasks = this.tasks.filter(t => t.id !== task.id);
+    this.contextMenuVisible = false;
+    // if currently editing this task, cancel edit
+    if (this.editingTaskId === task.id) this.cancelEdit();
+  }
+
+  // safer helpers that take an id (used by the template)
+  setPriorityById(taskId: number | null, priority: 'Low' | 'Medium' | 'High') {
+    if (taskId == null) return;
+    const t = this.tasks.find(x => x.id === taskId);
+    if (!t) return;
+    t.priority = priority;
+    this.closeContextMenu();
+  }
+
+  deleteTaskById(taskId: number | null) {
+    if (taskId == null) return;
+    this.tasks = this.tasks.filter(t => t.id !== taskId);
+    if (this.editingTaskId === taskId) this.cancelEdit();
+    this.closeContextMenu();
+  }
+
+  closeContextMenu() {
+    this.contextMenuVisible = false;
+    this.contextMenuTaskId = null;
+  }
+
+  private onWindowClick = (e: MouseEvent) => {
+    // close context menu when clicking outside
+    if (this.contextMenuVisible) this.closeContextMenu();
+  }
+
+  private onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && this.contextMenuVisible) this.closeContextMenu();
+  }
+
+  ngOnInit(): void {
+    window.addEventListener('click', this.onWindowClick);
+    window.addEventListener('keydown', this.onKeyDown);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('click', this.onWindowClick);
+    window.removeEventListener('keydown', this.onKeyDown);
   }
 
   addTask(status: string) {

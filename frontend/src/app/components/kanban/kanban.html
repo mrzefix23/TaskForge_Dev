@@ -26,7 +26,14 @@
     </div>
 
     <div class="flex flex-col gap-4">
-      <div *ngFor="let task of getTaskByStatus(status)" class="bg-white px-5 py-3 rounded-md cursor-pointer transition-transform duration-200 ease-in-out animate-fade-in" [draggable]="editingTaskId !== task.id" (dragstart)="onDragStart($event, task)" (dragend)="onDragEnd($event)">
+      <div *ngFor="let task of getTaskByStatus(status)" class="bg-white px-5 py-3 rounded-md cursor-pointer transition-transform duration-200 ease-in-out animate-fade-in"
+           [draggable]="editingTaskId !== task.id"
+           (dragstart)="onDragStart($event, task)"
+           (dragend)="onDragEnd($event)"
+           (contextmenu)="openContextMenu($event, task)"
+           [class.prio-low]="task.priority === 'Low'"
+           [class.prio-medium]="task.priority === 'Medium'"
+           [class.prio-high]="task.priority === 'High'">
         <ng-container *ngIf="editingTaskId !== task.id; else editBlock">
           <div (click)="startEdit(task)">
             <!-- Titles removed: show only description -->
@@ -42,5 +49,18 @@
         </ng-template>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div *ngIf="contextMenuVisible" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
+  <div class="context-section">
+    <div class="context-title">Priority</div>
+    <button class="context-item" (click)="setPriorityById(contextMenuTaskId, 'Low')">Low</button>
+    <button class="context-item" (click)="setPriorityById(contextMenuTaskId, 'Medium')">Medium</button>
+    <button class="context-item" (click)="setPriorityById(contextMenuTaskId, 'High')">High</button>
+  </div>
+  <div class="context-section">
+    <button class="context-item danger" (click)="deleteTaskById(contextMenuTaskId)">Supprimer</button>
   </div>
 </div>
