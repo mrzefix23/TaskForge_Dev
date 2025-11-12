@@ -1,6 +1,6 @@
 package com.taskforge.controller;
 
-import com.taskforge.model.User;
+import com.taskforge.models.User;
 import com.taskforge.service.UserService;
 import com.taskforge.dto.UserDto;
 import org.springframework.web.bind.annotation.*;
