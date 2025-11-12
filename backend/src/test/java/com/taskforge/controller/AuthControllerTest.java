@@ -2,7 +2,7 @@ package com.taskforge.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taskforge.dto.RegisterRequest;
-import com.taskforge.repository.UserRepository;
+import com.taskforge.repositories.UserRepository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

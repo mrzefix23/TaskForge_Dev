@@ -1,4 +1,4 @@
-package com.taskforge.repository;
+package com.taskforge.repositories;
 
 import com.taskforge.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;

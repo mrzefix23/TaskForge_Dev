@@ -1,7 +1,7 @@
 package com.taskforge.service;
 
 import com.taskforge.models.User;
-import com.taskforge.repository.UserRepository;
+import com.taskforge.repositories.UserRepository;
 import com.taskforge.dto.UserDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
