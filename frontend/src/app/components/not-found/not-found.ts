@@ -2,12 +2,10 @@ import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-auth',
+  selector: 'app-not-found',
   standalone: true,
   imports: [RouterModule],
-  templateUrl: './auth.html',
-  styleUrl: './auth.css'
+  templateUrl: './not-found.html',
+  styleUrl: './not-found.css'
 })
-export class AuthComponent {
-  currentYear = new Date().getFullYear();
-}
+export class NotFoundComponent {}
