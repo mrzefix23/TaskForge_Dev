@@ -51,6 +51,8 @@ export class Kanban {
   contextMenuX = 0;
   contextMenuY = 0;
   contextMenuTaskId: number | null = null;
+  // column dragging state
+  draggingColumnId: string | null = null;
 
   startEdit(task: Task) {
     this.editingTaskId = task.id;
@@ -179,11 +181,20 @@ export class Kanban {
     this.startEdit(newTask);
   }
 
+  // column drag handlers
+  onColumnDragStart(event: DragEvent, col: { id: string; label: string }) {
+    event.dataTransfer?.setData('text', `col:${col.id}`);
+    this.draggingColumnId = col.id;
+  }
+
+  onColumnDragEnd(event: DragEvent) {
+    this.draggingColumnId = null;
+  }
+
   saveEdit(task: Task) {
     if (!this.editingTaskId) return;
     const t = this.tasks.find(x => x.id === task.id);
     if (!t) return;
-    // update only description (titles removed from display)
     t.description = this.editedDescription.trim();
     this.editingTaskId = null;
   }
@@ -194,7 +205,23 @@ export class Kanban {
 
   onDrop(event: DragEvent, status: string) {
     event.preventDefault();
-    const taskId = Number(event.dataTransfer?.getData("text"));
+    const data = event.dataTransfer?.getData('text') || '';
+    if (data.startsWith('col:')) {
+      const sourceId = data.slice(4);
+      const targetId = status;
+      if (sourceId === targetId) return;
+      const srcIndex = this.columns.findIndex(c => c.id === sourceId);
+      const tgtIndex = this.columns.findIndex(c => c.id === targetId);
+      if (srcIndex === -1 || tgtIndex === -1) return;
+      const [col] = this.columns.splice(srcIndex, 1);
+      // insert at target index
+      this.columns.splice(tgtIndex, 0, col);
+      this.draggingColumnId = null;
+      return;
+    }
+
+    // otherwise assume task move
+    const taskId = Number(data || event.dataTransfer?.getData("text"));
     const task = this.tasks.find(t => t.id === taskId);
     if (task) {
       task.status = status as TaskStatus;
