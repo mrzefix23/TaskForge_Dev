@@ -1,14 +1,6 @@
-<div class="accueil-header">
-  <a routerLink="/" class="accueil-logo">TaskForge</a>
-  <div class="user-menu" (click)="toggleMenu()" tabindex="0" (blur)="closeMenu()" [attr.aria-expanded]="menuOpen">
-    <span class="user-menu-username">{{ username }}</span>
-    <span class="user-menu-arrow" [class.open]="menuOpen">&#9662;</span>
-    <div class="user-menu-dropdown" *ngIf="menuOpen">
-      <button (click)="logout()">Se déconnecter</button>
-    </div>
-  </div>
-</div>
+<app-header></app-header>
 <main class="accueil-main">
   <h1 class="accueil-title">Bienvenue, <span class="accueil-accent">{{ username }}</span></h1>
   <a routerLink="/projects" class="accueil-cta-btn">Voir mes projets</a>
+  <button (click)="createProject()" class="accueil-cta-btn">Créer un nouveau projet</button>
 </main>

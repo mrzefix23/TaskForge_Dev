@@ -1,16 +1,15 @@
 import { Component } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { HeaderComponent } from '../header/header';
 
 @Component({
-  selector: 'app-accueil',
+  selector: 'app-header',
   standalone: true,
-  templateUrl: './accueil.html',
-  styleUrls: ['./accueil.css'],
-  imports: [CommonModule, HeaderComponent]
+  imports: [RouterModule, CommonModule],
+  templateUrl: './header.html',
+  styleUrl: './header.css'
 })
-export class AccueilComponent {
+export class HeaderComponent {
   username = localStorage.getItem('username');
   menuOpen = false;
 
@@ -28,9 +27,5 @@ export class AccueilComponent {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     this.router.navigate(['/']);
-  }
-
-  createProject() {
-    this.router.navigate(['/projects/create']);
   }
 }
