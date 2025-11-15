@@ -89,6 +89,7 @@
   color: #232323;
   text-transform: uppercase;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .accueil-main {
@@ -132,6 +133,7 @@
 
 .accueil-cta-btn:hover {
   background: #333;
+  cursor: pointer;
 }
 
 .user-menu {
