@@ -19,4 +19,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("message", ex.getMessage()));
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<?> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(Map.of("message", ex.getMessage()));
+    }
 }

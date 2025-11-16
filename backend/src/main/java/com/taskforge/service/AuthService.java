@@ -11,12 +11,12 @@ import com.taskforge.models.User;
 import com.taskforge.dto.AuthResponse;
 import com.taskforge.exceptions.UsernameAlreadyExists;
 import com.taskforge.exceptions.EmailAlreadyExists;
+import com.taskforge.exceptions.InvalidCredentialsException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 
@@ -65,16 +65,15 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
         } catch (AuthenticationException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+            throw new InvalidCredentialsException("Le nom d'utilisateur ou le mot de passe est incorrect");
         }
 
         User user = userRepository.findByUsername(request.getUsername())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
-
+            .orElseThrow(() -> new InvalidCredentialsException("Le nom d'utilisateur ou le mot de passe est incorrect"));
         String token = jwtService.generateToken(user);
 
         return AuthResponse.builder()
