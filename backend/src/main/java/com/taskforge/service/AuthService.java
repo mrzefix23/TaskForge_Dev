@@ -9,12 +9,16 @@ import com.taskforge.dto.LoginRequest;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.models.User;
 import com.taskforge.dto.AuthResponse;
+import com.taskforge.exceptions.UsernameAlreadyExists;
+import com.taskforge.exceptions.EmailAlreadyExists;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+
 
 @Service
 public class AuthService {
@@ -33,10 +37,10 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
+            throw new UsernameAlreadyExists("Ce nom d'utilisateur existe déjà");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
+            throw new EmailAlreadyExists("Cet email existe déjà");
         }
         if (request.getPassword() == null || request.getPassword().length() < 8) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters");
