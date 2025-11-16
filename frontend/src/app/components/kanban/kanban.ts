@@ -69,6 +69,7 @@ export class Kanban {
 
   // Editing state
   editingTaskId: number | null = null;
+  editedTitle = '';
   editedDescription = '';
   // context menu state
   contextMenuVisible = false;
@@ -77,14 +78,17 @@ export class Kanban {
   contextMenuTaskId: number | null = null;
   // column dragging state
   draggingColumnId: string | null = null;
+  // track a newly created task so we can special-case the edit UI
+  newlyCreatedTaskId: number | null = null;
 
   startEdit(task: Task) {
     this.editingTaskId = task.id;
-    // we only edit the description now (no separate title)
-    this.editedDescription = task.description;
-    // focus the single-line input after the view updates
+    // edit both title and description
+    this.editedTitle = task.title || '';
+    this.editedDescription = task.description || '';
+    // focus the title input after the view updates
     setTimeout(() => {
-      const el = document.getElementById(`edit-input-${task.id}`) as HTMLInputElement | null;
+      const el = document.getElementById(`edit-title-${task.id}`) as HTMLInputElement | null;
       if (el) {
         el.focus();
         el.select();
@@ -196,11 +200,13 @@ export class Kanban {
     const maxId = this.tasks.reduce((m, t) => Math.max(m, t.id), 0);
     const newTask: Task = {
       id: maxId + 1,
-      title: '',
+      title: 'Nouvelle tâche',
       status: status as TaskStatus,
       description: ''
     };
     this.tasks.unshift(newTask);
+    // mark as newly created so edit UI can hide the description input
+    this.newlyCreatedTaskId = newTask.id;
     // open the new task for editing in the column where it was added
     this.startEdit(newTask);
   }
@@ -219,12 +225,39 @@ export class Kanban {
     if (!this.editingTaskId) return;
     const t = this.tasks.find(x => x.id === task.id);
     if (!t) return;
+    t.title = this.editedTitle.trim() || t.title;
     t.description = this.editedDescription.trim();
     this.editingTaskId = null;
+    // clear newly-created marker when saved
+    if (this.newlyCreatedTaskId === task.id) this.newlyCreatedTaskId = null;
   }
 
   cancelEdit() {
+    // cancel edit and clear newly-created marker if appropriate
+    if (this.newlyCreatedTaskId !== null && this.editingTaskId === this.newlyCreatedTaskId) {
+      this.newlyCreatedTaskId = null;
+    }
     this.editingTaskId = null;
+  }
+
+  focusDesc(taskId: number) {
+    setTimeout(() => {
+      const el = document.getElementById(`edit-desc-${taskId}`) as HTMLInputElement | null;
+      if (el) {
+        el.focus();
+        el.select();
+      }
+    }, 0);
+  }
+
+  onTitleEnter(task: Task) {
+    // If this task was just created and the description input is hidden,
+    // pressing Enter should save the task. Otherwise focus description.
+    if (this.newlyCreatedTaskId === task.id) {
+      this.saveEdit(task);
+    } else {
+      this.focusDesc(task.id);
+    }
   }
 
   onDrop(event: DragEvent, status: string) {

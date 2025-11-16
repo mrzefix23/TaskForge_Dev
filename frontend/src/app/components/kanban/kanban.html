@@ -57,8 +57,10 @@
 
         <ng-template #editBlock>
           <div class="kanban-edit">
-            <!-- Single-line input to feel like editing inline; save on blur/enter, cancel on Escape -->
-            <input id="edit-input-{{task.id}}" class="kanban-input" type="text" [(ngModel)]="editedDescription" (keydown.enter)="saveEdit(task)" (keydown.escape)="cancelEdit()" (blur)="saveEdit(task)" />
+            <!-- Title input -->
+            <input id="edit-title-{{task.id}}" class="kanban-input" type="text" [(ngModel)]="editedTitle" (keydown.enter)="onTitleEnter(task)" (keydown.escape)="cancelEdit()" />
+            <!-- Single-line description input; Enter saves, Escape cancels, blur saves -->
+            <input *ngIf="newlyCreatedTaskId !== task.id" id="edit-desc-{{task.id}}" class="kanban-input mt-2" type="text" [(ngModel)]="editedDescription" (keydown.enter)="saveEdit(task)" (keydown.escape)="cancelEdit()" (blur)="saveEdit(task)" />
           </div>
         </ng-template>
       </div>
