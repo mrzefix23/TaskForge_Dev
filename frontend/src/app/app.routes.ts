@@ -12,7 +12,7 @@ export const routes: Routes = [
   { path: '', component: AuthComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'kanban', component: Kanban }
+  { path: 'kanban', component: Kanban },
   { path: 'accueil', component: AccueilComponent, canActivate: [AuthGuard] },
   { path: 'projects/create', component: CreateProjectComponent, canActivate: [AuthGuard] },
   { path: 'error', component: NotFoundComponent }
