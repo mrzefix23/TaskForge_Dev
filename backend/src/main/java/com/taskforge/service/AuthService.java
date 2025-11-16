@@ -6,8 +6,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.taskforge.dto.RegisterRequest;
 import com.taskforge.dto.LoginRequest;
-import com.taskforge.repository.UserRepository;
-import com.taskforge.model.User;
+import com.taskforge.repositories.UserRepository;
+import com.taskforge.models.User;
 import com.taskforge.dto.AuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,4 +1,4 @@
-package com.taskforge.model;
+package com.taskforge.models;
 
 import jakarta.persistence.*;
 import lombok.*;

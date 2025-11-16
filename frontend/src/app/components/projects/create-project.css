@@ -1,0 +1,123 @@
+.create-project-container {
+  max-width: 480px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  padding: 2.5rem 2rem;
+}
+
+.create-project-container h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.create-project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 90%;
+  padding: 0.8rem 1rem;
+  border: 2px solid #e5e5e7;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fafbfc;
+  margin-bottom: 0.3rem;
+  transition: border 0.2s;
+}
+
+.form-group input.error {
+  border-color: #ff3b30;
+  background: #fff5f5;
+}
+
+.form-group textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.add-btn {
+  background: #e3e3e3;
+  color: #232323;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 0.3rem;
+}
+
+.add-btn:hover {
+  background: #d1d1d1;
+}
+
+.remove-btn {
+  background: #ff3b30;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  background: #d32f2f;
+}
+
+.submit-btn {
+  background: #232323;
+  color: #fff;
+  border: none;
+  padding: 1rem 0;
+  border-radius: 10px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.18s;
+}
+
+.submit-btn:disabled {
+  background: #c7c7cc;
+  cursor: not-allowed;
+}
+
+.success-msg {
+  color: #30d158;
+  background: #eafbe7;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.error-msg {
+  color: #ff3b30;
+  background: #fff5f5;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  margin-top: 1rem;
+  text-align: center;
+}

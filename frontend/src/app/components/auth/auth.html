@@ -1,11 +1,20 @@
-<div class="auth-container">
-  <div class="auth-card">
-    <h2>Bienvenue sur <span class="brand">TaskForge</span></h2>
-    <a routerLink="/register" class="register-link">
-      <button class="primary-btn">Créer un compte</button>
-    </a>
-    <a routerLink="/login" class="login-link">
-      <button class="primary-btn" style="margin-top:0.5rem;">Se connecter</button>
-    </a>
-  </div>
+<div class="landing-hero">
+  <header class="landing-header">
+    <a routerLink="/" class="landing-logo">TaskForge</a>
+    <nav>
+      <a routerLink="/login" class="landing-nav-link">Connexion</a>
+      <a routerLink="/register" class="landing-nav-link landing-nav-btn">Créer un compte</a>
+    </nav>
+  </header>
+  <main class="landing-main">
+    <h1 class="landing-title">Gérez vos projets <span class="landing-accent">simplement</span></h1>
+    <p class="landing-subtitle">
+      Centralisez vos tâches, collaborez avec votre équipe et suivez votre progression en temps réel.<br>
+      TaskForge, la gestion de projet sans distraction.
+    </p>
+    <a routerLink="/register" class="landing-cta-btn">Commencer</a>
+  </main>
+  <footer class="landing-footer">
+    <span>&copy; {{ currentYear }} TaskForge</span>
+  </footer>
 </div>

@@ -1,8 +1,8 @@
 package com.taskforge.service;
 
 import com.taskforge.dto.UserDto;
-import com.taskforge.model.User;
-import com.taskforge.repository.UserRepository;
+import com.taskforge.models.User;
+import com.taskforge.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.dao.DataIntegrityViolationException;

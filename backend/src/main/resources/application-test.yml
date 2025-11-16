@@ -8,3 +8,9 @@ spring:
     hibernate:
       ddl-auto: create-drop
     database: H2
+
+# JWT configuration for testing
+security:
+  jwt:
+    secret: dGhpc19pc19hX3ZhbGlkX2Jhc2U2NF9rZXlfZm9yX3Rhc2tmb3JnZQ==
+    expiration-ms: 3600000
