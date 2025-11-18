@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.taskforge.dto.CreateProjectRequest;
+import com.taskforge.exceptions.DuplicateProjectNameException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
@@ -45,6 +46,39 @@ public class ProjectService {
         members.add(owner);
 
         // Set members to project
+        project.setMembers(members);
+        
+        return projectRepository.save(project);
+    }
+
+    public Project getProjectById(Long projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+    }
+
+    public Project updateProject(Long projectId, CreateProjectRequest updateRequest) {
+        Project project = getProjectById(projectId);
+
+        // Vérifier si le projet existe déjà
+        projectRepository.findByName(updateRequest.getName()).filter(existingProject -> !existingProject.getId().equals(projectId))
+            .ifPresent(existingProject -> {
+                throw new DuplicateProjectNameException("Un projet avec ce nom existe déjà.");
+            });
+        
+        project.setName(updateRequest.getName());
+        project.setDescription(updateRequest.getDescription());
+        
+        Set<User> members = new HashSet<>();
+        if(updateRequest.getMembers() != null) {
+            for (var memberDto : updateRequest.getMembers()) {
+                User member = userRepository.findByUsername(memberDto.getUsername())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + memberDto.getUsername()));
+                members.add(member);
+            }
+        }
+        // Ensure owner is still a member
+        members.add(project.getOwner());
+        
         project.setMembers(members);
         
         return projectRepository.save(project);

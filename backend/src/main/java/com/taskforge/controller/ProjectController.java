@@ -5,9 +5,11 @@ import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.taskforge.dto.CreateProjectRequest;
 import com.taskforge.models.Project;
@@ -29,5 +31,15 @@ public class ProjectController {
         Project project = projectService.createProject(createProjectRequest);
         return ResponseEntity.ok(project);
     }
+
+    @PutMapping("/projects/{projectId}")
+    public ResponseEntity<Project> updateProject(@PathVariable Long projectId, @RequestBody CreateProjectRequest updateRequest){
+
+        Project updatedProject = projectService.updateProject(projectId, updateRequest);
+        
+        return ResponseEntity.ok(updatedProject);
+
+    }
+
 
 }
