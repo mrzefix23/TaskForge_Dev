@@ -37,7 +37,7 @@ export class LoginComponent {
           this.router.navigate(['/accueil']); // Redirect to accueil on successful login
         },
         error: (err: any) => {
-          this.error = typeof err.error === 'string' ? err.error : 'Erreur lors de la connexion.';
+          this.error = err.error?.message || err.error;
           this.success = false;
         }
       });
