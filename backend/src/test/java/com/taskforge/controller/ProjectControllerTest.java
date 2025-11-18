@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,5 +92,43 @@ public class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "owner")
+    void updateProject_shouldChangeNameAndDescription() throws Exception {
+        // First, create a project to update
+        CreateProjectRequest createReq = new CreateProjectRequest();
+        createReq.setName("Initial Project");
+        createReq.setDescription("Initial Description");
+        createReq.setUser(UserDto.builder().username("owner").build());
+        createReq.setMembers(List.of());
+
+        String response = mockMvc.perform(post("/api/projects")
+                .principal(() -> "owner")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createReq)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Extract project ID from response
+        Long projectId = objectMapper.readTree(response).get("id").asLong();
+
+        // Prepare update request
+        CreateProjectRequest updateReq = new CreateProjectRequest();
+        updateReq.setName("Updated Project Name");
+        updateReq.setDescription("Updated Description");
+        updateReq.setUser(UserDto.builder().username("owner").build());
+        updateReq.setMembers(List.of());
+
+        // Perform update
+        mockMvc.perform(put("/api/projects/projects/" + projectId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Project Name"))
+                .andExpect(jsonPath("$.description").value("Updated Description"));
     }
 }
