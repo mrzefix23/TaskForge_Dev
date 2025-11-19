@@ -12,18 +12,16 @@ import { Task, TaskComment, TaskStatus } from './types/task';
 })
 export class Kanban {
   tasks: Task[] = [
-    { id: 1, title: 'Design layout', status: 'Open', description: 'Create wireframes for the dashboard UI', priority: 'High', sprintId: 1 ,deadline: '2025-11-15', peopleAssigned: [1, 2]},
-    { id: 2, title: 'Implement backend', status: 'In Progress', description: 'Set up REST APIs for task management' , priority: 'Medium', sprintId: 1, deadline: '2025-11-20', peopleAssigned: [2]},
-    { id: 3, title: 'Write unit tests', status: 'Done', description: 'Add test cases for authentication module' , priority: 'Low', sprintId: 2 , deadline: '2025-11-10', peopleAssigned: [3]},
+    { id: 1, title: 'Design layout', status: 'Open', description: 'Create wireframes for the dashboard UI', priority: 'High', sprintId: 1 ,deadline: '2025-11-15', peopleAssigned: [1]},
+    { id: 2, title: 'Implement backend', status: 'In Progress', description: 'Set up REST APIs for task management' , priority: 'Medium', sprintId: 1, deadline: '2025-11-20', peopleAssigned: [1]},
+    { id: 3, title: 'Write unit tests', status: 'Done', description: 'Add test cases for authentication module' , priority: 'Low', sprintId: 2 , deadline: '2025-11-10', peopleAssigned: [1]},
     { id: 4, title: 'Create login screen', status: 'Open', description: 'Build responsive login form with validations' , priority: 'High', sprintId: 2, deadline: '2025-11-18'},
-    { id: 5, title: 'Integrate database', status: 'In Progress', description: 'Connect to MongoDB and model schemas', priority: 'Medium', sprintId: 1 ,peopleAssigned: [1,3]},
+    { id: 5, title: 'Integrate database', status: 'In Progress', description: 'Connect to MongoDB and model schemas', priority: 'Medium', sprintId: 1 ,peopleAssigned: [1]},
     { id: 6, title: 'Setup CI/CD pipeline', status: 'Done', description: 'Deploy app automatically with GitHub Actions' , priority: 'Low', sprintId: 3 },
   ];
 
   members = [
     { id: 1, username: 'alice' },
-    { id: 2, username: 'bob' },
-    { id: 3, username: 'charlie' },
   ];
 
   // Filters
