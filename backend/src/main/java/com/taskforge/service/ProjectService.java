@@ -1,6 +1,7 @@
 package com.taskforge.service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,5 +83,9 @@ public class ProjectService {
         project.setMembers(members);
         
         return projectRepository.save(project);
+    }
+
+    public List<Project> getProjectsByUsername(String username) {
+        return projectRepository.findAllByOwnerOrMember(username);
     }
 }
