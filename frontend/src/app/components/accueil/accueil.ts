@@ -30,6 +30,10 @@ export class AccueilComponent {
     this.router.navigate(['/']);
   }
 
+  loadProjects() {
+    this.router.navigate(['/myprojects']);
+  }
+
   createProject() {
     this.router.navigate(['/projects/create']);
   }

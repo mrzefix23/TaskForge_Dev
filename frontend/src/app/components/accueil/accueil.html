@@ -1,6 +1,6 @@
 <app-header></app-header>
 <main class="accueil-main">
   <h1 class="accueil-title">Bienvenue, <span class="accueil-accent">{{ username }}</span></h1>
-  <a routerLink="/projects" class="accueil-cta-btn">Voir mes projets</a>
+  <button (click)="loadProjects()" class="accueil-cta-btn">Voir mes projets</button>
   <button (click)="createProject()" class="accueil-cta-btn">Créer un nouveau projet</button>
 </main>
