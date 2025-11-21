@@ -8,6 +8,7 @@ import { AuthGuard } from './auth.guard';
 import { NotFoundComponent } from './components/not-found/not-found';
 import { CreateProjectComponent } from './components/projects/create-project/create-project';
 import { ProjectsListComponent } from './components/projects/projects-list/projects-list';
+import { EditProjectComponent } from './components/projects/edit-project/edit-project';
 
 export const routes: Routes = [
   { path: '', component: AuthComponent },
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'kanban', component: Kanban },
   { path: 'accueil', component: AccueilComponent, canActivate: [AuthGuard] },
   { path: 'projects/create', component: CreateProjectComponent, canActivate: [AuthGuard] },
+  { path: 'projects/edit/:id', component: EditProjectComponent, canActivate: [AuthGuard] },
   { path: 'myprojects', component: ProjectsListComponent, canActivate: [AuthGuard] },
   //{ path: 'projects/:id', component: Kanban, canActivate: [AuthGuard] }, # A compléter plus tard
   { path: 'error', component: NotFoundComponent }

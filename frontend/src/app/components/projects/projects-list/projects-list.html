@@ -17,9 +17,12 @@
   </div>
 
   <div class="projects-grid" *ngIf="projects.length > 0 && !loading">
-    <div *ngFor="let project of projects" class="project-card" (click)="openProject(project.id)">
-      <h2 class="project-name">{{ project.name }}</h2>
-      <p class="project-description">{{ project.description || 'Aucune description' }}</p>
+    <div *ngFor="let project of projects" class="project-card">
+      <div (click)="openProject(project.id)" class="project-card-clickable-content">
+        <h2 class="project-name">{{ project.name }}</h2>
+        <p class="project-description">{{ project.description || 'Aucune description' }}</p>
+      </div>
+      <button (click)="editProject(project.id, $event)" class="edit-project-btn">Modifier</button>
     </div>
   </div>
 </main>

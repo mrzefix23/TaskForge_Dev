@@ -54,9 +54,14 @@
   border: 1px solid #ededed;
   border-radius: 12px;
   padding: 1.5rem;
-  cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.project-card-clickable-content {
+  cursor: pointer;
 }
 
 .project-card:hover {
@@ -75,6 +80,24 @@
   font-size: 1rem;
   color: #666;
   line-height: 1.5;
+  margin-bottom: 1rem; /* Ajout d'une marge */
+}
+
+.edit-project-btn {
+  background: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start; /* Aligner le bouton à gauche */
+  transition: background-color 0.2s;
+}
+
+.edit-project-btn:hover {
+  background: #e0e0e0;
 }
 
 .no-projects {

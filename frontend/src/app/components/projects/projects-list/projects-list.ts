@@ -49,4 +49,9 @@ export class ProjectsListComponent implements OnInit {
   openProject(projectId: number): void {
     this.router.navigate(['/projects', projectId]);
   }
+
+  editProject(projectId: number, event: MouseEvent): void {
+    event.stopPropagation(); // Empêche le déclenchement de openProject
+    this.router.navigate(['/projects/edit', projectId]);
+  }
 }
