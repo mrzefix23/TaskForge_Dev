@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.taskforge.dto.CreateProjectRequest;
 import com.taskforge.exceptions.DuplicateProjectNameException;
+import com.taskforge.exceptions.ProjectSuppressionException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
@@ -52,13 +53,22 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
-    public Project getProjectById(Long projectId) {
-        return projectRepository.findById(projectId)
+    public Project getProjectById(Long projectId, String username) {
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        boolean isMember = project.getMembers().stream()
+                .anyMatch(member -> member.getUsername().equals(username));
+
+        if (!isMember) {
+            throw new RuntimeException("User is not a member of this project");
+        }
+
+        return project;
     }
 
-    public Project updateProject(Long projectId, CreateProjectRequest updateRequest) {
-        Project project = getProjectById(projectId);
+    public Project updateProject(Long projectId, String username, CreateProjectRequest updateRequest) {
+        Project project = getProjectById(projectId, username);
 
         // Vérifier si le projet existe déjà
         projectRepository.findByName(updateRequest.getName()).filter(existingProject -> !existingProject.getId().equals(projectId))
@@ -84,6 +94,14 @@ public class ProjectService {
         
         return projectRepository.save(project);
     }
+
+    public void deleteProject(Long projectId, String username) {
+        Project project = getProjectById(projectId, username);
+        if (!project.getOwner().getUsername().equals(username)) {
+            throw new ProjectSuppressionException("Uniquement le propriétaire du projet peut le supprimer.");
+        }
+        projectRepository.deleteById(projectId);
+    }   
 
     public List<Project> getProjectsByUsername(String username) {
         return projectRepository.findAllByOwnerOrMember(username);
