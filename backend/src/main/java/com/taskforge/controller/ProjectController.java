@@ -8,12 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import com.taskforge.dto.CreateProjectRequest;
 import com.taskforge.models.Project;
 import com.taskforge.service.ProjectService;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -30,16 +28,6 @@ public class ProjectController {
 
         Project project = projectService.createProject(createProjectRequest);
         return ResponseEntity.ok(project);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Project>> getMyProjects(Principal principal) {
-        if(principal == null) {
-            return ResponseEntity.status(403).build(); // Forbidden
-        }
-
-        List<Project> projects = projectService.getProjectsByUsername(principal.getName());
-        return ResponseEntity.ok(projects);
     }
 
 }
