@@ -33,4 +33,8 @@ export class AccueilComponent {
   createProject() {
     this.router.navigate(['/projects/create']);
   }
+
+  goToProjects() {
+    this.router.navigate(['/projects']);
+  }
 }

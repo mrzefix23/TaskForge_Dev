@@ -11,6 +11,8 @@ import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.UserRepository;
+import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class ProjectService {
@@ -48,5 +50,17 @@ public class ProjectService {
         project.setMembers(members);
         
         return projectRepository.save(project);
+    }
+
+    public List<Project> getProjectsByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Project> ownedProjects = projectRepository.findProjectsByOwnerId(user.getId());
+        List<Project> memberProjects = projectRepository.findAllProjectsByMemberId(user.getId());
+
+        Set<Project> allProjects = new HashSet<>(ownedProjects);
+        allProjects.addAll(memberProjects);
+        return new ArrayList<>(allProjects);
     }
 }
