@@ -9,7 +9,7 @@ RUN mvn clean package -DskipTests
 # Production stage using OpenJDK
 FROM eclipse-temurin:21-jdk AS production
 WORKDIR /app
-COPY --from=build /app/target/taskforge-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/taskforge-0.1.0.jar app.jar
 
 # Expose port 8080 and set the entry point
 EXPOSE 8080
