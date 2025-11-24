@@ -18,7 +18,13 @@
       <div formArrayName="members">
         <div *ngFor="let member of members.controls; let i = index" class="member-row">
           <input [formControlName]="i" placeholder="Nom d'utilisateur" />
-          <button type="button" (click)="removeMember(i)" class="remove-btn" aria-label="Supprimer">×</button>
+          <button 
+          *ngIf="member.enabled" 
+          type="button" 
+          (click)="removeMember(i)" 
+          class="remove-btn" 
+          aria-label="Supprimer">×</button>
+          <span *ngIf="member.disabled" class="owner-badge">(Propriétaire)</span>
         </div>
       </div>
       <button type="button" (click)="addMember()" class="add-btn">+ Ajouter un membre</button>
