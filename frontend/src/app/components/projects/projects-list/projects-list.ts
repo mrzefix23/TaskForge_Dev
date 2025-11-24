@@ -8,6 +8,8 @@ interface Project {
   id: number;
   name: string;
   description: string;
+  owner : { username: string };
+  members: { username: string }[];
 }
 
 @Component({
@@ -53,5 +55,31 @@ export class ProjectsListComponent implements OnInit {
   editProject(projectId: number, event: MouseEvent): void {
     event.stopPropagation(); // Empêche le déclenchement de openProject
     this.router.navigate(['/projects/edit', projectId]);
+  }
+
+  deleteProject(projectId: number, event: MouseEvent): void {
+    event.stopPropagation(); // Empêche le déclenchement de openProject
+
+    if(!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+
+    this.http.delete(`/api/projects/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: () => {
+        this.projects = this.projects.filter(p => p.id !== projectId);
+      },
+      error: (err) => {
+        if(err.status === 403 && err.error && err.error.message) {
+          this.error = err.error.message;
+        } else {
+          alert('Erreur lors de la suppression du projet.');
+        }
+        console.error(err);
+      }
+    });
   }
 }
