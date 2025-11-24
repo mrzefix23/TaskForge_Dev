@@ -15,6 +15,10 @@ export class HeaderComponent {
 
   constructor(private router: Router) {}
 
+  get homeRoute(): string {
+    return this.username ? '/accueil' : '/';
+  }
+
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
   }

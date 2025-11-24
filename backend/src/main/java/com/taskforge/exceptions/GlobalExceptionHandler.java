@@ -25,4 +25,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body(Map.of("message", ex.getMessage()));
     }
+
+    @ExceptionHandler(DuplicateProjectNameException.class)
+    public ResponseEntity<?> handleDuplicateProjectName(DuplicateProjectNameException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProjectSuppressionException.class)
+    public ResponseEntity<?> handleProjectSuppression(ProjectSuppressionException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(Map.of("message", ex.getMessage()));
+    }
 }

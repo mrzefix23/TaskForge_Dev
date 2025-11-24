@@ -129,6 +129,7 @@
   letter-spacing: 0.01em;
   box-shadow: 0 2px 12px rgba(44,44,44,0.04);
   text-transform: uppercase;
+  margin-bottom: 10px;
 }
 
 .accueil-cta-btn:hover {

@@ -3,14 +3,14 @@ import { FormBuilder, Validators, ReactiveFormsModule, FormArray } from '@angula
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { HeaderComponent } from '../header/header';
+import { HeaderComponent } from '../../header/header';
 
 @Component({
   selector: 'app-create-project',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, HttpClientModule, RouterModule, HeaderComponent],
   templateUrl: './create-project.html',
-  styleUrl: './create-project.css'
+  styleUrls: ['./create-project.css']
 })
 export class CreateProjectComponent {
   projectForm;
@@ -67,9 +67,10 @@ export class CreateProjectComponent {
     }).subscribe({
       next: () => {
         this.success = true;
-        this.projectForm.reset();
-        this.members.clear();
         this.loading = false;
+        setTimeout(() => {
+          this.router.navigate(['/myprojects']);
+        }, 1000);
       },
       error: (err) => {
         this.error = typeof err.error === 'string' ? err.error : 'Erreur lors de la création du projet.';

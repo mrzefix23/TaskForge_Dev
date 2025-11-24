@@ -1,12 +1,15 @@
 package com.taskforge.service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.taskforge.dto.CreateProjectRequest;
+import com.taskforge.exceptions.DuplicateProjectNameException;
+import com.taskforge.exceptions.ProjectSuppressionException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
@@ -48,5 +51,59 @@ public class ProjectService {
         project.setMembers(members);
         
         return projectRepository.save(project);
+    }
+
+    public Project getProjectById(Long projectId, String username) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        boolean isMember = project.getMembers().stream()
+                .anyMatch(member -> member.getUsername().equals(username));
+
+        if (!isMember) {
+            throw new RuntimeException("User is not a member of this project");
+        }
+
+        return project;
+    }
+
+    public Project updateProject(Long projectId, String username, CreateProjectRequest updateRequest) {
+        Project project = getProjectById(projectId, username);
+
+        // Vérifier si le projet existe déjà
+        projectRepository.findByName(updateRequest.getName()).filter(existingProject -> !existingProject.getId().equals(projectId))
+            .ifPresent(existingProject -> {
+                throw new DuplicateProjectNameException("Un projet avec ce nom existe déjà.");
+            });
+        
+        project.setName(updateRequest.getName());
+        project.setDescription(updateRequest.getDescription());
+        
+        Set<User> members = new HashSet<>();
+        if(updateRequest.getMembers() != null) {
+            for (var memberDto : updateRequest.getMembers()) {
+                User member = userRepository.findByUsername(memberDto.getUsername())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + memberDto.getUsername()));
+                members.add(member);
+            }
+        }
+        // Ensure owner is still a member
+        members.add(project.getOwner());
+        
+        project.setMembers(members);
+        
+        return projectRepository.save(project);
+    }
+
+    public void deleteProject(Long projectId, String username) {
+        Project project = getProjectById(projectId, username);
+        if (!project.getOwner().getUsername().equals(username)) {
+            throw new ProjectSuppressionException("Uniquement le propriétaire du projet peut le supprimer.");
+        }
+        projectRepository.deleteById(projectId);
+    }   
+
+    public List<Project> getProjectsByUsername(String username) {
+        return projectRepository.findAllByOwnerOrMember(username);
     }
 }

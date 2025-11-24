@@ -1,0 +1,28 @@
+<app-header></app-header>
+<main class="projects-list-main">
+  <div class="projects-list-header">
+    <h1 class="projects-list-title">Mes Projets</h1>
+    <button (click)="createProject()" class="create-project-btn">Créer un projet</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Chargement des projets...
+  </div>
+
+  <div *ngIf="error" class="error-msg">{{ error }}</div>
+
+  <div *ngIf="!projects.length && !error && !loading" class="no-projects">
+    <p>Vous n'avez aucun projet pour le moment.</p>
+    <button (click)="createProject()" class="create-first-project-btn">Créer votre premier projet</button>
+  </div>
+
+  <div class="projects-grid" *ngIf="projects.length > 0 && !loading">
+    <div *ngFor="let project of projects" class="project-card">
+      <div (click)="openProject(project.id)" class="project-card-clickable-content">
+        <h2 class="project-name">{{ project.name }}</h2>
+        <p class="project-description">{{ project.description || 'Aucune description' }}</p>
+      </div>
+      <button (click)="editProject(project.id, $event)" class="edit-project-btn">Modifier</button>
+    </div>
+  </div>
+</main>
