@@ -27,7 +27,7 @@ export class RegisterComponent {
 
   onSubmit() {
     if (this.registerForm.valid) {
-      this.http.post('/auth/register', this.registerForm.value).subscribe({
+      this.http.post('/api/auth/register', this.registerForm.value).subscribe({
         next: () => {
           this.success = true;
           this.error = '';
