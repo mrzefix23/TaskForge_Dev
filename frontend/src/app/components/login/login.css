@@ -303,6 +303,31 @@
   color: white;
 }
 
+.login-cta-btn:disabled {
+  background: #c7c7cc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.show-password-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.show-password-wrapper input {
+  width: auto;
+  cursor: pointer;
+}
+
+.show-password-wrapper label {
+  cursor: pointer;
+  user-select: none;
+}
+
 @media (max-width: 480px) {
   .login-card {
     padding: 40px 30px;

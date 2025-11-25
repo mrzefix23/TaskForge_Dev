@@ -16,6 +16,7 @@ export class LoginComponent {
   success = false;
   error = '';
   token = '';
+  showPassword = false;
 
   constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.loginForm = this.fb.group({
