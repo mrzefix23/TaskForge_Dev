@@ -79,6 +79,14 @@ public class UserStoryService {
     public UserStory updateUserStory(Long userStoryId, CreateUserStoryRequest request, String username) {
         UserStory userStory = getUserStoryById(userStoryId, username);
         
+        // Check for duplicate title in the same project (excluding current story)
+        if (userStoryRepository.existsByTitleAndProjectId(request.getTitle(), userStory.getProject().getId())) {
+            UserStory existing = userStoryRepository.findByTitleAndProjectId(request.getTitle(), userStory.getProject().getId());
+            if (existing != null && !existing.getId().equals(userStoryId)) {
+                throw new DuplicateUserStoryTitleException("Une user story avec ce titre existe déjà dans ce projet.");
+            }
+        }
+        
         userStory.setTitle(request.getTitle());
         userStory.setDescription(request.getDescription());
         userStory.setPriority(request.getPriority());

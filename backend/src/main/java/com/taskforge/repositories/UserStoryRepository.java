@@ -9,5 +9,6 @@ import com.taskforge.models.UserStory;
 public interface UserStoryRepository extends JpaRepository<UserStory, Long> {
     List<UserStory> findByProjectId(Long projectId);
     boolean existsByTitleAndProjectId(String title, Long projectId);
+    UserStory findByTitleAndProjectId(String title, Long projectId);
     void deleteAllByProjectId(Long projectId);
 }
