@@ -69,7 +69,7 @@ export class CreateProjectComponent {
         this.success = true;
         this.loading = false;
         setTimeout(() => {
-          this.router.navigate(['/myprojects']);
+          this.router.navigate(['/projects']);
         }, 1000);
       },
       error: (err) => {
