@@ -1,5 +1,11 @@
 <app-header></app-header>
 <main class="project-detail-main">
+  <div class="breadcrumb">
+    <a routerLink="/projects" class="breadcrumb-link">← Tous les projets</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">{{ project?.name || 'Projet' }}</span>
+  </div>
+
   <div *ngIf="loading" class="loading">Chargement du projet...</div>
   <div *ngIf="error" class="error-msg">{{ error }}</div>
 
@@ -9,7 +15,12 @@
         <h1 class="project-name">{{ project.name }}</h1>
         <p class="project-description">{{ project.description }}</p>
       </div>
-      <button (click)="openCreateStoryModal()" class="create-story-btn">Créer une User Story</button>
+      <div class="project-header-actions">
+        <button routerLink="/projects/edit/{{ project.id }}" class="edit-project-header-btn" title="Modifier le projet">
+          ✎ Modifier le projet
+        </button>
+        <button (click)="openCreateStoryModal()" class="create-story-btn">+ User Story</button>
+      </div>
     </div>
 
     <div class="project-members">

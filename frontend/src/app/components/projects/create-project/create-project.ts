@@ -78,4 +78,8 @@ export class CreateProjectComponent {
       }
     });
   }
+
+  goBack(): void {
+    this.router.navigate(['/projects']);
+  }
 }

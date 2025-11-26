@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -21,12 +21,12 @@ interface Project {
   styleUrls: ['../create-project/create-project.css']
 })
 export class EditProjectComponent implements OnInit {
-  projectForm;
+  projectForm: FormGroup;
   success = false;
   error = '';
   loading = false;
-  projectId: number | null = null;
   initialLoading = true;
+  projectId: number = 0;
 
   get members() {
     return this.projectForm.get('members') as FormArray;
@@ -49,31 +49,46 @@ export class EditProjectComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.projectId = +id;
-      this.loadProjectData();
+      this.loadProject(this.projectId);
     } else {
-      this.error = "ID de projet non trouvé.";
       this.initialLoading = false;
     }
   }
 
-  loadProjectData(): void {
+  goBack(): void {
+    if (this.projectId) {
+      this.router.navigate(['/projects', this.projectId]);
+    } else {
+      this.router.navigate(['/projects']);
+    }
+  }
+
+  loadProject(projectId: number): void {
     const token = localStorage.getItem('token');
-    this.http.get<Project>(`/api/projects/${this.projectId}`, {
+    this.http.get<any>(`/api/projects/${projectId}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
-      next: (project) => {
+      next: (data) => {
         this.projectForm.patchValue({
-          name: project.name,
-          description: project.description
+          name: data.name,
+          description: data.description
         });
-        const ownerUsername = project.owner.username;
-        project.members.forEach(member => {
-          const control = this.fb.control(member.username, Validators.required);
-          if(member.username === ownerUsername) {
-            control.disable(); // Disable the owner's control
-          }
-          this.members.push(control);
-        });
+
+        this.members.clear();
+        if (data.owner) {
+          const ownerControl = this.fb.control(data.owner.username, Validators.required);
+          ownerControl.disable();
+          this.members.push(ownerControl);
+        }
+
+        if (data.members && data.members.length > 0) {
+          data.members
+            .filter((m: any) => m.username !== data.owner?.username)
+            .forEach((m: any) => {
+              this.members.push(this.fb.control(m.username, Validators.required));
+            });
+        }
+
         this.initialLoading = false;
       },
       error: (err) => {

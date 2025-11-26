@@ -1,5 +1,10 @@
 <app-header></app-header>
 <div class="create-project-container">
+  <div class="form-navigation">
+    <button (click)="goBack()" class="back-btn" title="Retour">
+      ← Retour au projet
+    </button>
+  </div>
   <h2>Modifier le projet</h2>
 
   <div *ngIf="initialLoading" class="loading">Chargement...</div>
