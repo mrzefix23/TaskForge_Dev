@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { AuthComponent } from './components/auth/auth';
 import { RegisterComponent } from './components/register/register';
 import { LoginComponent } from './components/login/login';
-import { Kanban } from './components/kanban/kanban';
 import { AccueilComponent } from './components/accueil/accueil';
 import { AuthGuard } from './auth.guard';
 import { NotFoundComponent } from './components/not-found/not-found';
@@ -14,11 +13,9 @@ export const routes: Routes = [
   { path: '', component: AuthComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'kanban', component: Kanban },
   { path: 'accueil', component: AccueilComponent, canActivate: [AuthGuard] },
   { path: 'projects/create', component: CreateProjectComponent, canActivate: [AuthGuard] },
   { path: 'projects/edit/:id', component: EditProjectComponent, canActivate: [AuthGuard] },
   { path: 'myprojects', component: ProjectsListComponent, canActivate: [AuthGuard] },
-  //{ path: 'projects/:id', component: Kanban, canActivate: [AuthGuard] }, # A compléter plus tard
   { path: 'error', component: NotFoundComponent }
 ];
