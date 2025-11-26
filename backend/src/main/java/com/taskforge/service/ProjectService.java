@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
 import com.taskforge.dto.CreateProjectRequest;
 import com.taskforge.exceptions.DuplicateProjectNameException;
@@ -14,6 +15,7 @@ import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.UserRepository;
+import com.taskforge.repositories.UserStoryRepository;
 
 @Service
 public class ProjectService {
@@ -23,6 +25,9 @@ public class ProjectService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
 
     public Project createProject(CreateProjectRequest createProjectRequest) {
         User owner = userRepository.findByUsername(createProjectRequest.getUser().getUsername())
@@ -95,11 +100,16 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    @Transactional
     public void deleteProject(Long projectId, String username) {
         Project project = getProjectById(projectId, username);
         if (!project.getOwner().getUsername().equals(username)) {
             throw new ProjectSuppressionException("Uniquement le propriétaire du projet peut le supprimer.");
         }
+
+        //Supprimer les US lié au projet
+        userStoryRepository.deleteAllByProjectId(projectId);
+
         projectRepository.deleteById(projectId);
     }   
 
