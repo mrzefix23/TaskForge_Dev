@@ -1,2 +1,5 @@
-npx lint-staged
+# Formater tous les fichiers du projet
+npx prettier --write "src/**/*.{ts,js,html,css,scss,json,md}"
 
+# Ajouter les modifications au commit
+git add -u
