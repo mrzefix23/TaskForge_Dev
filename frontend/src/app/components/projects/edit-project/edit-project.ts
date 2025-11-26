@@ -9,6 +9,7 @@ interface Project {
   id: number;
   name: string;
   description: string;
+  owner: { username: string };
   members: { username: string }[];
 }
 
@@ -65,12 +66,14 @@ export class EditProjectComponent implements OnInit {
           name: project.name,
           description: project.description
         });
-        const ownerUsername = localStorage.getItem('username');
-        project.members
-          .filter(member => member.username !== ownerUsername)
-          .forEach(member => {
-            this.members.push(this.fb.control(member.username, Validators.required));
-          });
+        const ownerUsername = project.owner.username;
+        project.members.forEach(member => {
+          const control = this.fb.control(member.username, Validators.required);
+          if(member.username === ownerUsername) {
+            control.disable(); // Disable the owner's control
+          }
+          this.members.push(control);
+        });
         this.initialLoading = false;
       },
       error: (err) => {

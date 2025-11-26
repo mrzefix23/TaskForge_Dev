@@ -1,19 +1,21 @@
 package com.taskforge.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.ResponseEntity;
-import jakarta.validation.Valid;
-import com.taskforge.service.AuthService;
-import com.taskforge.dto.RegisterRequest;
-import com.taskforge.dto.LoginRequest;
+
 import com.taskforge.dto.AuthResponse;
+import com.taskforge.dto.LoginRequest;
+import com.taskforge.dto.RegisterRequest;
+import com.taskforge.service.AuthService;
+
+import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired

@@ -16,6 +16,7 @@ export class LoginComponent {
   success = false;
   error = '';
   token = '';
+  showPassword = false;
 
   constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.loginForm = this.fb.group({
@@ -26,7 +27,7 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.http.post<{token: string, username: string}>('/auth/login', this.loginForm.value).subscribe({
+      this.http.post<{token: string, username: string}>('/api/auth/login', this.loginForm.value).subscribe({
         next: (res) => {
           this.success = true;
           this.error = '';

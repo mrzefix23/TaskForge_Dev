@@ -16,6 +16,7 @@ export class RegisterComponent {
 
   success = false;
   error = '';
+  showPassword = false;
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.registerForm = this.fb.group({
@@ -27,7 +28,7 @@ export class RegisterComponent {
 
   onSubmit() {
     if (this.registerForm.valid) {
-      this.http.post('/auth/register', this.registerForm.value).subscribe({
+      this.http.post('/api/auth/register', this.registerForm.value).subscribe({
         next: () => {
           this.success = true;
           this.error = '';

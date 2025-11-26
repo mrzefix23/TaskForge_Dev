@@ -48,7 +48,7 @@ public class ProjectControllerTest {
         userRepository.deleteAll();
         RegisterRequest request = new RegisterRequest("owner", "owner@mail.com", "password"); 
          
-        mockMvc.perform(post("/auth/register")
+        mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -75,7 +75,7 @@ public class ProjectControllerTest {
     void createProject_withMembers_shouldReturnOk() throws Exception {
         // Register a member user
         RegisterRequest memberRequest = new RegisterRequest("member1", "member1@mail.com", "password");
-        mockMvc.perform(post("/auth/register")
+        mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(memberRequest)))
                 .andExpect(status().isOk());
