@@ -26,6 +26,7 @@
         <h2 class="column-title todo">À Faire</h2>
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('TODO')" class="story-card">
+            <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
             <h3 class="story-title">{{ story.title }}</h3>
             <p class="story-priority" [ngClass]="story.priority.toLowerCase()">{{ story.priority }}</p>
             <div *ngIf="story.assignedTo" class="story-assignee">
@@ -40,6 +41,7 @@
         <h2 class="column-title in-progress">En Cours</h2>
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('IN_PROGRESS')" class="story-card">
+            <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
             <h3 class="story-title">{{ story.title }}</h3>
             <p class="story-priority" [ngClass]="story.priority.toLowerCase()">{{ story.priority }}</p>
             <div *ngIf="story.assignedTo" class="story-assignee">
@@ -54,6 +56,7 @@
         <h2 class="column-title done">Terminé</h2>
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('DONE')" class="story-card">
+            <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
             <h3 class="story-title">{{ story.title }}</h3>
             <p class="story-priority" [ngClass]="story.priority.toLowerCase()">{{ story.priority }}</p>
             <div *ngIf="story.assignedTo" class="story-assignee">

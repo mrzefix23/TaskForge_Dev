@@ -141,4 +141,25 @@ export class KanbanComponent implements OnInit {
       }
     });
   }
+
+  deleteUserStory(storyId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette User Story ?')) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    this.http.delete(`/api/user-stories/${storyId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: () => {
+        this.userStories = this.userStories.filter(s => s.id !== storyId);
+      },
+      error: (err) => {
+        alert('Erreur lors de la suppression de la User Story.');
+        console.error(err);
+      }
+    });
+  }
 }
