@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.taskforge.dto.CreateUserStoryRequest;
+import com.taskforge.exceptions.DuplicateUserStoryTitleException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
@@ -32,6 +33,10 @@ public class UserStoryService {
         // Verify user has access to project
         Project project = projectService.getProjectById(request.getProjectId(), username);
         
+        if (userStoryRepository.existsByTitleAndProjectId(request.getTitle(), project.getId())) {
+            throw new DuplicateUserStoryTitleException("Une user story avec ce titre existe déjà dans ce projet.");
+        }
+
         UserStory userStory = UserStory.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
