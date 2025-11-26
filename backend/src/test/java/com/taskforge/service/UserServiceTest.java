@@ -1,17 +1,19 @@
 package com.taskforge.service;
 
-import com.taskforge.dto.UserDto;
-import com.taskforge.models.User;
-import com.taskforge.repositories.UserRepository;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mockito;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import com.taskforge.dto.UserDto;
+import com.taskforge.models.User;
+import com.taskforge.repositories.UserRepository;
 
 class UserServiceTest {
 
@@ -76,7 +78,29 @@ class UserServiceTest {
         });
     }
 
-        @Test
+    @Test
+    void getAllUsers_shouldReturnAllUsers() {
+        User user1 = new User();
+        user1.setUsername("user1");
+        User user2 = new User();
+        user2.setUsername("user2");
+        Mockito.when(userRepo.findAll()).thenReturn(Arrays.asList(user1, user2));
+
+        List<User> users = userService.getAllUsers();
+
+        assertThat(users).hasSize(2);
+        assertThat(users).contains(user1, user2);
+    }
+
+    @Test
+    void getUserById_shouldReturnNullIfNotFound() {
+        Mockito.when(userRepo.findById(2L)).thenReturn(Optional.empty());
+
+        User found = userService.getUserById(2L);
+        assertThat(found).isNull();
+    }
+
+    @Test
     void createUser_shouldEncodePassword() {
         UserDto dto = new UserDto();
         dto.setUsername("secure_user");
