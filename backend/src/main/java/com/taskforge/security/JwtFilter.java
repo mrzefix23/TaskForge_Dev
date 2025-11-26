@@ -47,7 +47,8 @@ public class JwtFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
         }
         catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            SecurityContextHolder.clearContext();
         }
+        chain.doFilter(request, response);
     }
 }
