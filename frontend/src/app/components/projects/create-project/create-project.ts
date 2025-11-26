@@ -69,7 +69,7 @@ export class CreateProjectComponent {
         this.success = true;
         this.loading = false;
         setTimeout(() => {
-          this.router.navigate(['/projects']);
+          this.router.navigate(['/projects']); // Redirection vers la liste moderne
         }, 1000);
       },
       error: (err) => {

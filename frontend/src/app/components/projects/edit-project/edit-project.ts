@@ -105,7 +105,7 @@ export class EditProjectComponent implements OnInit {
       name: this.projectForm.value.name,
       description: this.projectForm.value.description,
       members: this.members.value
-        .filter((m: string) => !!m)
+        .filter((m: string) => !!m && m !== ownerUsername)
         .map((username: string) => ({ username }))
     };
 
@@ -116,7 +116,7 @@ export class EditProjectComponent implements OnInit {
         this.success = true;
         this.loading = false;
         setTimeout(() => {
-          this.router.navigate(['/myprojects']);
+          this.router.navigate(['/projects']);
         }, 1000);
       },
       error: (err) => {

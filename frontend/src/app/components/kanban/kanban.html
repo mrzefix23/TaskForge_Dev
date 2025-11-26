@@ -15,7 +15,7 @@
     <div class="project-members">
       <strong>Membres:</strong>
       <span class="member-badge owner">{{ project.owner.username }} (Propriétaire)</span>
-      <span *ngFor="let member of project.members | slice:1" class="member-badge">
+      <span *ngFor="let member of project.members.slice(0, project.members.length - 1)" class="member-badge">
         {{ member.username }}
       </span>
     </div>
@@ -27,8 +27,12 @@
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('TODO')" class="story-card">
             <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
+            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎ Modifier</button>
             <h3 class="story-title">{{ story.title }}</h3>
-            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">{{ story.priority }}</p>
+            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
+              <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
+            </p>
+            <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
             <div *ngIf="story.assignedTo" class="story-assignee">
               👤 {{ story.assignedTo.username }}
             </div>
@@ -42,8 +46,12 @@
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('IN_PROGRESS')" class="story-card">
             <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
+            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎ Modifier</button>
             <h3 class="story-title">{{ story.title }}</h3>
-            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">{{ story.priority }}</p>
+            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
+              <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
+            </p>
+            <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
             <div *ngIf="story.assignedTo" class="story-assignee">
               👤 {{ story.assignedTo.username }}
             </div>
@@ -57,8 +65,12 @@
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('DONE')" class="story-card">
             <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
+            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎ Modifier</button>
             <h3 class="story-title">{{ story.title }}</h3>
-            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">{{ story.priority }}</p>
+            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
+              <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
+            </p>
+            <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
             <div *ngIf="story.assignedTo" class="story-assignee">
               👤 {{ story.assignedTo.username }}
             </div>
@@ -69,43 +81,21 @@
   </div>
 </main>
 
-<!-- Create User Story Modal -->
-<div *ngIf="showCreateStoryModal" class="modal-overlay" (click)="closeCreateStoryModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <h2>Créer une User Story</h2>
-    <form [formGroup]="userStoryForm" (ngSubmit)="onUserStorySubmit()">
-      <div class="form-group">
-        <label for="story-title">Titre</label>
-        <input id="story-title" formControlName="title" required>
-      </div>
-      <div class="form-group">
-        <label for="story-desc">Description</label>
-        <textarea id="story-desc" formControlName="description"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="story-priority">Priorité</label>
-        <select id="story-priority" formControlName="priority">
-          <option value="LOW">Basse</option>
-          <option value="MEDIUM">Moyenne</option>
-          <option value="HIGH">Haute</option>
-        </select>
-      </div>
-      <div class="form-group" *ngIf="project">
-        <label for="story-assignee">Assigner à</label>
-        <select id="story-assignee" formControlName="assignedToUsername">
-          <option value="">Non assigné</option>
-          <option *ngFor="let member of project.members" [value]="member.username">
-            {{ member.username }}
-          </option>
-        </select>
-      </div>
-      <div *ngIf="userStoryError" class="error-msg modal-error">
-        {{ userStoryError }}
-      </div>
-      <div class="modal-actions">
-        <button type="button" (click)="closeCreateStoryModal()" class="cancel-btn">Annuler</button>
-        <button type="submit" [disabled]="userStoryForm.invalid" class="submit-btn">Créer</button>
-      </div>
-    </form>
-  </div>
-</div>
+<app-user-story-form
+  [show]="showCreateStoryModal"
+  [mode]="'create'"
+  [members]="project?.members || []"
+  [error]="userStoryError"
+  (closeModal)="closeCreateStoryModal()"
+  (submitForm)="onCreateUserStory($event)"
+></app-user-story-form>
+
+<app-user-story-form
+  [show]="showEditStoryModal"
+  [mode]="'edit'"
+  [story]="currentEditingStory"
+  [members]="project?.members || []"
+  [error]="editUserStoryError"
+  (closeModal)="closeEditStoryModal()"
+  (submitForm)="onEditUserStory($event)"
+></app-user-story-form>
