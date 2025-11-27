@@ -4,6 +4,7 @@ import com.taskforge.models.UserStory.Priority;
 import com.taskforge.models.UserStory.Status;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class CreateUserStoryRequest {
@@ -12,5 +13,5 @@ public class CreateUserStoryRequest {
     private Priority priority;
     private Status status;
     private Long projectId;
-    private String assignedToUsername;
+    private List<String> assignedToUsernames;
 }

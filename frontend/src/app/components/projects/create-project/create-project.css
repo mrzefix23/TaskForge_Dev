@@ -73,6 +73,16 @@
   resize: vertical;
 }
 
+.member-select {
+  width: 98%;
+  padding: 0.8rem 1rem;
+  border: 2px solid #e5e5e7;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fafbfc;
+  min-height: 120px;
+}
+
 .member-row {
   display: flex;
   align-items: center;

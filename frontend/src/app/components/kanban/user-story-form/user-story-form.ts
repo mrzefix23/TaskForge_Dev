@@ -8,7 +8,7 @@ interface UserStory {
   description: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  assignedTo?: { username: string };
+  assignedTo?: { username: string }[];
 }
 
 interface Member {
@@ -40,7 +40,7 @@ export class UserStoryFormComponent implements OnChanges {
       description: [''],
       priority: ['MEDIUM', Validators.required],
       status: ['TODO', Validators.required],
-      assignedToUsername: ['']
+      assignedToUsernames: [[]]
     });
   }
 
@@ -51,12 +51,12 @@ export class UserStoryFormComponent implements OnChanges {
         description: this.story.description || '',
         priority: this.story.priority,
         status: this.story.status,
-        assignedToUsername: this.story.assignedTo?.username || ''
+        assignedToUsernames: this.story.assignedTo?.map(u => u.username) || []
       });
     }
 
     if (changes['show'] && this.show && this.mode === 'create') {
-      this.form.reset({ priority: 'MEDIUM', status: 'TODO', assignedToUsername: '' });
+      this.form.reset({ priority: 'MEDIUM', status: 'TODO', assignedToUsernames: [] });
     }
   }
 

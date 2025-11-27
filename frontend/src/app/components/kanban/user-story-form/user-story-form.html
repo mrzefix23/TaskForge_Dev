@@ -33,9 +33,8 @@
       </div>
       
       <div class="form-group" *ngIf="members.length > 0">
-        <label [for]="'story-assignee-' + mode">Assigner à</label>
-        <select [id]="'story-assignee-' + mode" formControlName="assignedToUsername">
-          <option value="">Non assigné</option>
+        <label [for]="'story-assignee-' + mode">Assigner à (maintenir Ctrl/Cmd pour sélectionner plusieurs)</label>
+        <select [id]="'story-assignee-' + mode" formControlName="assignedToUsernames" multiple>
           <option *ngFor="let member of members" [value]="member.username">
             {{ member.username }}
           </option>

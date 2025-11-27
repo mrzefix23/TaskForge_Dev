@@ -1,5 +1,8 @@
 package com.taskforge.models;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -8,6 +11,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -45,9 +50,13 @@ public class UserStory {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
     
-    @ManyToOne
-    @JoinColumn(name = "assigned_to")
-    private User assignedTo;
+    @ManyToMany
+    @JoinTable(
+        name = "user_story_assignees",
+        joinColumns = @JoinColumn(name = "user_story_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> assignedTo = new HashSet<>();
     
     public enum Priority {
         LOW, MEDIUM, HIGH

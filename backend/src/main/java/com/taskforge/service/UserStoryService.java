@@ -1,5 +1,6 @@
 package com.taskforge.service;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,6 @@ public class UserStoryService {
     private ProjectService projectService;
     
     public UserStory createUserStory(CreateUserStoryRequest request, String username) {
-        // Verify user has access to project
         Project project = projectService.getProjectById(request.getProjectId(), username);
         
         if (userStoryRepository.existsByTitleAndProjectId(request.getTitle(), project.getId())) {
@@ -43,18 +43,20 @@ public class UserStoryService {
                 .priority(request.getPriority())
                 .status(request.getStatus())
                 .project(project)
+                .assignedTo(new HashSet<>())
                 .build();
         
-        // Assign user if provided
-        if (request.getAssignedToUsername() != null && !request.getAssignedToUsername().isEmpty()) {
-            User assignedUser = userRepository.findByUsername(request.getAssignedToUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found: " + request.getAssignedToUsername()));
+        if (request.getAssignedToUsernames() != null && !request.getAssignedToUsernames().isEmpty()) {
+            for (String assignedUsername : request.getAssignedToUsernames()) {
+                User assignedUser = userRepository.findByUsername(assignedUsername)
+                    .orElseThrow(() -> new RuntimeException("User not found: " + assignedUsername));
             
-            // Verify assigned user is member of project
-            if (!project.getMembers().contains(assignedUser)) {
-                throw new RuntimeException("Assigned user is not a member of this project");
+                if (!project.getMembers().contains(assignedUser)) {
+                    throw new RuntimeException("User " + assignedUsername + " is not a member of this project");
+                }
+                
+                userStory.getAssignedTo().add(assignedUser);
             }
-            userStory.setAssignedTo(assignedUser);
         }
         
         return userStoryRepository.save(userStory);
@@ -79,7 +81,6 @@ public class UserStoryService {
     public UserStory updateUserStory(Long userStoryId, CreateUserStoryRequest request, String username) {
         UserStory userStory = getUserStoryById(userStoryId, username);
         
-        // Check for duplicate title in the same project (excluding current story)
         if (userStoryRepository.existsByTitleAndProjectId(request.getTitle(), userStory.getProject().getId())) {
             UserStory existing = userStoryRepository.findByTitleAndProjectId(request.getTitle(), userStory.getProject().getId());
             if (existing != null && !existing.getId().equals(userStoryId)) {
@@ -92,16 +93,19 @@ public class UserStoryService {
         userStory.setPriority(request.getPriority());
         userStory.setStatus(request.getStatus());
         
-        if (request.getAssignedToUsername() != null && !request.getAssignedToUsername().isEmpty()) {
-            User assignedUser = userRepository.findByUsername(request.getAssignedToUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            if (!userStory.getProject().getMembers().contains(assignedUser)) {
-                throw new RuntimeException("Assigned user is not a member of this project");
+        userStory.getAssignedTo().clear();
+        
+        if (request.getAssignedToUsernames() != null && !request.getAssignedToUsernames().isEmpty()) {
+            for (String assignedUsername : request.getAssignedToUsernames()) {
+                User assignedUser = userRepository.findByUsername(assignedUsername)
+                        .orElseThrow(() -> new RuntimeException("User not found: " + assignedUsername));
+                
+                if (!userStory.getProject().getMembers().contains(assignedUser)) {
+                    throw new RuntimeException("User " + assignedUsername + " is not a member of this project");
+                }
+                
+                userStory.getAssignedTo().add(assignedUser);
             }
-            userStory.setAssignedTo(assignedUser);
-        } else {
-            userStory.setAssignedTo(null);
         }
         
         return userStoryRepository.save(userStory);

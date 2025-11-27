@@ -19,20 +19,17 @@
       <textarea id="description" formControlName="description"></textarea>
     </div>
     <div class="form-group">
-      <label>Membres (usernames)</label>
-      <div formArrayName="members">
-        <div *ngFor="let member of members.controls; let i = index" class="member-row">
-          <input [formControlName]="i" placeholder="Nom d'utilisateur" />
-          <button 
-          *ngIf="member.enabled" 
-          type="button" 
-          (click)="removeMember(i)" 
-          class="remove-btn" 
-          aria-label="Supprimer">×</button>
-          <span *ngIf="member.disabled" class="owner-badge">(Propriétaire)</span>
-        </div>
+      <label>Propriétaire</label>
+      <div class="member-row">
+        <input [value]="ownerUsername" disabled />
+        <span class="owner-badge">(Propriétaire)</span>
       </div>
-      <button type="button" (click)="addMember()" class="add-btn">+ Ajouter un membre</button>
+    </div>
+    <div class="form-group">
+      <label for="members">Membres (maintenir Ctrl/Cmd pour sélectionner plusieurs)</label>
+      <select id="members" formControlName="members" multiple class="member-select">
+        <option *ngFor="let user of allUsers" [value]="user.username">{{ user.username }}</option>
+      </select>
     </div>
     <button type="submit" [disabled]="projectForm.invalid || loading" class="submit-btn">
       {{ loading ? 'Mise à jour...' : 'Mettre à jour le projet' }}

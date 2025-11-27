@@ -44,8 +44,8 @@
               <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
             </p>
             <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
-            <div *ngIf="story.assignedTo" class="story-assignee">
-              👤 {{ story.assignedTo.username }}
+            <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
+              👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
             </div>
           </div>
         </div>
@@ -63,8 +63,8 @@
               <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
             </p>
             <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
-            <div *ngIf="story.assignedTo" class="story-assignee">
-              👤 {{ story.assignedTo.username }}
+            <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
+              👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
             </div>
           </div>
         </div>
@@ -82,8 +82,8 @@
               <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
             </p>
             <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
-            <div *ngIf="story.assignedTo" class="story-assignee">
-              👤 {{ story.assignedTo.username }}
+            <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
+              👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
             </div>
           </div>
         </div>

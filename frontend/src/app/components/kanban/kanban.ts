@@ -20,7 +20,7 @@ interface UserStory {
   description: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  assignedTo?: { username: string };
+  assignedTo?: { username: string }[];
 }
 
 @Component({
