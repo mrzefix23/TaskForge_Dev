@@ -1,8 +1,11 @@
 <app-header></app-header>
 <main class="projects-list-main">
   <div class="projects-list-header">
-    <h1 class="projects-list-title">Mes Projets</h1>
-    <button (click)="createProject()" class="create-project-btn">Créer un projet</button>
+    <div>
+      <h1 class="projects-list-title">Mes Projets</h1>
+      <p class="projects-list-subtitle">Gérez et suivez tous vos projets</p>
+    </div>
+    <button (click)="createProject()" class="create-project-btn">+ Créer un projet</button>
   </div>
 
   <div *ngIf="loading" class="loading">

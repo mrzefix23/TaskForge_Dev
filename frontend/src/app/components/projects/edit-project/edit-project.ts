@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -13,6 +13,10 @@ interface Project {
   members: { username: string }[];
 }
 
+interface User {
+  username: string;
+}
+
 @Component({
   selector: 'app-edit-project',
   standalone: true,
@@ -21,16 +25,15 @@ interface Project {
   styleUrls: ['../create-project/create-project.css']
 })
 export class EditProjectComponent implements OnInit {
-  projectForm;
+  projectForm: FormGroup;
   success = false;
   error = '';
   loading = false;
-  projectId: number | null = null;
   initialLoading = true;
-
-  get members() {
-    return this.projectForm.get('members') as FormArray;
-  }
+  projectId: number = 0;
+  allUsers: User[] = [];
+  currentUsername: string | null = null;
+  ownerUsername: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -41,39 +44,63 @@ export class EditProjectComponent implements OnInit {
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
-      members: this.fb.array([])
+      members: [[]]
     });
   }
 
   ngOnInit(): void {
+    this.currentUsername = localStorage.getItem('username');
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.projectId = +id;
-      this.loadProjectData();
+      this.loadAllUsersAndProject();
     } else {
-      this.error = "ID de projet non trouvé.";
       this.initialLoading = false;
     }
   }
 
-  loadProjectData(): void {
+  goBack(): void {
+    if (this.projectId) {
+      this.router.navigate(['/projects', this.projectId]);
+    } else {
+      this.router.navigate(['/projects']);
+    }
+  }
+
+  loadAllUsersAndProject(): void {
     const token = localStorage.getItem('token');
-    this.http.get<Project>(`/api/projects/${this.projectId}`, {
+    this.http.get<User[]>('/api/users', {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
-      next: (project) => {
+      next: (users) => {
+        this.allUsers = users;
+        this.loadProject(this.projectId); // Load project after users are loaded
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des utilisateurs', err);
+        this.error = 'Impossible de charger la liste des membres potentiels.';
+        this.initialLoading = false;
+      }
+    });
+  }
+
+  loadProject(projectId: number): void {
+    const token = localStorage.getItem('token');
+    this.http.get<Project>(`/api/projects/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (data) => {
+        this.ownerUsername = data.owner.username;
+        this.allUsers = this.allUsers.filter(u => u.username !== this.ownerUsername);
+
         this.projectForm.patchValue({
-          name: project.name,
-          description: project.description
+          name: data.name,
+          description: data.description,
+          members: data.members
+            .filter(m => m.username !== this.ownerUsername)
+            .map(m => m.username)
         });
-        const ownerUsername = project.owner.username;
-        project.members.forEach(member => {
-          const control = this.fb.control(member.username, Validators.required);
-          if(member.username === ownerUsername) {
-            control.disable(); // Disable the owner's control
-          }
-          this.members.push(control);
-        });
+
         this.initialLoading = false;
       },
       error: (err) => {
@@ -84,14 +111,6 @@ export class EditProjectComponent implements OnInit {
     });
   }
 
-  addMember() {
-    this.members.push(this.fb.control('', Validators.required));
-  }
-
-  removeMember(index: number) {
-    this.members.removeAt(index);
-  }
-
   onSubmit() {
     if (this.projectForm.invalid) return;
     this.loading = true;
@@ -99,14 +118,11 @@ export class EditProjectComponent implements OnInit {
     this.success = false;
 
     const token = localStorage.getItem('token');
-    const ownerUsername = localStorage.getItem('username');
 
     const payload = {
       name: this.projectForm.value.name,
       description: this.projectForm.value.description,
-      members: this.members.value
-        .filter((m: string) => !!m)
-        .map((username: string) => ({ username }))
+      members: this.projectForm.value.members.map((username: string) => ({ username }))
     };
 
     this.http.put(`/api/projects/${this.projectId}`, payload, {
@@ -116,7 +132,7 @@ export class EditProjectComponent implements OnInit {
         this.success = true;
         this.loading = false;
         setTimeout(() => {
-          this.router.navigate(['/myprojects']);
+          this.router.navigate(['/projects']);
         }, 1000);
       },
       error: (err) => {

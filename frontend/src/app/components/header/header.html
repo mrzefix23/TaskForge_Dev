@@ -1,5 +1,11 @@
 <div class="accueil-header">
-  <a routerLink="{{ homeRoute }}" class="accueil-logo">TaskForge</a>
+  <div class="header-left">
+    <a routerLink="{{ homeRoute }}" class="accueil-logo">TaskForge</a>
+    <nav class="header-nav">
+      <a routerLink="/accueil" class="nav-link" routerLinkActive="active">Accueil</a>
+      <a routerLink="/projects" class="nav-link" routerLinkActive="active">Projets</a>
+    </nav>
+  </div>
   <div class="user-menu" (click)="toggleMenu()" tabindex="0" (blur)="closeMenu()" [attr.aria-expanded]="menuOpen">
     <span class="user-menu-username">{{ username }}</span>
     <span class="user-menu-arrow" [class.open]="menuOpen">&#9662;</span>

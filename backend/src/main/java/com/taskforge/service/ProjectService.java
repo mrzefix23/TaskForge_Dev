@@ -10,10 +10,14 @@ import org.springframework.stereotype.Service;
 import com.taskforge.dto.CreateProjectRequest;
 import com.taskforge.exceptions.DuplicateProjectNameException;
 import com.taskforge.exceptions.ProjectSuppressionException;
+import com.taskforge.exceptions.UpdateProjectException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.UserRepository;
+import com.taskforge.repositories.UserStoryRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProjectService {
@@ -23,6 +27,9 @@ public class ProjectService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
 
     public Project createProject(CreateProjectRequest createProjectRequest) {
         User owner = userRepository.findByUsername(createProjectRequest.getUser().getUsername())
@@ -75,10 +82,13 @@ public class ProjectService {
             .ifPresent(existingProject -> {
                 throw new DuplicateProjectNameException("Un projet avec ce nom existe déjà.");
             });
+
+        // Vérifier si l'utilisateur est le propriétaire du projet
+        boolean isOwner = project.getOwner().getUsername().equals(username);
         
-        project.setName(updateRequest.getName());
-        project.setDescription(updateRequest.getDescription());
-        
+        if (!isOwner) {
+            throw new UpdateProjectException("Seul le propriétaire du projet peut le mettre à jour.");
+        }
         Set<User> members = new HashSet<>();
         if(updateRequest.getMembers() != null) {
             for (var memberDto : updateRequest.getMembers()) {
@@ -90,16 +100,23 @@ public class ProjectService {
         // Ensure owner is still a member
         members.add(project.getOwner());
         
+        project.setName(updateRequest.getName());
+        project.setDescription(updateRequest.getDescription());
         project.setMembers(members);
         
         return projectRepository.save(project);
     }
 
+    @Transactional
     public void deleteProject(Long projectId, String username) {
         Project project = getProjectById(projectId, username);
         if (!project.getOwner().getUsername().equals(username)) {
             throw new ProjectSuppressionException("Uniquement le propriétaire du projet peut le supprimer.");
         }
+
+        //Supprimer les US lié au projet
+        userStoryRepository.deleteAllByProjectId(projectId);
+
         projectRepository.deleteById(projectId);
     }   
 

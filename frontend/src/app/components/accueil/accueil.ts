@@ -31,7 +31,7 @@ export class AccueilComponent {
   }
 
   loadProjects() {
-    this.router.navigate(['/myprojects']);
+    this.router.navigate(['/projects']);
   }
 
   createProject() {

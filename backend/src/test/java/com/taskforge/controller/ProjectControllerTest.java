@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -130,5 +131,30 @@ public class ProjectControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated Project Name"))
                 .andExpect(jsonPath("$.description").value("Updated Description"));
+    }
+
+    @Test
+    @WithMockUser(username = "owner")
+    void deleteProject_shouldSucceed_whenUserIsOwner() throws Exception {
+        // Create a project
+        CreateProjectRequest createReq = new CreateProjectRequest();
+        createReq.setName("Project to Delete");
+        createReq.setDescription("This project will be deleted");
+        createReq.setUser(UserDto.builder().username("owner").build());
+        createReq.setMembers(List.of());
+
+        String response = mockMvc.perform(post("/api/projects")
+                .principal(() -> "owner")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createReq)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        Long projectId = objectMapper.readTree(response).get("id").asLong();
+
+        // Delete the project
+        mockMvc.perform(delete("/api/projects/" + projectId)
+                .principal(() -> "owner"))
+                .andExpect(status().isNoContent());
     }
 }

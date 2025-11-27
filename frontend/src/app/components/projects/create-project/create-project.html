@@ -1,5 +1,10 @@
 <app-header></app-header>
 <div class="create-project-container">
+  <div class="form-navigation">
+    <button (click)="goBack()" class="back-btn" title="Retour">
+      ← Retour aux projets
+    </button>
+  </div>
   <h2>Créer un projet</h2>
   <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" class="create-project-form">
     <div class="form-group">
@@ -11,14 +16,10 @@
       <textarea id="description" formControlName="description" placeholder="Description (optionnel)"></textarea>
     </div>
     <div class="form-group">
-      <label>Membres (usernames)</label>
-      <div formArrayName="members">
-        <div *ngFor="let member of members.controls; let i = index" class="member-row">
-          <input [formControlName]="i" placeholder="Nom d'utilisateur" />
-          <button type="button" (click)="removeMember(i)" class="remove-btn" aria-label="Supprimer">×</button>
-        </div>
-      </div>
-      <button type="button" (click)="addMember()" class="add-btn">+ Ajouter un membre</button>
+      <label for="members">Membres (maintenir Ctrl/Cmd pour sélectionner plusieurs)</label>
+      <select id="members" formControlName="members" multiple class="member-select">
+        <option *ngFor="let user of allUsers" [value]="user.username">{{ user.username }}</option>
+      </select>
     </div>
     <button type="submit" [disabled]="projectForm.invalid || loading" class="submit-btn">
       {{ loading ? 'Création...' : 'Créer le projet' }}

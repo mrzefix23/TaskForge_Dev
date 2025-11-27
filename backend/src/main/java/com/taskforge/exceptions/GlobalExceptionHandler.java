@@ -1,10 +1,11 @@
 package com.taskforge.exceptions;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,6 +27,12 @@ public class GlobalExceptionHandler {
             .body(Map.of("message", ex.getMessage()));
     }
 
+    @ExceptionHandler(DuplicateUserStoryTitleException.class)
+    public ResponseEntity<?> handleDuplicateUserStoryTitle(DuplicateUserStoryTitleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(DuplicateProjectNameException.class)
     public ResponseEntity<?> handleDuplicateProjectName(DuplicateProjectNameException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -35,6 +42,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProjectSuppressionException.class)
     public ResponseEntity<?> handleProjectSuppression(ProjectSuppressionException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UpdateProjectException.class)
+    public ResponseEntity<?> handleUpdateProject(UpdateProjectException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("message", ex.getMessage()));
     }
 }
