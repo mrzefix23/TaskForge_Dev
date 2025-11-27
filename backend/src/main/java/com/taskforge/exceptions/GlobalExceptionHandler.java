@@ -44,4 +44,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(Map.of("message", ex.getMessage()));
     }
+
+    @ExceptionHandler(UpdateProjectException.class)
+    public ResponseEntity<?> handleUpdateProject(UpdateProjectException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("message", ex.getMessage()));
+    }
 }

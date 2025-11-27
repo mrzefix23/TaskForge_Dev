@@ -6,16 +6,18 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 
 import com.taskforge.dto.CreateProjectRequest;
 import com.taskforge.exceptions.DuplicateProjectNameException;
 import com.taskforge.exceptions.ProjectSuppressionException;
+import com.taskforge.exceptions.UpdateProjectException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProjectService {
@@ -80,10 +82,13 @@ public class ProjectService {
             .ifPresent(existingProject -> {
                 throw new DuplicateProjectNameException("Un projet avec ce nom existe déjà.");
             });
+
+        // Vérifier si l'utilisateur est le propriétaire du projet
+        boolean isOwner = project.getOwner().getUsername().equals(username);
         
-        project.setName(updateRequest.getName());
-        project.setDescription(updateRequest.getDescription());
-        
+        if (!isOwner) {
+            throw new UpdateProjectException("Seul le propriétaire du projet peut le mettre à jour.");
+        }
         Set<User> members = new HashSet<>();
         if(updateRequest.getMembers() != null) {
             for (var memberDto : updateRequest.getMembers()) {
@@ -95,6 +100,8 @@ public class ProjectService {
         // Ensure owner is still a member
         members.add(project.getOwner());
         
+        project.setName(updateRequest.getName());
+        project.setDescription(updateRequest.getDescription());
         project.setMembers(members);
         
         return projectRepository.save(project);
