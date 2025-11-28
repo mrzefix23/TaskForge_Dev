@@ -126,11 +126,11 @@ class JwtFilterTest {
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtService.extractUsername(token)).thenThrow(new RuntimeException("Invalid JWT"));
 
-        jwtFilter.doFilter(request, response, filterChain);
-
+        jwtFilter.doFilterInternal(request, response, filterChain);
+        
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(filterChain, never()).doFilter(request, response);
-        
+
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 }
