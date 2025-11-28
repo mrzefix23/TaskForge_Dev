@@ -2,13 +2,18 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
-interface Task {
+export interface User {
   id: number;
+  username: string;
+}
+
+export interface Task {
+  id?: number;
   title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  assignedTo?: { username: string };
+  description?: string;
+  status: string;
+  priority: string;
+  assignedTo?: User;
 }
 
 interface Member {

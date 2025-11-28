@@ -32,11 +32,52 @@
     </div>
 
     <div class="kanban-board">
-      <!-- To Do Column -->
-      <div class="kanban-column">
-        <h2 class="column-title todo">À Faire</h2>
+      <!-- Boucle sur toutes les colonnes (défaut + custom) -->
+      <div *ngFor="let column of allColumns" 
+           class="kanban-column"
+           (dragover)="onDragOver($event)"
+           (drop)="onDrop($event, column.id)">
+        <div class="column-header">
+          <!-- Mode Affichage -->
+          <h2 *ngIf="editingColumnId !== column.id" class="column-title" [ngClass]="column.id.toLowerCase().replace('_', '-')">
+            {{ column.label }}
+            <button 
+              *ngIf="isColumnDeletable(column.id)" 
+              (click)="startEditColumnLabel(column)" 
+              class="edit-column-btn" 
+              title="Modifier le nom">
+              ✎
+            </button>
+          </h2>
+          
+          <!-- Mode Édition -->
+          <div *ngIf="editingColumnId === column.id" class="column-edit-form">
+            <input 
+              type="text" 
+              [(ngModel)]="editedColumnLabel" 
+              [id]="'column-label-' + column.id"
+              (keyup.enter)="saveColumnLabel(column)"
+              (keyup.escape)="cancelEditColumnLabel()"
+              class="column-label-input"
+            />
+            <button (click)="saveColumnLabel(column)" class="save-column-btn" title="Valider">✓</button>
+            <button (click)="cancelEditColumnLabel()" class="cancel-column-btn" title="Annuler">×</button>
+          </div>
+
+          <button 
+            *ngIf="isColumnDeletable(column.id)" 
+            (click)="deleteColumn(column.id)" 
+            class="delete-column-btn" 
+            title="Supprimer la colonne">
+            🗑️
+          </button>
+        </div>
+        
         <div class="story-list">
-          <div *ngFor="let story of getStoriesByStatus('TODO')" class="story-card">
+          <div *ngFor="let story of getStoriesByStatus(column.id)" 
+               class="story-card"
+               draggable="true"
+               (dragstart)="onDragStart($event, story)">
             <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
             <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎</button>
             <h3 class="story-title">{{ story.title }}</h3>
@@ -48,7 +89,6 @@
               👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
             </div>
             
-            <!-- Tasks Section -->
             <div class="tasks-section">
               <div class="tasks-header">
                 <button (click)="toggleTasks(story, $event)" class="toggle-tasks-btn">
@@ -82,109 +122,18 @@
         </div>
       </div>
 
-      <!-- In Progress Column -->
-      <div class="kanban-column">
-        <h2 class="column-title in-progress">En Cours</h2>
-        <div class="story-list">
-          <div *ngFor="let story of getStoriesByStatus('IN_PROGRESS')" class="story-card">
-            <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
-            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎</button>
-            <h3 class="story-title">{{ story.title }}</h3>
-            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
-              <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
-            </p>
-            <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
-            <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
-              👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
-            </div>
-            
-            <!-- Tasks Section -->
-            <div class="tasks-section">
-              <div class="tasks-header">
-                <button (click)="toggleTasks(story, $event)" class="toggle-tasks-btn">
-                  <span [class.rotate]="!story.showTasks">▼</span> {{ getTaskCountLabel(story) }}
-                </button>
-                <button (click)="openCreateTaskModal(story.id, $event)" class="add-task-btn" title="Ajouter une tâche">+ Tâche</button>
-              </div>
-              
-              <div *ngIf="story.showTasks" class="tasks-list">
-                <div *ngFor="let task of story.tasks" class="task-item">
-                  <div class="task-header">
-                    <span class="task-status-badge" [ngClass]="task.status.toLowerCase()">{{ getStatusLabel(task.status) }}</span>
-                    <div class="task-actions">
-                      <button (click)="openEditTaskModal(task, $event)" class="task-edit-btn" title="Modifier">✎</button>
-                      <button (click)="deleteTask(task.id, story.id, $event)" class="task-delete-btn" title="Supprimer">×</button>
-                    </div>
-                  </div>
-                  <h4 class="task-title">{{ task.title }}</h4>
-                  <p *ngIf="task.description" class="task-description">{{ task.description }}</p>
-                  <div class="task-footer">
-                    <span class="task-priority-badge" [ngClass]="task.priority.toLowerCase()">{{ getPriorityLabel(task.priority) }}</span>
-                    <span *ngIf="task.assignedTo" class="task-assignee">👤 {{ task.assignedTo.username }}</span>
-                  </div>
-                </div>
-                <div *ngIf="!story.tasks || story.tasks.length === 0" class="no-tasks">
-                  Aucune tâche pour le moment
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Done Column -->
-      <div class="kanban-column">
-        <h2 class="column-title done">Terminé</h2>
-        <div class="story-list">
-          <div *ngFor="let story of getStoriesByStatus('DONE')" class="story-card">
-            <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
-            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎</button>
-            <h3 class="story-title">{{ story.title }}</h3>
-            <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
-              <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
-            </p>
-            <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
-            <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
-              👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
-            </div>
-            
-            <!-- Tasks Section -->
-            <div class="tasks-section">
-              <div class="tasks-header">
-                <button (click)="toggleTasks(story, $event)" class="toggle-tasks-btn">
-                  <span [class.rotate]="!story.showTasks">▼</span> {{ getTaskCountLabel(story) }}
-                </button>
-                <button (click)="openCreateTaskModal(story.id, $event)" class="add-task-btn" title="Ajouter une tâche">+ Tâche</button>
-              </div>
-              
-              <div *ngIf="story.showTasks" class="tasks-list">
-                <div *ngFor="let task of story.tasks" class="task-item">
-                  <div class="task-header">
-                    <span class="task-status-badge" [ngClass]="task.status.toLowerCase()">{{ getStatusLabel(task.status) }}</span>
-                    <div class="task-actions">
-                      <button (click)="openEditTaskModal(task, $event)" class="task-edit-btn" title="Modifier">✎</button>
-                      <button (click)="deleteTask(task.id, story.id, $event)" class="task-delete-btn" title="Supprimer">×</button>
-                    </div>
-                  </div>
-                  <h4 class="task-title">{{ task.title }}</h4>
-                  <p *ngIf="task.description" class="task-description">{{ task.description }}</p>
-                  <div class="task-footer">
-                    <span class="task-priority-badge" [ngClass]="task.priority.toLowerCase()">{{ getPriorityLabel(task.priority) }}</span>
-                    <span *ngIf="task.assignedTo" class="task-assignee">👤 {{ task.assignedTo.username }}</span>
-                  </div>
-                </div>
-                <div *ngIf="!story.tasks || story.tasks.length === 0" class="no-tasks">
-                  Aucune tâche pour le moment
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Bouton Ajouter une colonne -->
+      <div class="kanban-column add-column-placeholder">
+        <button (click)="addColumn()" class="add-column-btn" title="Ajouter une colonne">
+          <span class="plus-icon">+</span>
+          <span>Ajouter une colonne</span>
+        </button>
       </div>
     </div>
   </div>
 </main>
 
+<!-- Modals inchangées -->
 <app-user-story-form
   [show]="showCreateStoryModal"
   [mode]="'create'"

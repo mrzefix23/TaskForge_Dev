@@ -1,416 +1,387 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../header/header';
 import { UserStoryFormComponent } from './user-story-form/user-story-form';
 import { TaskFormComponent } from './task-form/task-form';
 
-interface Project {
+// Types
+interface User {
   id: number;
-  name: string;
-  description: string;
-  owner: { username: string };
-  members: { username: string }[];
+  username: string;
 }
 
 interface Task {
   id: number;
   title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  assignedTo?: { username: string };
-  userStory: { id: number };
+  description?: string;
+  status: string;
+  priority: string;
+  assignedTo?: User;
 }
 
 interface UserStory {
   id: number;
   title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  assignedTo?: { username: string }[];
+  description?: string;
+  status: string;
+  priority: string;
+  assignedTo?: User[];
   tasks?: Task[];
   showTasks?: boolean;
 }
 
+interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  owner: User;
+  members: User[];
+  userStories?: UserStory[];
+  customColumns?: Array<{ id: string; label: string }>;
+}
+
+interface KanbanColumn {
+  id: string;
+  label: string;
+  isDefault: boolean;
+}
+
 @Component({
-  selector: 'app-project-detail',
+  selector: 'app-kanban',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
+  imports: [CommonModule, FormsModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
   templateUrl: './kanban.html',
   styleUrls: ['./kanban.css']
 })
 export class KanbanComponent implements OnInit {
   project: Project | null = null;
-  userStories: UserStory[] = [];
-  loading = true;
-  error: string | null = null;
-  
+  loading = false;
+  error = '';
+
+  // Colonnes par défaut
+  defaultColumns: KanbanColumn[] = [
+    { id: 'TODO', label: 'À faire', isDefault: true },
+    { id: 'IN_PROGRESS', label: 'En cours', isDefault: true },
+    { id: 'DONE', label: 'Terminé', isDefault: true }
+  ];
+
+  // Colonnes personnalisées
+  customColumns: KanbanColumn[] = [];
+
+  // Edition de colonne
+  editingColumnId: string | null = null;
+  editedColumnLabel = '';
+
+  // Modals
   showCreateStoryModal = false;
   showEditStoryModal = false;
-  userStoryError: string | null = null;
-  editUserStoryError: string | null = null;
-  currentEditingStory: UserStory | null = null;
-
   showCreateTaskModal = false;
   showEditTaskModal = false;
-  taskError: string | null = null;
-  editTaskError: string | null = null;
-  currentEditingTask: Task | null = null;
-  currentUserStoryId: number | null = null;
 
-  constructor(
-    private route: ActivatedRoute,
-    private http: HttpClient,
-    private router: Router
-  ) {}
+  currentEditingStory: UserStory | null = null;
+  currentEditingTask: Task | null = null;
+  currentStoryIdForTask: number | null = null;
+
+  userStoryError = '';
+  editUserStoryError = '';
+  taskError = '';
+  editTaskError = '';
+
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('id');
     if (projectId) {
-      this.loadProjectDetails(+projectId);
-      this.loadUserStories(+projectId);
-    } else {
-      this.error = "ID de projet non trouvé.";
-      this.loading = false;
+      this.loadProject(Number(projectId));
     }
   }
 
-  loadProjectDetails(projectId: number): void {
-    const token = localStorage.getItem('token');
-    this.http.get<Project>(`/api/projects/${projectId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (data) => {
-        this.project = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Erreur lors du chargement du projet.';
-        this.loading = false;
-        console.error(err);
-      }
-    });
+  get allColumns(): KanbanColumn[] {
+    return [...this.defaultColumns, ...this.customColumns];
   }
 
-  loadUserStories(projectId: number): void {
-    const token = localStorage.getItem('token');
-    this.http.get<UserStory[]>(`/api/user-stories/project/${projectId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (data) => {
-        this.userStories = data.map(story => ({ ...story, showTasks: false, tasks: [] }));
-        this.userStories.forEach(story => this.loadTasksForStory(story.id));
-      },
-      error: (err) => {
-        this.error = (this.error ? this.error + ' ' : '') + 'Erreur lors du chargement des user stories.';
-        console.error(err);
+  loadProject(id: number): void {
+    this.loading = true;
+    this.error = '';
+
+    // Simulation API
+    setTimeout(() => {
+      this.project = {
+        id,
+        name: 'Projet TaskForge',
+        description: 'Gestion de projet agile',
+        owner: { id: 1, username: 'admin' },
+        members: [
+          { id: 2, username: 'alice' },
+          { id: 3, username: 'bob' }
+        ],
+        customColumns: [],
+        userStories: [
+          {
+            id: 1,
+            title: 'Interface utilisateur',
+            description: 'Créer l\'interface du dashboard',
+            status: 'TODO',
+            priority: 'HIGH',
+            assignedTo: [{ id: 2, username: 'alice' }],
+            tasks: [],
+            showTasks: false
+          }
+        ]
+      };
+
+      if (this.project.customColumns) {
+        this.customColumns = this.project.customColumns.map(col => ({
+          ...col,
+          isDefault: false
+        }));
       }
-    });
+
+      this.loading = false;
+    }, 500);
   }
 
-  loadTasksForStory(userStoryId: number): void {
-    const token = localStorage.getItem('token');
-    this.http.get<Task[]>(`/api/tasks/user-story/${userStoryId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (tasks) => {
-        const story = this.userStories.find(s => s.id === userStoryId);
-        if (story) {
-          story.tasks = tasks;
+  // --- Gestion des Colonnes ---
+
+  addColumn(): void {
+    const newId = `CUSTOM_${Date.now()}`;
+    const newColumn: KanbanColumn = {
+      id: newId,
+      label: 'Nouvelle colonne',
+      isDefault: false
+    };
+    this.customColumns.push(newColumn);
+    
+    // Activer l'édition immédiatement
+    setTimeout(() => this.startEditColumnLabel(newColumn), 0);
+  }
+
+  isColumnDeletable(columnId: string): boolean {
+    const column = this.allColumns.find(c => c.id === columnId);
+    return column ? !column.isDefault : false;
+  }
+
+  deleteColumn(columnId: string): void {
+    const column = this.allColumns.find(c => c.id === columnId);
+    if (!column || column.isDefault) return;
+
+    const hasStories = this.getStoriesByStatus(columnId).length > 0;
+    if (hasStories) {
+      if (!confirm('Cette colonne contient des user stories. Voulez-vous vraiment la supprimer ?')) {
+        return;
+      }
+    }
+
+    this.customColumns = this.customColumns.filter(c => c.id !== columnId);
+    
+    // Déplacer les stories orphelines vers TODO
+    if (this.project?.userStories) {
+      this.project.userStories.forEach(story => {
+        if (story.status === columnId) {
+          story.status = 'TODO';
         }
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des tâches:', err);
+      });
+    }
+  }
+
+  startEditColumnLabel(column: KanbanColumn): void {
+    this.editingColumnId = column.id;
+    this.editedColumnLabel = column.label;
+    
+    setTimeout(() => {
+      const input = document.getElementById(`column-label-${column.id}`) as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
       }
-    });
+    }, 0);
   }
 
-  getStoriesByStatus(status: 'TODO' | 'IN_PROGRESS' | 'DONE'): UserStory[] {
-    return this.userStories.filter(story => story.status === status);
+  saveColumnLabel(column: KanbanColumn): void {
+    if (!this.editedColumnLabel.trim()) return;
+
+    const col = this.allColumns.find(c => c.id === column.id);
+    if (col) {
+      col.label = this.editedColumnLabel.trim();
+    }
+    this.editingColumnId = null;
+    this.editedColumnLabel = '';
   }
 
-  toggleTasks(story: UserStory, event: MouseEvent): void {
-    event.stopPropagation();
-    story.showTasks = !story.showTasks;
+  cancelEditColumnLabel(): void {
+    this.editingColumnId = null;
+    this.editedColumnLabel = '';
   }
 
-  // User Story methods
+  getStoriesByStatus(status: string): UserStory[] {
+    if (!this.project?.userStories) return [];
+    return this.project.userStories.filter(story => story.status === status);
+  }
+
+  // --- Drag & Drop ---
+
+  onDragStart(event: DragEvent, story: UserStory): void {
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('text/plain', story.id.toString());
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault(); // Nécessaire pour autoriser le drop
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onDrop(event: DragEvent, newStatus: string): void {
+    event.preventDefault();
+    const storyId = Number(event.dataTransfer?.getData('text/plain'));
+    
+    if (this.project?.userStories) {
+      const story = this.project.userStories.find(s => s.id === storyId);
+      if (story && story.status !== newStatus) {
+        story.status = newStatus;
+      }
+    }
+  }
+
+  // --- User Stories & Tasks (Méthodes existantes adaptées) ---
+
   openCreateStoryModal(): void {
     this.showCreateStoryModal = true;
-    this.userStoryError = null;
+    this.userStoryError = '';
   }
 
   closeCreateStoryModal(): void {
     this.showCreateStoryModal = false;
-    this.userStoryError = null;
   }
 
-  onCreateUserStory(formValue: any): void {
+  onCreateUserStory(formData: any): void {
     if (!this.project) return;
-    
-    this.userStoryError = null;
-    const token = localStorage.getItem('token');
-    const payload = {
-      ...formValue,
-      projectId: this.project.id,
-      status: 'TODO'
+    const newStory: UserStory = {
+      id: Date.now(),
+      title: formData.title,
+      description: formData.description,
+      status: formData.status || 'TODO',
+      priority: formData.priority,
+      assignedTo: formData.assignedTo || [],
+      tasks: [],
+      showTasks: false
     };
-
-    this.http.post<UserStory>('/api/user-stories', payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (newStory) => {
-        this.userStories.push({ ...newStory, showTasks: false, tasks: [] });
-        this.closeCreateStoryModal();
-      },
-      error: (err) => {
-        if (err.status === 400 && err.error?.message) {
-          this.userStoryError = err.error.message;
-        } else {
-          this.userStoryError = 'Erreur lors de la création de la user story.';
-        }
-        console.error(err);
-      }
-    });
+    if (!this.project.userStories) this.project.userStories = [];
+    this.project.userStories.push(newStory);
+    this.closeCreateStoryModal();
   }
 
-  openEditStoryModal(story: UserStory, event?: MouseEvent): void {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.currentEditingStory = story;
+  openEditStoryModal(story: UserStory, event: Event): void {
+    event.stopPropagation();
+    this.currentEditingStory = { ...story };
     this.showEditStoryModal = true;
-    this.editUserStoryError = null;
   }
 
   closeEditStoryModal(): void {
     this.showEditStoryModal = false;
     this.currentEditingStory = null;
-    this.editUserStoryError = null;
   }
 
-  onEditUserStory(formValue: any): void {
-    if (!this.currentEditingStory) return;
-    
-    this.editUserStoryError = null;
-    const token = localStorage.getItem('token');
-    const payload = {
-      ...formValue,
-    };
-
-    this.http.put<UserStory>(`/api/user-stories/${this.currentEditingStory.id}`, payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (updatedStory) => {
-        const index = this.userStories.findIndex(s => s.id === updatedStory.id);
-        if (index !== -1) {
-          this.userStories[index] = { ...updatedStory, showTasks: this.userStories[index].showTasks, tasks: this.userStories[index].tasks };
-        }
-        this.closeEditStoryModal();
-      },
-      error: (err) => {
-        if (err.status === 400 && err.error?.message) {
-          this.editUserStoryError = err.error.message;
-        } else {
-          this.editUserStoryError = 'Erreur lors de la mise à jour de la user story.';
-        }
-        console.error(err);
-      }
-    });
-  }
-
-  deleteUserStory(storyId: number, event: MouseEvent): void {
-    event.stopPropagation();
-    
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette User Story et toutes ses tâches ?')) {
-      return;
+  onEditUserStory(formData: any): void {
+    if (!this.project?.userStories || !this.currentEditingStory) return;
+    const index = this.project.userStories.findIndex(s => s.id === this.currentEditingStory!.id);
+    if (index !== -1) {
+      this.project.userStories[index] = { ...this.project.userStories[index], ...formData };
     }
-
-    const token = localStorage.getItem('token');
-    this.http.delete(`/api/user-stories/${storyId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: () => {
-        this.userStories = this.userStories.filter(s => s.id !== storyId);
-      },
-      error: (err) => {
-        alert('Erreur lors de la suppression de la User Story.');
-        console.error(err);
-      }
-    });
+    this.closeEditStoryModal();
   }
 
-  // Task methods
-  openCreateTaskModal(userStoryId: number, event: MouseEvent): void {
+  deleteUserStory(storyId: number, event: Event): void {
     event.stopPropagation();
-    this.currentUserStoryId = userStoryId;
+    if (!confirm('Supprimer cette story ?')) return;
+    if (this.project?.userStories) {
+      this.project.userStories = this.project.userStories.filter(s => s.id !== storyId);
+    }
+  }
+
+  toggleTasks(story: UserStory, event: Event): void {
+    event.stopPropagation();
+    story.showTasks = !story.showTasks;
+  }
+
+  getTaskCountLabel(story: UserStory): string {
+    const count = story.tasks?.length || 0;
+    return count === 0 ? 'Aucune tâche' : `${count} tâche${count > 1 ? 's' : ''}`;
+  }
+
+  openCreateTaskModal(storyId: number, event: Event): void {
+    event.stopPropagation();
+    this.currentStoryIdForTask = storyId;
     this.showCreateTaskModal = true;
-    this.taskError = null;
   }
 
   closeCreateTaskModal(): void {
     this.showCreateTaskModal = false;
-    this.currentUserStoryId = null;
-    this.taskError = null;
+    this.currentStoryIdForTask = null;
   }
 
-  onCreateTask(formValue: any): void {
-    if (!this.currentUserStoryId) return;
-    
-    this.taskError = null;
-    const token = localStorage.getItem('token');
-    const payload = {
-      ...formValue,
-      userStoryId: this.currentUserStoryId
+  onCreateTask(formData: any): void {
+    if (!this.project?.userStories || this.currentStoryIdForTask === null) return;
+    const story = this.project.userStories.find(s => s.id === this.currentStoryIdForTask);
+    if (!story) return;
+    const newTask: Task = {
+      id: Date.now(),
+      title: formData.title,
+      description: formData.description,
+      status: formData.status || 'TODO',
+      priority: formData.priority,
+      assignedTo: formData.assignedTo
     };
-
-    this.http.post<Task>('/api/tasks', payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (newTask) => {
-        const story = this.userStories.find(s => s.id === this.currentUserStoryId);
-        if (story && story.tasks) {
-          story.tasks.push(newTask);
-        }
-        this.closeCreateTaskModal();
-      },
-      error: (err) => {
-        if (err.status === 400 && err.error?.message) {
-          this.taskError = err.error.message;
-        } else {
-          this.taskError = 'Erreur lors de la création de la tâche.';
-        }
-        console.error(err);
-      }
-    });
+    if (!story.tasks) story.tasks = [];
+    story.tasks.push(newTask);
+    this.closeCreateTaskModal();
   }
 
-  openEditTaskModal(task: Task, event: MouseEvent): void {
+  openEditTaskModal(task: Task, event: Event): void {
     event.stopPropagation();
-    console.log('Task à éditer:', task);
-    this.currentEditingTask = task;
+    this.currentEditingTask = { ...task };
     this.showEditTaskModal = true;
-    this.editTaskError = null;
   }
 
   closeEditTaskModal(): void {
     this.showEditTaskModal = false;
     this.currentEditingTask = null;
-    this.editTaskError = null;
   }
 
-  onEditTask(formValue: any): void {
-    console.log('onEditTask appelé avec:', formValue);
-    
-    if (!this.currentEditingTask) {
-      console.error('Aucune tâche en cours d\'édition');
-      return;
-    }
-
-    console.log('currentEditingTask:', this.currentEditingTask);
-    
-    this.editTaskError = null;
-    const token = localStorage.getItem('token');
-    
-    // Trouver la user story qui contient cette tâche
-    let userStoryId: number;
-    
-    if (this.currentEditingTask.userStory && this.currentEditingTask.userStory.id) {
-      userStoryId = this.currentEditingTask.userStory.id;
-    } else {
-      // Chercher la user story dans la liste
-      const story = this.userStories.find(s => 
-        s.tasks && s.tasks.some(t => t.id === this.currentEditingTask!.id)
-      );
-      
-      if (!story) {
-        console.error('User story non trouvée pour la tâche');
-        this.editTaskError = 'Erreur: User story non trouvée';
-        return;
+  onEditTask(formData: any): void {
+    if (!this.project?.userStories || !this.currentEditingTask) return;
+    for (const story of this.project.userStories) {
+      if (!story.tasks) continue;
+      const taskIndex = story.tasks.findIndex(t => t.id === this.currentEditingTask!.id);
+      if (taskIndex !== -1) {
+        story.tasks[taskIndex] = { ...story.tasks[taskIndex], ...formData };
+        break;
       }
-      
-      userStoryId = story.id;
     }
-    
-    const payload = {
-      ...formValue,
-      userStoryId: userStoryId
-    };
-
-    console.log('Payload envoyé:', payload);
-
-    this.http.put<Task>(`/api/tasks/${this.currentEditingTask.id}`, payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (updatedTask) => {
-        console.log('Tâche mise à jour avec succès:', updatedTask);
-        const story = this.userStories.find(s => s.id === userStoryId);
-        if (story && story.tasks) {
-          const taskIndex = story.tasks.findIndex(t => t.id === updatedTask.id);
-          if (taskIndex !== -1) {
-            story.tasks[taskIndex] = updatedTask;
-          }
-        }
-        this.closeEditTaskModal();
-      },
-      error: (err) => {
-        console.error('Erreur lors de la mise à jour:', err);
-        if (err.status === 400 && err.error?.message) {
-          this.editTaskError = err.error.message;
-        } else {
-          this.editTaskError = 'Erreur lors de la mise à jour de la tâche.';
-        }
-      }
-    });
+    this.closeEditTaskModal();
   }
 
-  deleteTask(taskId: number, userStoryId: number, event: MouseEvent): void {
+  deleteTask(taskId: number, storyId: number, event: Event): void {
     event.stopPropagation();
-    
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-      return;
+    if (!confirm('Supprimer cette tâche ?')) return;
+    const story = this.project?.userStories?.find(s => s.id === storyId);
+    if (story?.tasks) {
+      story.tasks = story.tasks.filter(t => t.id !== taskId);
     }
-
-    const token = localStorage.getItem('token');
-    this.http.delete(`/api/tasks/${taskId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: () => {
-        const story = this.userStories.find(s => s.id === userStoryId);
-        if (story && story.tasks) {
-          story.tasks = story.tasks.filter(t => t.id !== taskId);
-        }
-      },
-      error: (err) => {
-        alert('Erreur lors de la suppression de la tâche.');
-        console.error(err);
-      }
-    });
   }
 
   getPriorityLabel(priority: string): string {
-    const labels: { [key: string]: string } = {
-      'LOW': 'Basse',
-      'MEDIUM': 'Moyenne',
-      'HIGH': 'Haute'
-    };
+    const labels: Record<string, string> = { 'LOW': 'Basse', 'MEDIUM': 'Moyenne', 'HIGH': 'Haute' };
     return labels[priority] || priority;
   }
 
   getStatusLabel(status: string): string {
-    const labels: { [key: string]: string } = {
-      'TODO': '📋 À Faire',
-      'IN_PROGRESS': '⏳ En Cours',
-      'DONE': '✅ Terminé'
-    };
-    return labels[status] || status;
-  }
-
-  getTaskCountLabel(story: UserStory): string {
-    if (!story.tasks || story.tasks.length === 0) return 'Aucune tâche';
-    return `${story.tasks.length} tâche${story.tasks.length > 1 ? 's' : ''}`;
+    const col = this.allColumns.find(c => c.id === status);
+    return col ? col.label : status;
   }
 }
