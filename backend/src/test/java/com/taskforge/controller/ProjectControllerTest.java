@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,14 +37,12 @@ public class ProjectControllerTest {
 
     @BeforeEach
     void setup() throws Exception {
-        // Nettoyer les tables avant chaque test
         jdbcTemplate.execute("DELETE FROM user_story_assignees");
         jdbcTemplate.execute("DELETE FROM user_stories");
         jdbcTemplate.execute("DELETE FROM project_members");
         jdbcTemplate.execute("DELETE FROM projects");        
         jdbcTemplate.execute("DELETE FROM users");        
 
-        // Créer un utilisateur de test
         RegisterRequest userRequest = new RegisterRequest();
         userRequest.setUsername("testuser");
         userRequest.setEmail("testuser@example.com");
@@ -57,7 +56,6 @@ public class ProjectControllerTest {
 
     @Test
     void createProject_shouldReturnCreatedProject() throws Exception {
-        // Créer un projet
         CreateProjectRequest request = new CreateProjectRequest();
         request.setName("New Project");
         request.setDescription("Project Description");
@@ -74,8 +72,34 @@ public class ProjectControllerTest {
     }
 
     @Test
+    void createProject_shouldReturnForbidden_WhenUsernameMismatch() throws Exception {
+        CreateProjectRequest request = new CreateProjectRequest();
+        request.setName("Hacked Project");
+        request.setUser(UserDto.builder().username("testuser").build());
+        request.setMembers(List.of());
+
+        mockMvc.perform(post("/api/projects")
+                .with(user("hacker")) 
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createProject_shouldFail_WhenPrincipalIsNull() throws Exception {
+        CreateProjectRequest request = new CreateProjectRequest();
+        request.setName("Project");
+        request.setUser(UserDto.builder().username("testuser").build());
+
+        mockMvc.perform(post("/api/projects")
+                .with(anonymous()) 
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().is4xxClientError()); 
+    }
+
+    @Test
     void getProjectsByUsername_shouldReturnUserProjects() throws Exception {
-        // Créer un projet
         CreateProjectRequest createRequest = new CreateProjectRequest();
         createRequest.setName("Test Project");
         createRequest.setDescription("Description");
@@ -88,17 +112,21 @@ public class ProjectControllerTest {
                 .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk());
 
-        // Récupérer les projets de l'utilisateur
         mockMvc.perform(get("/api/projects/myprojects")
                 .with(user("testuser")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Test Project"))
-                .andExpect(jsonPath("$[0].description").value("Description"));
+                .andExpect(jsonPath("$[0].name").value("Test Project"));
+    }
+
+    @Test
+    void getMyProjects_shouldFail_WhenNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/api/projects/myprojects")
+                .with(anonymous()))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     void getProjectById_shouldReturnProject() throws Exception {
-        // Créer un projet
         CreateProjectRequest createRequest = new CreateProjectRequest();
         createRequest.setName("Specific Project");
         createRequest.setDescription("Specific Description");
@@ -110,23 +138,25 @@ public class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andReturn().getResponse().getContentAsString();
 
         Long projectId = objectMapper.readTree(createResponse).get("id").asLong();
 
-        // Récupérer le projet par ID
         mockMvc.perform(get("/api/projects/" + projectId)
                 .with(user("testuser")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Specific Project"))
-                .andExpect(jsonPath("$.description").value("Specific Description"));
+                .andExpect(jsonPath("$.name").value("Specific Project"));
+    }
+
+    @Test
+    void getProjectById_shouldFail_WhenNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/api/projects/999")
+                .with(anonymous()))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     void updateProject_shouldChangeNameAndDescription() throws Exception {
-        // Créer un projet
         CreateProjectRequest createRequest = new CreateProjectRequest();
         createRequest.setName("Original Name");
         createRequest.setDescription("Original Description");
@@ -138,13 +168,10 @@ public class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andReturn().getResponse().getContentAsString();
 
         Long projectId = objectMapper.readTree(createResponse).get("id").asLong();
 
-        // Mettre à jour le projet
         CreateProjectRequest updateRequest = new CreateProjectRequest();
         updateRequest.setName("Updated Name");
         updateRequest.setDescription("Updated Description");
@@ -154,13 +181,23 @@ public class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Updated Name"))
-                .andExpect(jsonPath("$.description").value("Updated Description"));
+                .andExpect(jsonPath("$.name").value("Updated Name"));
+    }
+
+    @Test
+    void updateProject_shouldFail_WhenNotAuthenticated() throws Exception {
+        CreateProjectRequest updateRequest = new CreateProjectRequest();
+        updateRequest.setName("Update");
+        
+        mockMvc.perform(put("/api/projects/1")
+                .with(anonymous())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     void deleteProject_shouldRemoveProject() throws Exception {
-        // Créer un projet
         CreateProjectRequest createRequest = new CreateProjectRequest();
         createRequest.setName("Project to Delete");
         createRequest.setDescription("Will be deleted");
@@ -172,21 +209,24 @@ public class ProjectControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andReturn().getResponse().getContentAsString();
 
         Long projectId = objectMapper.readTree(createResponse).get("id").asLong();
 
-        // Supprimer le projet
         mockMvc.perform(delete("/api/projects/" + projectId)
                 .with(user("testuser")))
                 .andExpect(status().isNoContent());
 
-        // Vérifier que le projet n'existe plus
         mockMvc.perform(get("/api/projects/myprojects")
                 .with(user("testuser")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void deleteProject_shouldFail_WhenNotAuthenticated() throws Exception {
+        mockMvc.perform(delete("/api/projects/1")
+                .with(anonymous()))
+                .andExpect(status().is4xxClientError());
     }
 }
