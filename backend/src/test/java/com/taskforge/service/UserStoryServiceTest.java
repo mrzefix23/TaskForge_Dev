@@ -1,8 +1,11 @@
 package com.taskforge.service;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,4 +102,33 @@ class UserStoryServiceTest {
         assertThat(exception.getMessage()).isEqualTo("Only project owner can delete user stories");
         verify(userStoryRepository, never()).deleteById(anyLong());
     }
+
+    @Test
+    void deleteUserStory_shouldThrowException_whenUserStoryNotFound() {
+        when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userStoryService.deleteUserStory(999L, projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User story not found");
+    }
+
+    @Test
+    void updateUserStory_shouldThrowException_whenUserStoryNotFound() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> userStoryService.updateUserStory(999L, request, projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User story not found");
+
+    }
+
+    @Test
+    void getUserStoryById_shouldThrowException_whenUserStoryNotFound() {
+        when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userStoryService.getUserStoryById(999L, projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User story not found");
+    }
+
 }
