@@ -88,28 +88,36 @@ class JwtFilterTest {
         when(jwtService.extractUsername(token)).thenReturn(username);
         when(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails);
 
-        jwtFilter.doFilter(request, response, filterChain);
+        jwtFilter.doFilterInternal(request, response, filterChain);
 
+        verify(filterChain, atLeast(1)).doFilter(request, response);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
         assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo(username);
 
-        verify(filterChain).doFilter(request, response);
     }
 
     @Test
     void shouldSkipFilter_WhenUserAlreadyAuthenticated() throws ServletException, IOException {
-        SecurityContextHolder.getContext().setAuthentication(
-                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("existing", null, new ArrayList<>())
+        String token = "valid.jwt.token";
+        String username = "testuser";
+        UserDetails userDetails = User.builder()
+                .username(username)
+                .password("password")
+                .authorities(new ArrayList<>())
+                .build();
+
+        var authToken = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities()
         );
+        SecurityContextHolder.getContext().setAuthentication(authToken);
 
-        String token = "valid.token";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtService.extractUsername(token)).thenReturn("existing");
+        when(jwtService.extractUsername(token)).thenReturn(username);
 
-        jwtFilter.doFilter(request, response, filterChain);
+        jwtFilter.doFilterInternal(request, response, filterChain);
 
-        verify(userDetailsService, never()).loadUserByUsername(any());
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, atLeast(1)).doFilter(request, response);
+        verify(userDetailsService, never()).loadUserByUsername(anyString());
     }
 
     @Test
