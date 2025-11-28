@@ -26,7 +26,7 @@
     <div class="project-members">
       <strong>Membres:</strong>
       <span class="member-badge owner">{{ project.owner.username }} (Propriétaire)</span>
-      <span *ngFor="let member of project.members.slice(0, project.members.length - 1)" class="member-badge">
+      <span *ngFor="let member of project.members" class="member-badge">
         {{ member.username }}
       </span>
     </div>
@@ -38,7 +38,7 @@
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('TODO')" class="story-card">
             <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
-            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎ Modifier</button>
+            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎</button>
             <h3 class="story-title">{{ story.title }}</h3>
             <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
               <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
@@ -46,6 +46,37 @@
             <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
             <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
               👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
+            </div>
+            
+            <!-- Tasks Section -->
+            <div class="tasks-section">
+              <div class="tasks-header">
+                <button (click)="toggleTasks(story, $event)" class="toggle-tasks-btn">
+                  <span [class.rotate]="!story.showTasks">▼</span> {{ getTaskCountLabel(story) }}
+                </button>
+                <button (click)="openCreateTaskModal(story.id, $event)" class="add-task-btn" title="Ajouter une tâche">+ Tâche</button>
+              </div>
+              
+              <div *ngIf="story.showTasks" class="tasks-list">
+                <div *ngFor="let task of story.tasks" class="task-item">
+                  <div class="task-header">
+                    <span class="task-status-badge" [ngClass]="task.status.toLowerCase()">{{ getStatusLabel(task.status) }}</span>
+                    <div class="task-actions">
+                      <button (click)="openEditTaskModal(task, $event)" class="task-edit-btn" title="Modifier">✎</button>
+                      <button (click)="deleteTask(task.id, story.id, $event)" class="task-delete-btn" title="Supprimer">×</button>
+                    </div>
+                  </div>
+                  <h4 class="task-title">{{ task.title }}</h4>
+                  <p *ngIf="task.description" class="task-description">{{ task.description }}</p>
+                  <div class="task-footer">
+                    <span class="task-priority-badge" [ngClass]="task.priority.toLowerCase()">{{ getPriorityLabel(task.priority) }}</span>
+                    <span *ngIf="task.assignedTo" class="task-assignee">👤 {{ task.assignedTo.username }}</span>
+                  </div>
+                </div>
+                <div *ngIf="!story.tasks || story.tasks.length === 0" class="no-tasks">
+                  Aucune tâche pour le moment
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -57,7 +88,7 @@
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('IN_PROGRESS')" class="story-card">
             <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
-            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎ Modifier</button>
+            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎</button>
             <h3 class="story-title">{{ story.title }}</h3>
             <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
               <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
@@ -65,6 +96,37 @@
             <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
             <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
               👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
+            </div>
+            
+            <!-- Tasks Section -->
+            <div class="tasks-section">
+              <div class="tasks-header">
+                <button (click)="toggleTasks(story, $event)" class="toggle-tasks-btn">
+                  <span [class.rotate]="!story.showTasks">▼</span> {{ getTaskCountLabel(story) }}
+                </button>
+                <button (click)="openCreateTaskModal(story.id, $event)" class="add-task-btn" title="Ajouter une tâche">+ Tâche</button>
+              </div>
+              
+              <div *ngIf="story.showTasks" class="tasks-list">
+                <div *ngFor="let task of story.tasks" class="task-item">
+                  <div class="task-header">
+                    <span class="task-status-badge" [ngClass]="task.status.toLowerCase()">{{ getStatusLabel(task.status) }}</span>
+                    <div class="task-actions">
+                      <button (click)="openEditTaskModal(task, $event)" class="task-edit-btn" title="Modifier">✎</button>
+                      <button (click)="deleteTask(task.id, story.id, $event)" class="task-delete-btn" title="Supprimer">×</button>
+                    </div>
+                  </div>
+                  <h4 class="task-title">{{ task.title }}</h4>
+                  <p *ngIf="task.description" class="task-description">{{ task.description }}</p>
+                  <div class="task-footer">
+                    <span class="task-priority-badge" [ngClass]="task.priority.toLowerCase()">{{ getPriorityLabel(task.priority) }}</span>
+                    <span *ngIf="task.assignedTo" class="task-assignee">👤 {{ task.assignedTo.username }}</span>
+                  </div>
+                </div>
+                <div *ngIf="!story.tasks || story.tasks.length === 0" class="no-tasks">
+                  Aucune tâche pour le moment
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -76,7 +138,7 @@
         <div class="story-list">
           <div *ngFor="let story of getStoriesByStatus('DONE')" class="story-card">
             <button (click)="deleteUserStory(story.id, $event)" class="delete-story-btn" title="Supprimer">×</button>
-            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎ Modifier</button>
+            <button (click)="openEditStoryModal(story, $event)" class="edit-story-btn" title="Modifier">✎</button>
             <h3 class="story-title">{{ story.title }}</h3>
             <p class="story-priority" [ngClass]="story.priority.toLowerCase()">
               <span class="priority-badge">{{ getPriorityLabel(story.priority) }}</span>
@@ -84,6 +146,37 @@
             <p class="story-description" *ngIf="story.description">{{ story.description }}</p>
             <div *ngIf="story.assignedTo && story.assignedTo.length > 0" class="story-assignee">
               👤 <span *ngFor="let assignee of story.assignedTo; let isLast = last">{{ assignee.username }}{{ !isLast ? ', ' : '' }}</span>
+            </div>
+            
+            <!-- Tasks Section -->
+            <div class="tasks-section">
+              <div class="tasks-header">
+                <button (click)="toggleTasks(story, $event)" class="toggle-tasks-btn">
+                  <span [class.rotate]="!story.showTasks">▼</span> {{ getTaskCountLabel(story) }}
+                </button>
+                <button (click)="openCreateTaskModal(story.id, $event)" class="add-task-btn" title="Ajouter une tâche">+ Tâche</button>
+              </div>
+              
+              <div *ngIf="story.showTasks" class="tasks-list">
+                <div *ngFor="let task of story.tasks" class="task-item">
+                  <div class="task-header">
+                    <span class="task-status-badge" [ngClass]="task.status.toLowerCase()">{{ getStatusLabel(task.status) }}</span>
+                    <div class="task-actions">
+                      <button (click)="openEditTaskModal(task, $event)" class="task-edit-btn" title="Modifier">✎</button>
+                      <button (click)="deleteTask(task.id, story.id, $event)" class="task-delete-btn" title="Supprimer">×</button>
+                    </div>
+                  </div>
+                  <h4 class="task-title">{{ task.title }}</h4>
+                  <p *ngIf="task.description" class="task-description">{{ task.description }}</p>
+                  <div class="task-footer">
+                    <span class="task-priority-badge" [ngClass]="task.priority.toLowerCase()">{{ getPriorityLabel(task.priority) }}</span>
+                    <span *ngIf="task.assignedTo" class="task-assignee">👤 {{ task.assignedTo.username }}</span>
+                  </div>
+                </div>
+                <div *ngIf="!story.tasks || story.tasks.length === 0" class="no-tasks">
+                  Aucune tâche pour le moment
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -110,3 +203,22 @@
   (closeModal)="closeEditStoryModal()"
   (submitForm)="onEditUserStory($event)"
 ></app-user-story-form>
+
+<app-task-form
+  [show]="showCreateTaskModal"
+  [mode]="'create'"
+  [members]="project?.members || []"
+  [error]="taskError"
+  (closeModal)="closeCreateTaskModal()"
+  (submitForm)="onCreateTask($event)"
+></app-task-form>
+
+<app-task-form
+  [show]="showEditTaskModal"
+  [mode]="'edit'"
+  [task]="currentEditingTask"
+  [members]="project?.members || []"
+  [error]="editTaskError"
+  (closeModal)="closeEditTaskModal()"
+  (submitForm)="onEditTask($event)"
+></app-task-form>

@@ -1,0 +1,55 @@
+<div *ngIf="show" class="modal-overlay" (click)="onClose()">
+  <div class="modal-content" [class.modal-large]="isEditMode" (click)="$event.stopPropagation()">
+    <h2>{{ modalTitle }}</h2>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label [for]="'task-title-' + mode">Titre *</label>
+        <input [id]="'task-title-' + mode" formControlName="title" required>
+      </div>
+      
+      <div class="form-group">
+        <label [for]="'task-desc-' + mode">Description</label>
+        <textarea [id]="'task-desc-' + mode" formControlName="description" [rows]="isEditMode ? 4 : 3"></textarea>
+      </div>
+      
+      <div [class.form-row]="isEditMode">
+        <div class="form-group">
+          <label [for]="'task-priority-' + mode">Priorité *</label>
+          <select [id]="'task-priority-' + mode" formControlName="priority">
+            <option value="LOW">🟢 Basse</option>
+            <option value="MEDIUM">🟡 Moyenne</option>
+            <option value="HIGH">🔴 Haute</option>
+          </select>
+        </div>
+        
+        <div class="form-group" *ngIf="isEditMode">
+          <label [for]="'task-status-' + mode">Statut *</label>
+          <select [id]="'task-status-' + mode" formControlName="status">
+            <option value="TODO">📋 À Faire</option>
+            <option value="IN_PROGRESS">⚙️ En Cours</option>
+            <option value="DONE">✅ Terminé</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group" *ngIf="members.length > 0">
+        <label [for]="'task-assignee-' + mode">Assigner à</label>
+        <select [id]="'task-assignee-' + mode" formControlName="assignedToUsername">
+          <option value="">Aucun</option>
+          <option *ngFor="let member of members" [value]="member.username">
+            {{ member.username }}
+          </option>
+        </select>
+      </div>
+      
+      <div *ngIf="error" class="error-msg modal-error">
+        {{ error }}
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" (click)="onClose()" class="cancel-btn">Annuler</button>
+        <button type="submit" [disabled]="form.invalid" class="submit-btn">{{ submitButtonText }}</button>
+      </div>
+    </form>
+  </div>
+</div>
