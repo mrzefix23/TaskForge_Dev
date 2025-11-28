@@ -116,8 +116,7 @@ class JwtFilterTest {
     void shouldHandleException_WhenTokenInvalid() throws ServletException, IOException {
         String token = "invalid.token";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-
-        doThrow(new RuntimeException("Invalid JWT")).when(jwtService).extractUsername(token);
+        when(jwtService.extractUsername(token)).thenThrow(new RuntimeException("Invalid JWT"));
 
         jwtFilter.doFilter(request, response, filterChain);
 
