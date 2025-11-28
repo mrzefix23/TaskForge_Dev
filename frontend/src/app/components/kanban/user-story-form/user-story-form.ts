@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -16,10 +16,6 @@ export interface UserStory {
   assignedTo?: User[];
 }
 
-interface Member {
-  username: string;
-}
-
 @Component({
   selector: 'app-user-story-form',
   standalone: true,
@@ -27,41 +23,50 @@ interface Member {
   templateUrl: './user-story-form.html',
   styleUrls: ['./user-story-form.css']
 })
-export class UserStoryFormComponent implements OnChanges {
+export class UserStoryFormComponent implements OnInit, OnChanges {
   @Input() show = false;
   @Input() mode: 'create' | 'edit' = 'create';
   @Input() story: UserStory | null = null;
-  @Input() members: Member[] = [];
-  @Input() error: string | null = null;
+  @Input() members: User[] = [];
+  @Input() error = '';
   
   @Output() closeModal = new EventEmitter<void>();
   @Output() submitForm = new EventEmitter<any>();
 
-  form: FormGroup;
+  storyForm: FormGroup;
 
   constructor(private fb: FormBuilder) {
-    this.form = this.fb.group({
+    this.storyForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
       priority: ['MEDIUM', Validators.required],
-      status: ['TODO', Validators.required],
-      assignedToUsernames: [[]]
+      assignedTo: [[]]
     });
   }
 
+  ngOnInit(): void {}
+
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['story'] && this.story && this.mode === 'edit') {
-      this.form.patchValue({
+    if (changes['story'] && this.story) {
+      this.storyForm.patchValue({
         title: this.story.title,
-        description: this.story.description || '',
+        description: this.story.description,
         priority: this.story.priority,
-        status: this.story.status,
-        assignedToUsernames: this.story.assignedTo?.map(u => u.username) || []
+        assignedTo: this.story.assignedTo || []
+      });
+    } else if (changes['mode'] && this.mode === 'create') {
+      this.storyForm.reset({
+        title: '',
+        description: '',
+        priority: 'MEDIUM',
+        assignedTo: []
       });
     }
+  }
 
-    if (changes['show'] && this.show && this.mode === 'create') {
-      this.form.reset({ priority: 'MEDIUM', status: 'TODO', assignedToUsernames: [] });
+  onSubmit(): void {
+    if (this.storyForm.valid) {
+      this.submitForm.emit(this.storyForm.value);
     }
   }
 
@@ -69,20 +74,20 @@ export class UserStoryFormComponent implements OnChanges {
     this.closeModal.emit();
   }
 
-  onSubmit(): void {
-    if (this.form.invalid) return;
-    this.submitForm.emit(this.form.value);
+  onMemberChange(event: any, member: User) {
+    const assignedTo = this.storyForm.get('assignedTo')?.value as User[] || [];
+    if (event.target.checked) {
+      // Évite les doublons
+      if (!assignedTo.some(m => m.id === member.id)) {
+        this.storyForm.patchValue({ assignedTo: [...assignedTo, member] });
+      }
+    } else {
+      this.storyForm.patchValue({ assignedTo: assignedTo.filter(m => m.id !== member.id) });
+    }
   }
 
-  get isEditMode(): boolean {
-    return this.mode === 'edit';
-  }
-
-  get modalTitle(): string {
-    return this.isEditMode ? ' Modifier la User Story' : ' Créer une User Story';
-  }
-
-  get submitButtonText(): string {
-    return this.isEditMode ? '💾 Enregistrer' : 'Créer';
+  isAssigned(member: User): boolean {
+    const assignedTo = this.storyForm.get('assignedTo')?.value as User[];
+    return assignedTo?.some(m => m.id === member.id) || false;
   }
 }

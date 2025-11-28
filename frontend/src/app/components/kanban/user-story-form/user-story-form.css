@@ -4,152 +4,159 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 1rem;
-  overflow-y: auto;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .modal-content {
   background: white;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 90%;
   max-width: 500px;
-  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   max-height: 90vh;
   overflow-y: auto;
-  animation: slideUp 0.3s ease;
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
-.modal-large {
-  max-width: 600px;
-}
-
-.modal-content h2 {
-  margin: 0 0 1.5rem 0;
-  color: #2c3e50;
+.modal-header h2 {
+  margin: 0;
   font-size: 1.5rem;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #333;
 }
 
-.form-group input,
+.form-group input[type="text"],
 .form-group textarea,
 .form-group select {
   width: 100%;
   padding: 0.8rem;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 1rem;
-  box-sizing: border-box;
   transition: border-color 0.2s;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
+  border-color: #007bff;
   outline: none;
-  border-color: #667eea;
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.modal-error {
-  margin-bottom: 1rem;
+/* Styles pour la liste des membres */
+.members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   padding: 0.8rem;
-  text-align: center;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+.member-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: white;
+  border-radius: 20px;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.member-checkbox:hover {
+  background: #f0f0f0;
+  border-color: #ccc;
+}
+
+.member-checkbox input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  width: auto; /* Reset width override from form-group input */
+}
+
+.member-checkbox label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: normal;
+  font-size: 0.9rem;
+  color: #555;
 }
 
 .error-msg {
-  color: #d32f2f;
-  background-color: #ffcdd2;
-  padding: 0.8rem;
-  border-radius: 6px;
+  color: #dc3545;
+  margin-bottom: 1rem;
   font-size: 0.9rem;
 }
 
 .modal-actions {
   display: flex;
-  gap: 1rem;
   justify-content: flex-end;
-  margin-top: 1.5rem;
-}
-
-.cancel-btn,
-.submit-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
 .cancel-btn {
-  background: white;
-  color: #666;
-  border: 1px solid #ddd;
-}
-
-.cancel-btn:hover {
   background: #f8f9fa;
-  border-color: #999;
+  border: 1px solid #ddd;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #333;
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #007bff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
   color: white;
 }
 
-.submit-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+.submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
-.submit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.submit-btn:hover:not(:disabled) {
+  background: #0056b3;
 }
 
 @media (max-width: 768px) {
