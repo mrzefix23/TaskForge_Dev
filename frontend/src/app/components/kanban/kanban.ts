@@ -290,6 +290,7 @@ export class KanbanComponent implements OnInit {
 
   openEditTaskModal(task: Task, event: MouseEvent): void {
     event.stopPropagation();
+    console.log('Task à éditer:', task);
     this.currentEditingTask = task;
     this.showEditTaskModal = true;
     this.editTaskError = null;
@@ -302,20 +303,51 @@ export class KanbanComponent implements OnInit {
   }
 
   onEditTask(formValue: any): void {
-    if (!this.currentEditingTask) return;
+    console.log('onEditTask appelé avec:', formValue);
+    
+    if (!this.currentEditingTask) {
+      console.error('Aucune tâche en cours d\'édition');
+      return;
+    }
+
+    console.log('currentEditingTask:', this.currentEditingTask);
     
     this.editTaskError = null;
     const token = localStorage.getItem('token');
+    
+    // Trouver la user story qui contient cette tâche
+    let userStoryId: number;
+    
+    if (this.currentEditingTask.userStory && this.currentEditingTask.userStory.id) {
+      userStoryId = this.currentEditingTask.userStory.id;
+    } else {
+      // Chercher la user story dans la liste
+      const story = this.userStories.find(s => 
+        s.tasks && s.tasks.some(t => t.id === this.currentEditingTask!.id)
+      );
+      
+      if (!story) {
+        console.error('User story non trouvée pour la tâche');
+        this.editTaskError = 'Erreur: User story non trouvée';
+        return;
+      }
+      
+      userStoryId = story.id;
+    }
+    
     const payload = {
       ...formValue,
-      userStoryId: this.currentEditingTask.userStory.id
+      userStoryId: userStoryId
     };
+
+    console.log('Payload envoyé:', payload);
 
     this.http.put<Task>(`/api/tasks/${this.currentEditingTask.id}`, payload, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (updatedTask) => {
-        const story = this.userStories.find(s => s.id === updatedTask.userStory.id);
+        console.log('Tâche mise à jour avec succès:', updatedTask);
+        const story = this.userStories.find(s => s.id === userStoryId);
         if (story && story.tasks) {
           const taskIndex = story.tasks.findIndex(t => t.id === updatedTask.id);
           if (taskIndex !== -1) {
@@ -325,12 +357,12 @@ export class KanbanComponent implements OnInit {
         this.closeEditTaskModal();
       },
       error: (err) => {
+        console.error('Erreur lors de la mise à jour:', err);
         if (err.status === 400 && err.error?.message) {
           this.editTaskError = err.error.message;
         } else {
           this.editTaskError = 'Erreur lors de la mise à jour de la tâche.';
         }
-        console.error(err);
       }
     });
   }
