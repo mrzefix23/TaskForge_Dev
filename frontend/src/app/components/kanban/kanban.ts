@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { HeaderComponent } from '../header/header';
 import { UserStoryFormComponent } from './user-story-form/user-story-form';
+import { TaskFormComponent } from './task-form/task-form';
 
 interface Project {
   id: number;
@@ -11,7 +12,16 @@ interface Project {
   description: string;
   owner: { username: string };
   members: { username: string }[];
-  projectId: number;
+}
+
+interface Task {
+  id: number;
+  title: string;
+  description: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  assignedTo?: { username: string };
+  userStory: { id: number };
 }
 
 interface UserStory {
@@ -21,12 +31,14 @@ interface UserStory {
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   assignedTo?: { username: string }[];
+  tasks?: Task[];
+  showTasks?: boolean;
 }
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent],
+  imports: [CommonModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
   templateUrl: './kanban.html',
   styleUrls: ['./kanban.css']
 })
@@ -41,6 +53,13 @@ export class KanbanComponent implements OnInit {
   userStoryError: string | null = null;
   editUserStoryError: string | null = null;
   currentEditingStory: UserStory | null = null;
+
+  showCreateTaskModal = false;
+  showEditTaskModal = false;
+  taskError: string | null = null;
+  editTaskError: string | null = null;
+  currentEditingTask: Task | null = null;
+  currentUserStoryId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -82,7 +101,8 @@ export class KanbanComponent implements OnInit {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (data) => {
-        this.userStories = data;
+        this.userStories = data.map(story => ({ ...story, showTasks: false, tasks: [] }));
+        this.userStories.forEach(story => this.loadTasksForStory(story.id));
       },
       error: (err) => {
         this.error = (this.error ? this.error + ' ' : '') + 'Erreur lors du chargement des user stories.';
@@ -91,10 +111,33 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  loadTasksForStory(userStoryId: number): void {
+    const token = localStorage.getItem('token');
+    this.http.get<Task[]>(`/api/tasks/user-story/${userStoryId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (tasks) => {
+        const story = this.userStories.find(s => s.id === userStoryId);
+        if (story) {
+          story.tasks = tasks;
+        }
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des tâches:', err);
+      }
+    });
+  }
+
   getStoriesByStatus(status: 'TODO' | 'IN_PROGRESS' | 'DONE'): UserStory[] {
     return this.userStories.filter(story => story.status === status);
   }
 
+  toggleTasks(story: UserStory, event: MouseEvent): void {
+    event.stopPropagation();
+    story.showTasks = !story.showTasks;
+  }
+
+  // User Story methods
   openCreateStoryModal(): void {
     this.showCreateStoryModal = true;
     this.userStoryError = null;
@@ -120,7 +163,7 @@ export class KanbanComponent implements OnInit {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (newStory) => {
-        this.userStories.push(newStory);
+        this.userStories.push({ ...newStory, showTasks: false, tasks: [] });
         this.closeCreateStoryModal();
       },
       error: (err) => {
@@ -164,7 +207,7 @@ export class KanbanComponent implements OnInit {
       next: (updatedStory) => {
         const index = this.userStories.findIndex(s => s.id === updatedStory.id);
         if (index !== -1) {
-          this.userStories[index] = updatedStory;
+          this.userStories[index] = { ...updatedStory, showTasks: this.userStories[index].showTasks, tasks: this.userStories[index].tasks };
         }
         this.closeEditStoryModal();
       },
@@ -182,7 +225,7 @@ export class KanbanComponent implements OnInit {
   deleteUserStory(storyId: number, event: MouseEvent): void {
     event.stopPropagation();
     
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette User Story ?')) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette User Story et toutes ses tâches ?')) {
       return;
     }
 
@@ -200,6 +243,122 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  // Task methods
+  openCreateTaskModal(userStoryId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.currentUserStoryId = userStoryId;
+    this.showCreateTaskModal = true;
+    this.taskError = null;
+  }
+
+  closeCreateTaskModal(): void {
+    this.showCreateTaskModal = false;
+    this.currentUserStoryId = null;
+    this.taskError = null;
+  }
+
+  onCreateTask(formValue: any): void {
+    if (!this.currentUserStoryId) return;
+    
+    this.taskError = null;
+    const token = localStorage.getItem('token');
+    const payload = {
+      ...formValue,
+      userStoryId: this.currentUserStoryId
+    };
+
+    this.http.post<Task>('/api/tasks', payload, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (newTask) => {
+        const story = this.userStories.find(s => s.id === this.currentUserStoryId);
+        if (story && story.tasks) {
+          story.tasks.push(newTask);
+        }
+        this.closeCreateTaskModal();
+      },
+      error: (err) => {
+        if (err.status === 400 && err.error?.message) {
+          this.taskError = err.error.message;
+        } else {
+          this.taskError = 'Erreur lors de la création de la tâche.';
+        }
+        console.error(err);
+      }
+    });
+  }
+
+  openEditTaskModal(task: Task, event: MouseEvent): void {
+    event.stopPropagation();
+    this.currentEditingTask = task;
+    this.showEditTaskModal = true;
+    this.editTaskError = null;
+  }
+
+  closeEditTaskModal(): void {
+    this.showEditTaskModal = false;
+    this.currentEditingTask = null;
+    this.editTaskError = null;
+  }
+
+  onEditTask(formValue: any): void {
+    if (!this.currentEditingTask) return;
+    
+    this.editTaskError = null;
+    const token = localStorage.getItem('token');
+    const payload = {
+      ...formValue,
+      userStoryId: this.currentEditingTask.userStory.id
+    };
+
+    this.http.put<Task>(`/api/tasks/${this.currentEditingTask.id}`, payload, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (updatedTask) => {
+        const story = this.userStories.find(s => s.id === updatedTask.userStory.id);
+        if (story && story.tasks) {
+          const taskIndex = story.tasks.findIndex(t => t.id === updatedTask.id);
+          if (taskIndex !== -1) {
+            story.tasks[taskIndex] = updatedTask;
+          }
+        }
+        this.closeEditTaskModal();
+      },
+      error: (err) => {
+        if (err.status === 400 && err.error?.message) {
+          this.editTaskError = err.error.message;
+        } else {
+          this.editTaskError = 'Erreur lors de la mise à jour de la tâche.';
+        }
+        console.error(err);
+      }
+    });
+  }
+
+  deleteTask(taskId: number, userStoryId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    this.http.delete(`/api/tasks/${taskId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: () => {
+        const story = this.userStories.find(s => s.id === userStoryId);
+        if (story && story.tasks) {
+          story.tasks = story.tasks.filter(t => t.id !== taskId);
+        }
+      },
+      error: (err) => {
+        alert('Erreur lors de la suppression de la tâche.');
+        console.error(err);
+      }
+    });
+  }
+
   getPriorityLabel(priority: string): string {
     const labels: { [key: string]: string } = {
       'LOW': 'Basse',
@@ -211,10 +370,15 @@ export class KanbanComponent implements OnInit {
 
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
-      'TODO': 'À Faire',
-      'IN_PROGRESS': 'En Cours',
-      'DONE': 'Terminé'
+      'TODO': '📋 À Faire',
+      'IN_PROGRESS': '⏳ En Cours',
+      'DONE': '✅ Terminé'
     };
     return labels[status] || status;
+  }
+
+  getTaskCountLabel(story: UserStory): string {
+    if (!story.tasks || story.tasks.length === 0) return 'Aucune tâche';
+    return `${story.tasks.length} tâche${story.tasks.length > 1 ? 's' : ''}`;
   }
 }
