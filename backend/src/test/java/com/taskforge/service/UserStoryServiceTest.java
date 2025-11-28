@@ -1,8 +1,13 @@
 package com.taskforge.service;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +23,7 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.taskforge.dto.CreateUserStoryRequest;
+import com.taskforge.exceptions.DuplicateUserStoryTitleException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
@@ -44,17 +50,31 @@ class UserStoryServiceTest {
     private UserStoryService userStoryService;
 
     private User projectOwner;
+    private User memberUser;
     private Project project;
     private UserStory userStory;
 
     @BeforeEach
     void setUp() {
         projectOwner = User.builder().id(1L).username("owner").build();
-        project = Project.builder().id(1L).name("Test Project").owner(projectOwner).build();
+        memberUser = User.builder().id(2L).username("member").build();
+        
+        Set<User> members = new HashSet<>();
+        members.add(projectOwner);
+        members.add(memberUser);
+
+        project = Project.builder()
+                .id(1L)
+                .name("Test Project")
+                .owner(projectOwner)
+                .members(members)
+                .build();
+        
         userStory = UserStory.builder()
                 .id(1L)
                 .title("Test Story")
                 .project(project)
+                .assignedTo(new HashSet<>())
                 .build();
     }
 
@@ -68,6 +88,7 @@ class UserStoryServiceTest {
         request.setStatus(UserStory.Status.TODO);
 
         when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+        when(userStoryRepository.existsByTitleAndProjectId(request.getTitle(), project.getId())).thenReturn(false);
         when(userStoryRepository.save(any(UserStory.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserStory created = userStoryService.createUserStory(request, projectOwner.getUsername());
@@ -79,10 +100,146 @@ class UserStoryServiceTest {
     }
 
     @Test
+    void createUserStory_shouldThrowException_whenTitleExists() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        request.setProjectId(project.getId());
+        request.setTitle("Existing Title");
+
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+        when(userStoryRepository.existsByTitleAndProjectId(request.getTitle(), project.getId())).thenReturn(true);
+
+        assertThatThrownBy(() -> userStoryService.createUserStory(request, projectOwner.getUsername()))
+                .isInstanceOf(DuplicateUserStoryTitleException.class)
+                .hasMessageContaining("Une user story avec ce titre existe déjà");
+        
+        verify(userStoryRepository, never()).save(any());
+    }
+
+    @Test
+    void createUserStory_shouldSucceed_withAssignees() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        request.setProjectId(project.getId());
+        request.setTitle("US with Assignee");
+        request.setAssignedToUsernames(Collections.singletonList("member"));
+
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+        when(userRepository.findByUsername("member")).thenReturn(Optional.of(memberUser));
+        when(userStoryRepository.save(any(UserStory.class))).thenAnswer(invocation -> {
+            UserStory saved = invocation.getArgument(0);
+            assertThat(saved.getAssignedTo()).contains(memberUser);
+            return saved;
+        });
+
+        userStoryService.createUserStory(request, projectOwner.getUsername());
+    }
+
+    @Test
+    void createUserStory_shouldThrow_whenAssigneeNotMember() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        request.setProjectId(project.getId());
+        request.setTitle("US Fail");
+        request.setAssignedToUsernames(Collections.singletonList("outsider"));
+
+        User outsider = User.builder().id(3L).username("outsider").build();
+
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+        when(userRepository.findByUsername("outsider")).thenReturn(Optional.of(outsider));
+
+        assertThatThrownBy(() -> userStoryService.createUserStory(request, projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("is not a member of this project");
+    }
+
+    @Test
+    void getUserStoriesByProject_shouldReturnList() {
+        when(userStoryRepository.findByProjectId(project.getId())).thenReturn(Collections.singletonList(userStory));
+        
+        List<UserStory> results = userStoryService.getUserStoriesByProject(project.getId(), projectOwner.getUsername());
+        
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0)).isEqualTo(userStory);
+        verify(projectService).getProjectById(project.getId(), projectOwner.getUsername());
+    }
+
+    @Test
+    void getUserStoryById_shouldSucceed() {
+        when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
+        
+        UserStory found = userStoryService.getUserStoryById(userStory.getId(), projectOwner.getUsername());
+        
+        assertThat(found).isEqualTo(userStory);
+        verify(projectService).getProjectById(project.getId(), projectOwner.getUsername());
+    }
+
+    @Test
+    void getUserStoryById_shouldThrowException_whenUserStoryNotFound() {
+        when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userStoryService.getUserStoryById(999L, projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User story not found");
+    }
+
+    @Test
+    void updateUserStory_shouldSucceed() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        request.setTitle("Updated Title");
+        request.setAssignedToUsernames(Collections.singletonList("member"));
+
+        when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
+        when(userStoryRepository.existsByTitleAndProjectId(request.getTitle(), project.getId())).thenReturn(false);
+        when(userRepository.findByUsername("member")).thenReturn(Optional.of(memberUser));
+        when(userStoryRepository.save(any(UserStory.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserStory updated = userStoryService.updateUserStory(userStory.getId(), request, projectOwner.getUsername());
+
+        assertThat(updated.getTitle()).isEqualTo("Updated Title");
+        assertThat(updated.getAssignedTo()).contains(memberUser);
+    }
+
+    @Test
+    void updateUserStory_shouldThrowException_whenUserStoryNotFound() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> userStoryService.updateUserStory(999L, request, projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User story not found");
+    }
+
+    @Test
+    void updateUserStory_shouldThrow_whenTitleDuplicateOnOtherStory() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        request.setTitle("Other Story Title");
+
+        UserStory otherStory = UserStory.builder().id(2L).title("Other Story Title").build();
+
+        when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
+        when(userStoryRepository.existsByTitleAndProjectId(request.getTitle(), project.getId())).thenReturn(true);
+        when(userStoryRepository.findByTitleAndProjectId(request.getTitle(), project.getId())).thenReturn(otherStory);
+
+        assertThatThrownBy(() -> userStoryService.updateUserStory(userStory.getId(), request, projectOwner.getUsername()))
+                .isInstanceOf(DuplicateUserStoryTitleException.class);
+    }
+    
+    @Test
+    void updateUserStory_shouldSucceed_whenTitleSameAsCurrent() {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        request.setTitle("Test Story"); 
+        request.setDescription("New Desc");
+
+        when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
+        when(userStoryRepository.existsByTitleAndProjectId("Test Story", project.getId())).thenReturn(true);
+        when(userStoryRepository.findByTitleAndProjectId("Test Story", project.getId())).thenReturn(userStory);
+        when(userStoryRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        UserStory updated = userStoryService.updateUserStory(userStory.getId(), request, projectOwner.getUsername());
+        
+        assertThat(updated.getDescription()).isEqualTo("New Desc");
+    }
+
+    @Test
     void deleteUserStory_shouldSucceed_whenUserIsOwner() {
         when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
-        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
-
         userStoryService.deleteUserStory(userStory.getId(), projectOwner.getUsername());
 
         verify(taskRepository, times(1)).deleteAllByUserStoryId(userStory.getId());
@@ -92,10 +249,8 @@ class UserStoryServiceTest {
     @Test
     void deleteUserStory_shouldThrowException_whenUserIsNotOwner() {
         String notOwnerUsername = "notOwner";
-        User notOwner = User.builder().id(2L).username(notOwnerUsername).build();
         
         when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
-        when(projectService.getProjectById(project.getId(), notOwnerUsername)).thenReturn(project);
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
             userStoryService.deleteUserStory(userStory.getId(), notOwnerUsername);
@@ -103,5 +258,14 @@ class UserStoryServiceTest {
 
         assertThat(exception.getMessage()).isEqualTo("Only project owner can delete user stories");
         verify(userStoryRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    void deleteUserStory_shouldThrowException_whenUserStoryNotFound() {
+        when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userStoryService.deleteUserStory(999L, projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User story not found");
     }
 }
