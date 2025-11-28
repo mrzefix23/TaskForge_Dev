@@ -125,6 +125,16 @@ To run backend tests, navigate to the `backend` directory and execute:
 mvn test
 ```
 
+To see code coverage reports, use:
+```bash
+mvn exec:exec@coverage-report
+```
+
+You can add an alias to your shell configuration for convenience:
+```bash
+alias mvn-coverage="mvn exec:exec@coverage-report"
+```
+
 ### Frontend Tests
 To run frontend tests, navigate to the `frontend` directory and execute:
 ```bash

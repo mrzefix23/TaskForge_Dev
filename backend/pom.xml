@@ -126,6 +126,129 @@
 					</excludes>
 				</configuration>
 			</plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/models/**</exclude>
+                        <exclude>**/TaskforgeApplication.class</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- ✅ Plugin pour la commande 'mvn coverage' -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>coverage-report</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>
+                                    echo "";
+                                    echo "========================================";
+                                    echo "📊 CODE COVERAGE REPORT";
+                                    echo "========================================";
+                                    echo "";
+                                    
+                                    if [ ! -f "target/site/jacoco/jacoco.csv" ]; then
+                                        echo "❌ No coverage data found. Run 'mvn clean test' first.";
+                                        exit 1;
+                                    fi;
+                                    
+                                    # Rapport par package/classe
+                                    awk -F',' '
+                                    NR==1 { next }
+                                    {
+                                        package=$2;
+                                        class=$3;
+                                        instructions_missed=$4;
+                                        instructions_covered=$5;
+                                        branches_missed=$6;
+                                        branches_covered=$7;
+                                        lines_missed=$8;
+                                        lines_covered=$9;
+                                        
+                                        instructions_total = instructions_missed + instructions_covered;
+                                        lines_total = lines_missed + lines_covered;
+                                        branches_total = branches_missed + branches_covered;
+                                        
+                                        if(instructions_total > 0) {
+                                            instruction_pct = (instructions_covered / instructions_total) * 100;
+                                            line_pct = (lines_covered / lines_total) * 100;
+                                            branch_pct = branches_total > 0 ? (branches_covered / branches_total) * 100 : 0;
+                                            
+                                            # Déterminer la couleur
+                                            if(line_pct >= 80) color="\033[0;32m";      # Vert
+                                            else if(line_pct >= 60) color="\033[0;33m"; # Jaune
+                                            else color="\033[0;31m";                     # Rouge
+                                            
+                                            # Afficher la ligne
+                                            printf "%s%-60s | Lines: %5.1f%% | Branches: %5.1f%% | Instructions: %5.1f%%\033[0m\n", 
+                                                   color, package "." class, line_pct, branch_pct, instruction_pct;
+                                            
+                                            # Accumuler pour le résumé global
+                                            total_instructions_missed += instructions_missed;
+                                            total_instructions_covered += instructions_covered;
+                                            total_lines_missed += lines_missed;
+                                            total_lines_covered += lines_covered;
+                                            total_branches_missed += branches_missed;
+                                            total_branches_covered += branches_covered;
+                                        }
+                                    }
+                                    END {
+                                        total_instructions = total_instructions_missed + total_instructions_covered;
+                                        total_lines = total_lines_missed + total_lines_covered;
+                                        total_branches = total_branches_missed + total_branches_covered;
+                                        
+                                        instruction_pct = (total_instructions_covered / total_instructions) * 100;
+                                        line_pct = (total_lines_covered / total_lines) * 100;
+                                        branch_pct = total_branches > 0 ? (total_branches_covered / total_branches) * 100 : 0;
+                                        
+                                        print "";
+                                        print "========================================";
+                                        print "📈 GLOBAL SUMMARY";
+                                        print "========================================";
+                                        printf "Lines Coverage       : %.1f%% (%d/%d)\n", line_pct, total_lines_covered, total_lines;
+                                        printf "Branches Coverage    : %.1f%% (%d/%d)\n", branch_pct, total_branches_covered, total_branches;
+                                        printf "Instructions Coverage: %.1f%% (%d/%d)\n", instruction_pct, total_instructions_covered, total_instructions;
+                                        print "========================================";
+                                        print "";
+                                        printf "📄 Full HTML report: \033[0;36mtarget/site/jacoco/index.html\033[0m\n";
+                                        print "";
+                                    }
+                                    ' target/site/jacoco/jacoco.csv;
+                                </argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 	</build>
 
