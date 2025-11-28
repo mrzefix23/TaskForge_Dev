@@ -62,9 +62,9 @@ export class KanbanComponent implements OnInit {
 
   // Colonnes par défaut
   defaultColumns: KanbanColumn[] = [
-    { id: 'TODO', label: 'À faire', isDefault: true },
-    { id: 'IN_PROGRESS', label: 'En cours', isDefault: true },
-    { id: 'DONE', label: 'Terminé', isDefault: true }
+    { id: 'TODO', label: 'À faire', isDefault: false },
+    { id: 'IN_PROGRESS', label: 'En cours', isDefault: false },
+    { id: 'DONE', label: 'Terminé', isDefault: false }
   ];
 
   // Colonnes personnalisées
@@ -159,13 +159,13 @@ export class KanbanComponent implements OnInit {
   }
 
   isColumnDeletable(columnId: string): boolean {
-    const column = this.allColumns.find(c => c.id === columnId);
-    return column ? !column.isDefault : false;
+    // Toutes les colonnes sont maintenant modifiables/supprimables
+    return true;
   }
 
   deleteColumn(columnId: string): void {
     const column = this.allColumns.find(c => c.id === columnId);
-    if (!column || column.isDefault) return;
+    if (!column) return;
 
     const hasStories = this.getStoriesByStatus(columnId).length > 0;
     if (hasStories) {
@@ -174,16 +174,22 @@ export class KanbanComponent implements OnInit {
       }
     }
 
-    this.customColumns = this.customColumns.filter(c => c.id !== columnId);
-    
-    // Déplacer les stories orphelines vers TODO
-    if (this.project?.userStories) {
+    // Trouver une colonne de repli (la première qui n'est pas celle qu'on supprime)
+    const remainingColumns = this.allColumns.filter(c => c.id !== columnId);
+    const fallbackStatus = remainingColumns.length > 0 ? remainingColumns[0].id : '';
+
+    // Déplacer les stories vers la colonne de repli
+    if (this.project?.userStories && fallbackStatus) {
       this.project.userStories.forEach(story => {
         if (story.status === columnId) {
-          story.status = 'TODO';
+          story.status = fallbackStatus;
         }
       });
     }
+
+    // Supprimer la colonne de la liste appropriée
+    this.defaultColumns = this.defaultColumns.filter(c => c.id !== columnId);
+    this.customColumns = this.customColumns.filter(c => c.id !== columnId);
   }
 
   startEditColumnLabel(column: KanbanColumn): void {
