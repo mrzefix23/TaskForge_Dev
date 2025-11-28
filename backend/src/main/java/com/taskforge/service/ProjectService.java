@@ -13,7 +13,9 @@ import com.taskforge.exceptions.ProjectSuppressionException;
 import com.taskforge.exceptions.UpdateProjectException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
+import com.taskforge.models.UserStory;
 import com.taskforge.repositories.ProjectRepository;
+import com.taskforge.repositories.TaskRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
 
@@ -30,6 +32,9 @@ public class ProjectService {
 
     @Autowired
     private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private TaskRepository taskRepository;
 
     public Project createProject(CreateProjectRequest createProjectRequest) {
         User owner = userRepository.findByUsername(createProjectRequest.getUser().getUsername())
@@ -114,6 +119,13 @@ public class ProjectService {
             throw new ProjectSuppressionException("Uniquement le propriétaire du projet peut le supprimer.");
         }
 
+        // Récupérer toutes les US du projet
+        List<UserStory> userStories = userStoryRepository.findByProjectId(projectId);
+    
+        // Supprimer toutes les tâches de chaque US
+        for (UserStory us : userStories) {
+            taskRepository.deleteAllByUserStoryId(us.getId());
+        }
         //Supprimer les US lié au projet
         userStoryRepository.deleteAllByProjectId(projectId);
 

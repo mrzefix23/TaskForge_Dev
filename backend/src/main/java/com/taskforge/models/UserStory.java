@@ -1,8 +1,10 @@
 package com.taskforge.models;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,6 +60,9 @@ public class UserStory {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> assignedTo = new HashSet<>();
+    
+    @OneToMany(mappedBy = "userStory", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks;
     
     public enum Priority {
         LOW, MEDIUM, HIGH
