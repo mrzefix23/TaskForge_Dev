@@ -1,7 +1,9 @@
 package com.taskforge.controller;
 
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.taskforge.dto.CreateProjectRequest;
+import com.taskforge.dto.RegisterRequest;
+import com.taskforge.dto.UserDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,21 +11,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.taskforge.dto.CreateProjectRequest;
-import com.taskforge.dto.RegisterRequest;
-import com.taskforge.dto.UserDto;
-import com.taskforge.repositories.UserRepository;
+import java.util.List;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -34,127 +29,164 @@ public class ProjectControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private UserRepository userRepository;
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
     @BeforeEach
-    void setup() throws JsonProcessingException, Exception {
+    void setup() throws Exception {
+        // Nettoyer les tables avant chaque test
+        jdbcTemplate.execute("DELETE FROM user_story_assignees");
+        jdbcTemplate.execute("DELETE FROM user_stories");
         jdbcTemplate.execute("DELETE FROM project_members");
-        jdbcTemplate.execute("DELETE FROM projects");
-        userRepository.deleteAll();
-        RegisterRequest request = new RegisterRequest("owner", "owner@mail.com", "password"); 
-         
+        jdbcTemplate.execute("DELETE FROM projects");        
+        jdbcTemplate.execute("DELETE FROM users");        
+
+        // Créer un utilisateur de test
+        RegisterRequest userRequest = new RegisterRequest();
+        userRequest.setUsername("testuser");
+        userRequest.setEmail("testuser@example.com");
+        userRequest.setPassword("password");
+        
         mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(userRequest)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void createProject_shouldReturnCreatedProject() throws Exception {
+        // Créer un projet
+        CreateProjectRequest request = new CreateProjectRequest();
+        request.setName("New Project");
+        request.setDescription("Project Description");
+        request.setUser(UserDto.builder().username("testuser").build());
+        request.setMembers(List.of());
+
+        mockMvc.perform(post("/api/projects")
+                .with(user("testuser"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("New Project"))
+                .andExpect(jsonPath("$.description").value("Project Description"));
     }
 
     @Test
-    @WithMockUser(username = "owner")
-    void createProject_shouldReturnOk() throws Exception {
-        CreateProjectRequest req = new CreateProjectRequest();
-        req.setName("Test Project");
-        req.setDescription("Description");
-        req.setUser(UserDto.builder().username("owner").build());
-        req.setMembers(List.of());
+    void getProjectsByUsername_shouldReturnUserProjects() throws Exception {
+        // Créer un projet
+        CreateProjectRequest createRequest = new CreateProjectRequest();
+        createRequest.setName("Test Project");
+        createRequest.setDescription("Description");
+        createRequest.setUser(UserDto.builder().username("testuser").build());
+        createRequest.setMembers(List.of());
 
         mockMvc.perform(post("/api/projects")
-                .principal(() -> "owner")
+                .with(user("testuser"))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk());
+
+        // Récupérer les projets de l'utilisateur
+        mockMvc.perform(get("/api/projects/myprojects")
+                .with(user("testuser")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Test Project"))
+                .andExpect(jsonPath("$[0].description").value("Description"));
     }
 
     @Test
-    @WithMockUser(username = "owner")
-    void createProject_withMembers_shouldReturnOk() throws Exception {
-        // Register a member user
-        RegisterRequest memberRequest = new RegisterRequest("member1", "member1@mail.com", "password");
-        mockMvc.perform(post("/api/auth/register")
+    void getProjectById_shouldReturnProject() throws Exception {
+        // Créer un projet
+        CreateProjectRequest createRequest = new CreateProjectRequest();
+        createRequest.setName("Specific Project");
+        createRequest.setDescription("Specific Description");
+        createRequest.setUser(UserDto.builder().username("testuser").build());
+        createRequest.setMembers(List.of());
+
+        String createResponse = mockMvc.perform(post("/api/projects")
+                .with(user("testuser"))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(memberRequest)))
-                .andExpect(status().isOk());
-
-        // Prepare project creation request with members
-        CreateProjectRequest req = new CreateProjectRequest();
-        req.setName("Project With Members");
-        req.setDescription("Project including members");
-        req.setUser(UserDto.builder().username("owner").build());
-        req.setMembers(List.of(UserDto.builder().username("member1").build()));
-
-        mockMvc.perform(post("/api/projects")
-                .principal(() -> "owner")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser(username = "owner")
-    void updateProject_shouldChangeNameAndDescription() throws Exception {
-        // First, create a project to update
-        CreateProjectRequest createReq = new CreateProjectRequest();
-        createReq.setName("Initial Project");
-        createReq.setDescription("Initial Description");
-        createReq.setUser(UserDto.builder().username("owner").build());
-        createReq.setMembers(List.of());
-
-        String response = mockMvc.perform(post("/api/projects")
-                .principal(() -> "owner")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createReq)))
+                .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        // Extract project ID from response
-        Long projectId = objectMapper.readTree(response).get("id").asLong();
+        Long projectId = objectMapper.readTree(createResponse).get("id").asLong();
 
-        // Prepare update request
-        CreateProjectRequest updateReq = new CreateProjectRequest();
-        updateReq.setName("Updated Project Name");
-        updateReq.setDescription("Updated Description");
-        updateReq.setUser(UserDto.builder().username("owner").build());
-        updateReq.setMembers(List.of());
-
-        // Perform update
-        mockMvc.perform(put("/api/projects/" + projectId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateReq)))
+        // Récupérer le projet par ID
+        mockMvc.perform(get("/api/projects/" + projectId)
+                .with(user("testuser")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Updated Project Name"))
+                .andExpect(jsonPath("$.name").value("Specific Project"))
+                .andExpect(jsonPath("$.description").value("Specific Description"));
+    }
+
+    @Test
+    void updateProject_shouldChangeNameAndDescription() throws Exception {
+        // Créer un projet
+        CreateProjectRequest createRequest = new CreateProjectRequest();
+        createRequest.setName("Original Name");
+        createRequest.setDescription("Original Description");
+        createRequest.setUser(UserDto.builder().username("testuser").build());
+        createRequest.setMembers(List.of());
+
+        String createResponse = mockMvc.perform(post("/api/projects")
+                .with(user("testuser"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Long projectId = objectMapper.readTree(createResponse).get("id").asLong();
+
+        // Mettre à jour le projet
+        CreateProjectRequest updateRequest = new CreateProjectRequest();
+        updateRequest.setName("Updated Name");
+        updateRequest.setDescription("Updated Description");
+
+        mockMvc.perform(put("/api/projects/" + projectId)
+                .with(user("testuser"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Name"))
                 .andExpect(jsonPath("$.description").value("Updated Description"));
     }
 
     @Test
-    @WithMockUser(username = "owner")
-    void deleteProject_shouldSucceed_whenUserIsOwner() throws Exception {
-        // Create a project
-        CreateProjectRequest createReq = new CreateProjectRequest();
-        createReq.setName("Project to Delete");
-        createReq.setDescription("This project will be deleted");
-        createReq.setUser(UserDto.builder().username("owner").build());
-        createReq.setMembers(List.of());
+    void deleteProject_shouldRemoveProject() throws Exception {
+        // Créer un projet
+        CreateProjectRequest createRequest = new CreateProjectRequest();
+        createRequest.setName("Project to Delete");
+        createRequest.setDescription("Will be deleted");
+        createRequest.setUser(UserDto.builder().username("testuser").build());
+        createRequest.setMembers(List.of());
 
-        String response = mockMvc.perform(post("/api/projects")
-                .principal(() -> "owner")
+        String createResponse = mockMvc.perform(post("/api/projects")
+                .with(user("testuser"))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createReq)))
+                .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        Long projectId = objectMapper.readTree(response).get("id").asLong();
+        Long projectId = objectMapper.readTree(createResponse).get("id").asLong();
 
-        // Delete the project
+        // Supprimer le projet
         mockMvc.perform(delete("/api/projects/" + projectId)
-                .principal(() -> "owner"))
+                .with(user("testuser")))
                 .andExpect(status().isNoContent());
+
+        // Vérifier que le projet n'existe plus
+        mockMvc.perform(get("/api/projects/myprojects")
+                .with(user("testuser")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }
