@@ -12,8 +12,11 @@ import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
 import com.taskforge.repositories.ProjectRepository;
+import com.taskforge.repositories.TaskRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserStoryService {
@@ -29,6 +32,9 @@ public class UserStoryService {
     
     @Autowired
     private ProjectService projectService;
+
+    @Autowired
+    private TaskRepository taskRepository;
     
     public UserStory createUserStory(CreateUserStoryRequest request, String username) {
         Project project = projectService.getProjectById(request.getProjectId(), username);
@@ -111,6 +117,7 @@ public class UserStoryService {
         return userStoryRepository.save(userStory);
     }
     
+    @Transactional
     public void deleteUserStory(Long userStoryId, String username) {
         UserStory userStory = getUserStoryById(userStoryId, username);
         
@@ -118,6 +125,9 @@ public class UserStoryService {
         if (!userStory.getProject().getOwner().getUsername().equals(username)) {
             throw new RuntimeException("Only project owner can delete user stories");
         }
+
+        // Supprimer toutes les tâches associées
+        taskRepository.deleteAllByUserStoryId(userStoryId);
         
         userStoryRepository.deleteById(userStoryId);
     }

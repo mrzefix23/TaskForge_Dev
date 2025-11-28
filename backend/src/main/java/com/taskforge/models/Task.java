@@ -1,10 +1,8 @@
 package com.taskforge.models;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,24 +11,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
-@Table(name = "user_stories")
+@Table(name = "tasks")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserStory {
+public class Task {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,20 +45,14 @@ public class UserStory {
     private Status status;
     
     @ManyToOne
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    @JoinColumn(name = "user_story_id", nullable = false)
+    @JsonBackReference
+    private UserStory userStory;
     
-    @ManyToMany
-    @JoinTable(
-        name = "user_story_assignees",
-        joinColumns = @JoinColumn(name = "user_story_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> assignedTo = new HashSet<>();
-    
-    @OneToMany(mappedBy = "userStory", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<Task> tasks;
+    @ManyToOne
+    @JoinColumn(name = "assigned_to_user_id")
+    @JsonIgnore
+    private User assignedTo;
     
     public enum Priority {
         LOW, MEDIUM, HIGH

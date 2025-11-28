@@ -27,6 +27,7 @@ import com.taskforge.exceptions.DuplicateUserStoryTitleException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
+import com.taskforge.repositories.TaskRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
 
@@ -41,6 +42,9 @@ class UserStoryServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TaskRepository taskRepository;
 
     @InjectMocks
     private UserStoryService userStoryService;
@@ -238,6 +242,7 @@ class UserStoryServiceTest {
         when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
         userStoryService.deleteUserStory(userStory.getId(), projectOwner.getUsername());
 
+        verify(taskRepository, times(1)).deleteAllByUserStoryId(userStory.getId());
         verify(userStoryRepository, times(1)).deleteById(userStory.getId());
     }
 

@@ -1,5 +1,7 @@
 package com.taskforge.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,16 +17,20 @@ import java.util.Collections;
 @AllArgsConstructor
 public class User implements UserDetails {
 
+    @Schema(description = "Identifiant unique de l'utilisateur", example = "1")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Schema(description = "Nom d'utilisateur unique", example = "johndoe")
     @Column(nullable = false, unique = true)
     private String username;
 
+    @Schema(description = "Mot de passe de l'utilisateur", example = "password123")
     @Column(nullable = false)
     private String password;
 
+    @Schema(description = "Adresse email unique de l'utilisateur", example = "johndoe@example.com")
     @Column(nullable = false, unique = true)
     private String email;
 
