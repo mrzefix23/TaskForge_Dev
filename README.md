@@ -93,7 +93,7 @@ Ensure you have Docker and Docker Compose installed on your machine.
    docker-compose up -d
    ```
 
-3. The frontend will be accessible at `http://localhost:4200`.
+3. The frontend will be accessible at `http://localhost` (port 80 via Nginx).
 
 4. The backend API will be accessible at `http://localhost:8080/`.
 
