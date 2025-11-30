@@ -5,6 +5,9 @@ import { HeaderComponent } from '../header/header';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
+/**
+ * Tests unitaires pour le composant AccueilComponent.
+ */
 describe('AccueilComponent', () => {
   let component: AccueilComponent;
   let fixture: ComponentFixture<AccueilComponent>;
