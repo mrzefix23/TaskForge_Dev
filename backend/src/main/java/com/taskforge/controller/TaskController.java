@@ -21,6 +21,11 @@ import com.taskforge.exceptions.TaskNotFoundException;
 import com.taskforge.models.Task;
 import com.taskforge.service.TaskService;
 
+/**
+ * Contrôleur REST pour la gestion des tâches.
+ * Fournit des points de terminaison pour créer, récupérer, mettre à jour et supprimer des tâches
+ * au sein des User Stories.
+ */
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
@@ -28,6 +33,13 @@ public class TaskController {
     @Autowired
     private TaskService taskService;
     
+    /**
+     * Crée une nouvelle tâche.
+     *
+     * @param request        Les détails de la tâche à créer (titre, description, priorité, etc.).
+     * @param authentication L'authentification de l'utilisateur courant.
+     * @return La tâche créée avec le statut 201 (Created), ou une erreur 400 (Bad Request) en cas de problème.
+     */
     @PostMapping
     public ResponseEntity<?> createTask(@RequestBody CreateTaskRequest request, Authentication authentication) {
         try {
@@ -42,6 +54,13 @@ public class TaskController {
         }
     }
     
+    /**
+     * Récupère une tâche par son identifiant.
+     *
+     * @param taskId         L'identifiant de la tâche à récupérer.
+     * @param authentication L'authentification de l'utilisateur courant.
+     * @return La tâche demandée, ou une erreur 404 (Not Found) si elle n'existe pas.
+     */
     @GetMapping("/{taskId}")
     public ResponseEntity<?> getTask(@PathVariable Long taskId, Authentication authentication) {
         try {
@@ -53,12 +72,27 @@ public class TaskController {
         }
     }
     
+    /**
+     * Récupère la liste des tâches associées à une User Story spécifique.
+     *
+     * @param userStoryId    L'identifiant de la User Story parente.
+     * @param authentication L'authentification de l'utilisateur courant.
+     * @return Une liste de tâches appartenant à la User Story.
+     */
     @GetMapping("/user-story/{userStoryId}")
     public ResponseEntity<List<Task>> getTasksByUserStory(@PathVariable Long userStoryId, Authentication authentication) {
         List<Task> tasks = taskService.getTasksByUserStoryId(userStoryId, authentication.getName());
         return ResponseEntity.ok(tasks);
     }
     
+    /**
+     * Met à jour une tâche existante.
+     *
+     * @param taskId         L'identifiant de la tâche à mettre à jour.
+     * @param request        Les nouvelles informations de la tâche.
+     * @param authentication L'authentification de l'utilisateur courant.
+     * @return La tâche mise à jour, ou une erreur 400 (Bad Request) en cas de problème.
+     */
     @PutMapping("/{taskId}")
     public ResponseEntity<?> updateTask(@PathVariable Long taskId, 
                                        @RequestBody CreateTaskRequest request,
@@ -75,6 +109,13 @@ public class TaskController {
         }
     }
     
+    /**
+     * Supprime une tâche.
+     *
+     * @param taskId         L'identifiant de la tâche à supprimer.
+     * @param authentication L'authentification de l'utilisateur courant.
+     * @return Une réponse vide avec le statut 204 (No Content) en cas de succès, ou une erreur 404 (Not Found).
+     */
     @DeleteMapping("/{taskId}")
     public ResponseEntity<?> deleteTask(@PathVariable Long taskId, Authentication authentication) {
         try {
