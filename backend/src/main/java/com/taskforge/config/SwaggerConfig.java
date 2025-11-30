@@ -11,9 +11,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
+/**
+ * Configuration de la documentation OpenAPI (Swagger) pour l'application TaskForge.
+ * Cette classe définit les métadonnées de l'API et la configuration de sécurité JWT.
+ */
 @Configuration
 public class SwaggerConfig {
 
+    /**
+     * Crée et configure le bean OpenAPI.
+     * Définit les informations générales de l'API (titre, description, version, contact, licence)
+     * et configure le schéma de sécurité pour l'authentification JWT (Bearer Token).
+     *
+     * @return Une instance d'OpenAPI configurée pour TaskForge.
+     */
     @Bean
     public OpenAPI taskForgeOpenAPI() {
         return new OpenAPI()
