@@ -26,6 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests unitaires pour le service d'authentification (AuthService).
+ * Vérifie la logique métier de l'inscription et de la connexion, en isolant les dépendances (Repository, JWT, etc.) via Mockito.
+ */
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -44,6 +48,10 @@ class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
+    /**
+     * Vérifie que l'inscription réussit lorsque toutes les données sont valides.
+     * Le service doit sauvegarder l'utilisateur et retourner un token JWT.
+     */
     @Test
     void register_ShouldReturnAuthResponse_WhenSuccessful() {
         RegisterRequest request = new RegisterRequest("newUser", "new@test.com", "password123");
@@ -62,6 +70,10 @@ class AuthServiceTest {
         verify(userRepository).save(any(User.class)); 
     }
 
+    /**
+     * Vérifie que l'inscription échoue si le nom d'utilisateur est déjà pris.
+     * Doit lever une exception UsernameAlreadyExists.
+     */
     @Test
     void register_ShouldThrowUsernameAlreadyExists_WhenUsernameTaken() {
         RegisterRequest request = new RegisterRequest("existingUser", "existing@test.com", "password123");
@@ -71,6 +83,10 @@ class AuthServiceTest {
         verify(userRepository, never()).save(any(User.class));
     }
 
+    /**
+     * Vérifie que l'inscription échoue si l'email est déjà utilisé.
+     * Doit lever une exception EmailAlreadyExists.
+     */
     @Test
     void register_ShouldThrowEmailAlreadyExists_WhenEmailTaken() {
         RegisterRequest request = new RegisterRequest("newUser", "existing@test.com", "password123");
@@ -81,6 +97,10 @@ class AuthServiceTest {
         verify(userRepository, never()).save(any(User.class));
     }
 
+    /**
+     * Vérifie que l'inscription échoue si le mot de passe est trop court.
+     * Doit lever une exception ResponseStatusException (Bad Request).
+     */
     @Test
     void register_ShouldThrowPasswordTooShort_WhenPasswordInvalid() {
         RegisterRequest request = new RegisterRequest("newUser", "new@test.com", "short");
@@ -91,6 +111,10 @@ class AuthServiceTest {
         verify(userRepository, never()).save(any(User.class));
     }
 
+    /**
+     * Vérifie que la connexion réussit avec des identifiants valides.
+     * Le service doit authentifier l'utilisateur via AuthenticationManager et retourner un token JWT.
+     */
     @Test
     void login_ShouldReturnAuthResponse_WhenSuccessful() {
         LoginRequest request = new LoginRequest("validUser", "validPass");
@@ -105,6 +129,10 @@ class AuthServiceTest {
         assertThat(response.getUsername()).isEqualTo("validUser");
     }
 
+    /**
+     * Vérifie que la connexion échoue si l'authentification est rejetée par le manager (ex: mauvais mot de passe).
+     * Doit lever une exception InvalidCredentialsException.
+     */
     @Test
     void login_ShouldThrowInvalidCredentialsException_WhenAuthenticationFails() {
         LoginRequest request = new LoginRequest("invalidUser", "invalidPass");
@@ -113,6 +141,11 @@ class AuthServiceTest {
         assertThrows(InvalidCredentialsException.class, () -> authService.login(request));
     }
 
+    /**
+     * Vérifie que la connexion échoue si l'utilisateur n'existe pas en base de données,
+     * même si l'AuthenticationManager ne lève pas d'erreur explicite (cas rare mais possible selon config).
+     * Doit lever une exception InvalidCredentialsException.
+     */
     @Test
     void login_ShouldThrowInvalidCredentialsException_WhenUserNotFound() {
         LoginRequest request = new LoginRequest("nonExistentUser", "somePass");
