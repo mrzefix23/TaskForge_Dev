@@ -15,6 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 
+/**
+ * Contrôleur REST gérant les opérations de lecture sur les utilisateurs.
+ * Fournit des points de terminaison pour récupérer la liste des utilisateurs ou un utilisateur spécifique.
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -25,6 +29,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    /**
+     * Récupère la liste complète de tous les utilisateurs.
+     *
+     * @return Une liste d'objets UserDto représentant tous les utilisateurs.
+     */
     @Operation(summary = "Récupérer tous les utilisateurs", description="Récupère une liste de tous les utilisateurs.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Utilisateurs récupérés avec succès"),
@@ -37,6 +46,12 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Récupère un utilisateur spécifique par son identifiant.
+     *
+     * @param id L'identifiant unique de l'utilisateur.
+     * @return L'objet UserDto correspondant, ou null si non trouvé.
+     */
     @Operation(summary = "Récupérer un utilisateur par ID", description="Récupère les détails d'un utilisateur spécifique en fonction de son ID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Utilisateur récupéré avec succès"),
@@ -48,6 +63,13 @@ public class UserController {
         return user != null ? toUserDto(user) : null;
     }
 
+    /**
+     * Convertit une entité User en objet de transfert de données (DTO).
+     * Masque le mot de passe pour des raisons de sécurité.
+     *
+     * @param user L'entité utilisateur à convertir.
+     * @return Le DTO correspondant.
+     */
     private UserDto toUserDto(User user) {
         UserDto dto = new UserDto();
         dto.setUsername(user.getUsername());
