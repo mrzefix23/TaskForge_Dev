@@ -1,3 +1,8 @@
+/* ==========================================================================
+   LAYOUT PRINCIPAL (NAVBAR)
+   ========================================================================== */
+
+/* Conteneur principal de l'en-tête : Sticky en haut de page avec effet de flou */
 .accueil-header {
   width: 100%;
   display: flex;
@@ -5,20 +10,44 @@
   align-items: center;
   padding: 1.8rem 3.5rem;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px); /* Effet "Glassmorphism" */
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
-  position: sticky;
+  position: sticky; /* Reste collé en haut lors du scroll */
   top: 0;
-  z-index: 100;
+  z-index: 100; /* S'assure de rester au-dessus du contenu */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
+/* Zone gauche contenant le Logo et la Navigation */
 .header-left {
   display: flex;
   align-items: center;
   gap: 3rem;
 }
+
+/* ==========================================================================
+   IDENTITÉ (LOGO)
+   ========================================================================== */
+
+.accueil-logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.accueil-logo:hover {
+  color: #4a4a4a;
+}
+
+/* ==========================================================================
+   LIENS DE NAVIGATION
+   ========================================================================== */
 
 .header-nav {
   display: flex;
@@ -41,27 +70,18 @@
   background: #fafafa;
 }
 
+/* État actif (route courante) */
 .nav-link.active {
   color: #1a1a1a;
   font-weight: 600;
   background: #f0f0f0;
 }
 
-.accueil-logo {
-  font-size: 1.8rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #1a1a1a;
-  text-transform: uppercase;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s;
-}
+/* ==========================================================================
+   MENU UTILISATEUR & DROPDOWN
+   ========================================================================== */
 
-.accueil-logo:hover {
-  color: #4a4a4a;
-}
-
+/* Bouton déclencheur du menu profil */
 .user-menu {
   position: relative;
   display: flex;
@@ -87,6 +107,7 @@
   letter-spacing: 0.01em;
 }
 
+/* Flèche rotative indiquant l'état ouvert/fermé */
 .user-menu-arrow {
   font-size: 0.8rem;
   color: #6a6a6a;
@@ -97,9 +118,10 @@
   transform: rotate(180deg);
 }
 
+/* Conteneur déroulant (Dropdown) */
 .user-menu-dropdown {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + 0.5rem); /* Positionné juste sous le bouton */
   right: 0;
   background: #fff;
   border-radius: 10px;
@@ -114,7 +136,7 @@
   width: 100%;
   background: none;
   border: none;
-  color: #e74c3c;
+  color: #e74c3c; /* Rouge pour signifier la déconnexion */
   padding: 0.8rem 1rem;
   text-align: left;
   font-size: 0.95rem;
@@ -128,6 +150,11 @@
   background: #fff5f5;
 }
 
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+/* Petits écrans : Réorganisation verticale */
 @media (max-width: 600px) {
   .accueil-header {
     flex-direction: column;
@@ -140,6 +167,7 @@
   }
 }
 
+/* Tablettes intermédiaires */
 @media (max-width: 968px) {
   .header-left {
     gap: 1.5rem;
@@ -155,6 +183,7 @@
   }
 }
 
+/* Tablettes / Mobiles larges */
 @media (max-width: 768px) {
   .accueil-header {
     flex-direction: column;
@@ -172,7 +201,7 @@
   
   .header-nav {
     width: 100%;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Permet aux liens de passer à la ligne */
   }
   
   .nav-link-create {
