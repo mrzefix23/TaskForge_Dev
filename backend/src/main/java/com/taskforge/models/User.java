@@ -9,6 +9,10 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * Entité représentant un utilisateur de l'application.
+ * Implémente l'interface UserDetails de Spring Security pour l'authentification et l'autorisation.
+ */
 @Entity
 @Table(name = "users")
 @Data
