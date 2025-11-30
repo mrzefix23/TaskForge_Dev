@@ -18,6 +18,11 @@ import com.taskforge.repositories.UserStoryRepository;
 
 import jakarta.transaction.Transactional;
 
+/**
+ * Service gérant la logique métier liée aux User Stories.
+ * Permet de créer, récupérer, mettre à jour et supprimer des User Stories,
+ * ainsi que de gérer leur assignation aux membres du projet.
+ */
 @Service
 public class UserStoryService {
     
@@ -36,6 +41,16 @@ public class UserStoryService {
     @Autowired
     private TaskRepository taskRepository;
     
+    /**
+     * Crée une nouvelle User Story dans un projet.
+     * Vérifie que le titre est unique dans le projet et que les utilisateurs assignés sont bien membres du projet.
+     *
+     * @param request  Les détails de la User Story à créer.
+     * @param username Le nom d'utilisateur de la personne effectuant la création.
+     * @return La User Story créée et sauvegardée.
+     * @throws DuplicateUserStoryTitleException Si une User Story avec le même titre existe déjà dans le projet.
+     * @throws RuntimeException                 Si un utilisateur assigné n'est pas trouvé ou n'est pas membre du projet.
+     */
     public UserStory createUserStory(CreateUserStoryRequest request, String username) {
         Project project = projectService.getProjectById(request.getProjectId(), username);
         
@@ -68,12 +83,29 @@ public class UserStoryService {
         return userStoryRepository.save(userStory);
     }
     
+    /**
+     * Récupère la liste des User Stories d'un projet.
+     * Vérifie au préalable que l'utilisateur a accès au projet.
+     *
+     * @param projectId L'identifiant du projet.
+     * @param username  Le nom d'utilisateur effectuant la requête.
+     * @return Une liste de User Stories.
+     */
     public List<UserStory> getUserStoriesByProject(Long projectId, String username) {
         // Verify user has access to project
         projectService.getProjectById(projectId, username);
         return userStoryRepository.findByProjectId(projectId);
     }
     
+    /**
+     * Récupère une User Story par son identifiant.
+     * Vérifie que l'utilisateur a accès au projet contenant la User Story.
+     *
+     * @param userStoryId L'identifiant de la User Story.
+     * @param username    Le nom d'utilisateur effectuant la requête.
+     * @return La User Story trouvée.
+     * @throws RuntimeException Si la User Story n'existe pas ou si l'accès est refusé.
+     */
     public UserStory getUserStoryById(Long userStoryId, String username) {
         UserStory userStory = userStoryRepository.findById(userStoryId)
                 .orElseThrow(() -> new RuntimeException("User story not found"));
@@ -84,6 +116,17 @@ public class UserStoryService {
         return userStory;
     }
     
+    /**
+     * Met à jour une User Story existante.
+     * Vérifie l'unicité du titre si modifié et met à jour les assignations.
+     *
+     * @param userStoryId L'identifiant de la User Story à mettre à jour.
+     * @param request     Les nouvelles informations de la User Story.
+     * @param username    Le nom d'utilisateur effectuant la mise à jour.
+     * @return La User Story mise à jour.
+     * @throws DuplicateUserStoryTitleException Si le nouveau titre est déjà utilisé dans le projet.
+     * @throws RuntimeException                 Si un utilisateur assigné n'est pas valide.
+     */
     public UserStory updateUserStory(Long userStoryId, CreateUserStoryRequest request, String username) {
         UserStory userStory = getUserStoryById(userStoryId, username);
         
@@ -117,6 +160,14 @@ public class UserStoryService {
         return userStoryRepository.save(userStory);
     }
     
+    /**
+     * Supprime une User Story et toutes ses tâches associées.
+     * Seul le propriétaire du projet est autorisé à effectuer cette action.
+     *
+     * @param userStoryId L'identifiant de la User Story à supprimer.
+     * @param username    Le nom d'utilisateur effectuant la suppression.
+     * @throws RuntimeException Si l'utilisateur n'est pas le propriétaire du projet.
+     */
     @Transactional
     public void deleteUserStory(Long userStoryId, String username) {
         UserStory userStory = getUserStoryById(userStoryId, username);
