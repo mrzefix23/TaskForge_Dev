@@ -18,6 +18,11 @@ import com.taskforge.dto.CreateUserStoryRequest;
 import com.taskforge.models.UserStory;
 import com.taskforge.service.UserStoryService;
 
+/**
+ * Contrôleur REST pour la gestion des User Stories.
+ * Fournit des points de terminaison pour créer, récupérer, mettre à jour et supprimer des User Stories
+ * liées aux projets.
+ */
 @RestController
 @RequestMapping("/api/user-stories")
 public class UserStoryController {
@@ -25,6 +30,13 @@ public class UserStoryController {
     @Autowired
     private UserStoryService userStoryService;
     
+    /**
+     * Crée une nouvelle User Story.
+     *
+     * @param request   Les informations nécessaires à la création de la User Story.
+     * @param principal L'utilisateur authentifié effectuant la requête.
+     * @return La User Story créée avec le statut 200 OK, ou 403 Forbidden si non authentifié.
+     */
     @PostMapping
     public ResponseEntity<UserStory> createUserStory(
             @RequestBody CreateUserStoryRequest request, 
@@ -36,6 +48,13 @@ public class UserStoryController {
         return ResponseEntity.ok(userStory);
     }
     
+    /**
+     * Récupère la liste des User Stories associées à un projet spécifique.
+     *
+     * @param projectId L'identifiant du projet.
+     * @param principal L'utilisateur authentifié.
+     * @return Une liste de User Stories appartenant au projet.
+     */
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<UserStory>> getUserStoriesByProject(
             @PathVariable Long projectId, 
@@ -47,6 +66,13 @@ public class UserStoryController {
         return ResponseEntity.ok(userStories);
     }
     
+    /**
+     * Récupère une User Story spécifique par son identifiant.
+     *
+     * @param userStoryId L'identifiant de la User Story.
+     * @param principal   L'utilisateur authentifié.
+     * @return La User Story demandée.
+     */
     @GetMapping("/{userStoryId}")
     public ResponseEntity<UserStory> getUserStoryById(
             @PathVariable Long userStoryId, 
@@ -58,6 +84,14 @@ public class UserStoryController {
         return ResponseEntity.ok(userStory);
     }
     
+    /**
+     * Met à jour une User Story existante.
+     *
+     * @param userStoryId L'identifiant de la User Story à modifier.
+     * @param request     Les nouvelles informations de la User Story.
+     * @param principal   L'utilisateur authentifié.
+     * @return La User Story mise à jour.
+     */
     @PutMapping("/{userStoryId}")
     public ResponseEntity<UserStory> updateUserStory(
             @PathVariable Long userStoryId,
@@ -70,6 +104,13 @@ public class UserStoryController {
         return ResponseEntity.ok(userStory);
     }
     
+    /**
+     * Supprime une User Story.
+     *
+     * @param userStoryId L'identifiant de la User Story à supprimer.
+     * @param principal   L'utilisateur authentifié.
+     * @return Une réponse vide avec le statut 204 No Content en cas de succès.
+     */
     @DeleteMapping("/{userStoryId}")
     public ResponseEntity<Void> deleteUserStory(
             @PathVariable Long userStoryId, 
