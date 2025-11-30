@@ -18,6 +18,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+/**
+ * Configuration de la sécurité de l'application via Spring Security.
+ * Cette classe définit les règles d'authentification, d'autorisation, la gestion des sessions (stateless),
+ * la configuration CORS et l'intégration du filtre JWT.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -28,6 +33,13 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
+    /**
+     * Configure le fournisseur d'authentification.
+     * Utilise DaoAuthenticationProvider pour récupérer les détails de l'utilisateur via UserDetailsService
+     * et vérifier le mot de passe avec l'encodeur défini.
+     *
+     * @return L'instance d'AuthenticationProvider configurée.
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -36,12 +48,33 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    /**
+     * Expose le gestionnaire d'authentification (AuthenticationManager) en tant que Bean.
+     * Nécessaire pour effectuer l'authentification programmatique (ex: dans AuthController).
+     *
+     * @param config La configuration d'authentification Spring.
+     * @return L'instance d'AuthenticationManager.
+     * @throws Exception En cas d'erreur de configuration.
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * Définit la chaîne de filtres de sécurité (SecurityFilterChain).
+     * Configure :
+     * - La désactivation de CSRF (inutile pour une API REST stateless).
+     * - La configuration CORS.
+     * - La gestion de session en mode STATELESS (pas de session HTTP serveur).
+     * - Les règles d'autorisation des requêtes HTTP (endpoints publics vs authentifiés).
+     * - L'ajout du filtre JWT avant le filtre d'authentification par mot de passe.
+     *
+     * @param http L'objet HttpSecurity à configurer.
+     * @return La chaîne de filtres construite.
+     * @throws Exception En cas d'erreur de configuration.
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
@@ -63,6 +96,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Configure les règles CORS (Cross-Origin Resource Sharing).
+     * Permet à l'application frontend (ou autres clients) d'accéder à l'API.
+     * Actuellement configuré pour tout autoriser (*).
+     *
+     * @return La source de configuration CORS.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
@@ -74,6 +114,12 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Définit l'encodeur de mot de passe utilisé pour hacher et vérifier les mots de passe.
+     * Utilise BCrypt, un algorithme de hachage robuste.
+     *
+     * @return L'instance de PasswordEncoder.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
