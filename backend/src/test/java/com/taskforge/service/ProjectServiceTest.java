@@ -24,6 +24,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests unitaires pour le service de gestion des projets (ProjectService).
+ * Vérifie la logique métier de création, récupération, mise à jour et suppression des projets,
+ * en isolant les dépendances (Repositories) via Mockito.
+ */
 @ExtendWith(MockitoExtension.class)
 class ProjectServiceTest {
 
@@ -42,6 +47,10 @@ class ProjectServiceTest {
     private User testUser;
     private CreateProjectRequest createRequest;
 
+    /**
+     * Initialise les données de test avant chaque exécution.
+     * Crée un utilisateur fictif et une requête de création de projet par défaut.
+     */
     @BeforeEach
     void setUp() {
         testUser = User.builder()
@@ -59,6 +68,10 @@ class ProjectServiceTest {
         createRequest.setMembers(new ArrayList<>());
     }
 
+    /**
+     * Vérifie que la création d'un projet réussit avec des données valides.
+     * Le service doit sauvegarder le projet et l'associer au propriétaire.
+     */
     @Test
     void createProject_shouldCreateProject_WhenValidRequest() {
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
@@ -81,6 +94,10 @@ class ProjectServiceTest {
         verify(projectRepository, times(1)).save(any(Project.class));
     }
 
+    /**
+     * Vérifie que la création échoue si l'utilisateur créateur n'existe pas.
+     * Doit lever une RuntimeException.
+     */
     @Test
     void createProject_shouldThrowException_WhenUserNotFound() {
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
@@ -90,6 +107,9 @@ class ProjectServiceTest {
                 .hasMessageContaining("User not found");
     }
 
+    /**
+     * Vérifie que les membres spécifiés sont correctement ajoutés au projet lors de la création.
+     */
     @Test
     void createProject_shouldAddMembers_WhenProvided() {
         UserDto memberDto = UserDto.builder().username("member").build();
@@ -106,6 +126,10 @@ class ProjectServiceTest {
         assertThat(result.getMembers()).contains(testUser, memberUser);
     }
 
+    /**
+     * Vérifie que la création échoue si l'un des membres spécifiés n'existe pas.
+     * Doit lever une RuntimeException.
+     */
     @Test
     void createProject_shouldThrowException_WhenMemberNotFound() {
         UserDto memberDto = UserDto.builder().username("unknown").build();
@@ -119,6 +143,9 @@ class ProjectServiceTest {
                 .hasMessageContaining("User not found: unknown");
     }
 
+    /**
+     * Vérifie qu'un membre du projet peut récupérer les détails du projet par son ID.
+     */
     @Test
     void getProjectById_shouldReturnProject_WhenUserIsMember() {
         Project project = Project.builder()
@@ -136,6 +163,10 @@ class ProjectServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
     }
 
+    /**
+     * Vérifie que la récupération échoue si le projet n'existe pas.
+     * Doit lever une RuntimeException.
+     */
     @Test
     void getProjectById_shouldThrowException_WhenProjectNotFound() {
         when(projectRepository.findById(99L)).thenReturn(Optional.empty());
@@ -145,6 +176,10 @@ class ProjectServiceTest {
                 .hasMessageContaining("Project not found");
     }
 
+    /**
+     * Vérifie que la récupération échoue si l'utilisateur n'est pas membre du projet.
+     * Doit lever une RuntimeException (accès refusé implicite).
+     */
     @Test
     void getProjectById_shouldThrowException_WhenUserNotMember() {
         User otherUser = User.builder().username("otheruser").build();
@@ -163,6 +198,9 @@ class ProjectServiceTest {
     }
 
 
+    /**
+     * Vérifie que le propriétaire peut mettre à jour les informations de son projet.
+     */
     @Test
     void updateProject_shouldSucceed_WhenOwnerUpdatesValidData() {
         Project existingProject = Project.builder()
@@ -188,6 +226,10 @@ class ProjectServiceTest {
         verify(projectRepository).save(existingProject);
     }
 
+    /**
+     * Vérifie que la mise à jour échoue si l'utilisateur n'est pas le propriétaire.
+     * Doit lever une UpdateProjectException.
+     */
     @Test
     void updateProject_shouldThrowException_WhenNotOwner() {
         User otherUser = User.builder().username("other").build();
@@ -208,6 +250,10 @@ class ProjectServiceTest {
                 .hasMessageContaining("Seul le propriétaire");
     }
 
+    /**
+     * Vérifie que la mise à jour échoue si le nouveau nom est déjà pris par un autre projet.
+     * Doit lever une DuplicateProjectNameException.
+     */
     @Test
     void updateProject_shouldThrowException_WhenDuplicateNameExists() {
         Project existingProject = Project.builder().id(1L).name("Old").owner(testUser).members(Set.of(testUser)).build();
@@ -224,6 +270,9 @@ class ProjectServiceTest {
                 .hasMessageContaining("Un projet avec ce nom existe déjà");
     }
 
+    /**
+     * Vérifie que la mise à jour réussit si le nom reste inchangé (pas de conflit avec soi-même).
+     */
     @Test
     void updateProject_shouldSucceed_WhenNameIsSameAsCurrentProject() {
         Project existingProject = Project.builder().id(1L).name("Same Name").owner(testUser).members(new HashSet<>(Set.of(testUser))).build();
@@ -240,6 +289,9 @@ class ProjectServiceTest {
         assertThat(result.getDescription()).isEqualTo("Updated Desc");
     }
 
+    /**
+     * Vérifie que de nouveaux membres peuvent être ajoutés lors de la mise à jour du projet.
+     */
     @Test
     void updateProject_shouldAddNewMembers() {
         Project existingProject = Project.builder()
@@ -266,6 +318,9 @@ class ProjectServiceTest {
         assertThat(result.getMembers()).contains(testUser, newMember);
     }
     
+    /**
+     * Vérifie que la mise à jour échoue si l'un des nouveaux membres n'existe pas.
+     */
     @Test
     void updateProject_shouldThrowException_WhenNewMemberNotFound() {
          Project existingProject = Project.builder()
@@ -288,6 +343,10 @@ class ProjectServiceTest {
                 .hasMessageContaining("User not found");
     }
 
+    /**
+     * Vérifie que le propriétaire peut supprimer son projet.
+     * Le service doit également supprimer les dépendances (User Stories, Tâches).
+     */
     @Test
     void deleteProject_shouldDeleteProject_WhenUserIsOwner() {
         Project project = Project.builder()
@@ -307,6 +366,10 @@ class ProjectServiceTest {
         verify(projectRepository, times(1)).deleteById(1L);
     }
 
+    /**
+     * Vérifie que la suppression échoue si l'utilisateur n'est pas le propriétaire.
+     * Doit lever une ProjectSuppressionException.
+     */
     @Test
     void deleteProject_shouldThrowException_WhenUserNotOwner() {
         User otherUser = User.builder().username("other").build();
@@ -325,6 +388,10 @@ class ProjectServiceTest {
         verify(projectRepository, never()).deleteById(anyLong());
     }
 
+    /**
+     * Vérifie que la méthode getProjectsByUsername retourne bien la liste des projets
+     * où l'utilisateur est impliqué (propriétaire ou membre).
+     */
     @Test
     void getProjectsByUsername_shouldReturnUserProjects() {
         Project project1 = Project.builder().id(1L).name("Project 1").owner(testUser).build();
