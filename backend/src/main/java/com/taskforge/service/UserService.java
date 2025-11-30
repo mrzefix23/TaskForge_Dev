@@ -9,6 +9,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 
+/**
+ * Service gérant la logique métier liée aux utilisateurs.
+ * Permet de créer de nouveaux utilisateurs avec validation et de récupérer les informations des utilisateurs existants.
+ */
 @Service
 public class UserService {
 
@@ -20,6 +24,17 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Crée un nouvel utilisateur dans le système.
+     * Effectue plusieurs validations : champs obligatoires, format de l'email, longueur du mot de passe,
+     * et unicité du nom d'utilisateur et de l'email.
+     * Le mot de passe est haché avant d'être stocké.
+     *
+     * @param userDto Les informations de l'utilisateur à créer (username, email, password).
+     * @return L'utilisateur créé et sauvegardé.
+     * @throws IllegalArgumentException        Si les données sont invalides (null, format incorrect, mot de passe trop court).
+     * @throws DataIntegrityViolationException Si le nom d'utilisateur ou l'email existe déjà.
+     */
     public User createUser(UserDto userDto) {
         if(userDto.getUsername() == null || userDto.getUsername().isEmpty() || userDto.getEmail() == null || userDto.getPassword() == null) {
             throw new IllegalArgumentException("Username, email, and password must not be null");
@@ -43,10 +58,21 @@ public class UserService {
         return userRepo.save(user);
     }
 
+    /**
+     * Récupère la liste de tous les utilisateurs enregistrés.
+     *
+     * @return Une liste contenant tous les utilisateurs.
+     */
     public List<User> getAllUsers() {
         return userRepo.findAll();
     }
 
+    /**
+     * Récupère un utilisateur par son identifiant unique.
+     *
+     * @param id L'identifiant de l'utilisateur.
+     * @return L'utilisateur trouvé, ou null s'il n'existe pas.
+     */
     public User getUserById(Long id) {
         return userRepo.findById(id).orElse(null);
     }
