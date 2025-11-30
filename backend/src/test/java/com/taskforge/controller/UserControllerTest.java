@@ -18,6 +18,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Tests d'intégration pour le contrôleur des utilisateurs (UserController).
+ * Vérifie les endpoints de récupération des utilisateurs en simulant le service sous-jacent.
+ */
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,6 +33,10 @@ public class UserControllerTest {
     @MockitoBean
     private UserService userService;
 
+    /**
+     * Vérifie que la récupération de tous les utilisateurs retourne une liste correcte.
+     * S'assure également que les mots de passe ne sont pas exposés dans la réponse JSON.
+     */
     @Test
     @WithMockUser
     void getAllUsers_shouldReturnUserList() throws Exception {
@@ -57,6 +65,10 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$[1].password").doesNotExist());
     }
 
+    /**
+     * Vérifie qu'un utilisateur spécifique peut être récupéré par son ID.
+     * S'assure que les détails sont corrects et que le mot de passe est masqué.
+     */
     @Test
     @WithMockUser
     void getUserById_shouldReturnUser() throws Exception {
@@ -75,6 +87,10 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
 
+    /**
+     * Vérifie le comportement lorsqu'un ID d'utilisateur inexistant est demandé.
+     * Le contrôleur actuel retourne une réponse vide avec un statut 200 OK (selon l'implémentation actuelle).
+     */
     @Test
     @WithMockUser
     void getUserById_shouldReturnNotFoundForInvalidId() throws Exception {
