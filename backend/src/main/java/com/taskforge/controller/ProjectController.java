@@ -25,6 +25,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 
+/**
+ * Contrôleur REST gérant les opérations liées aux projets.
+ * Permet de créer, lire, mettre à jour et supprimer des projets.
+ * Sécurisé par authentification Bearer.
+ */
 @RestController
 @RequestMapping("/api/projects")
 @Tag(name = "Projets", description = "API pour la gestion des projets")
@@ -34,6 +39,13 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
+    /**
+     * Crée un nouveau projet pour l'utilisateur authentifié.
+     *
+     * @param createProjectRequest Les détails du projet à créer.
+     * @param principal L'utilisateur authentifié (via le token JWT).
+     * @return Le projet créé ou un statut 403 si l'utilisateur de la requête ne correspond pas au token.
+     */
     @Operation(summary = "Créer un nouveau projet", description="Crée un nouveau projet pour l'utilisateur authentifié.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Projet créé avec succès"),
@@ -49,6 +61,14 @@ public class ProjectController {
         return ResponseEntity.ok(project);
     }
 
+    /**
+     * Met à jour un projet existant.
+     *
+     * @param projectId L'identifiant du projet à mettre à jour.
+     * @param updateRequest Les nouvelles informations du projet.
+     * @param principal L'utilisateur authentifié.
+     * @return Le projet mis à jour.
+     */
     @Operation(summary = "Mettre à jour un projet existant", description="Met à jour un projet existant pour l'utilisateur authentifié.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Projet mis à jour avec succès"),
@@ -65,6 +85,13 @@ public class ProjectController {
 
     }
 
+    /**
+     * Récupère un projet spécifique par son ID.
+     *
+     * @param projectId L'identifiant du projet.
+     * @param principal L'utilisateur authentifié.
+     * @return Le projet demandé.
+     */
     @Operation(summary = "Récupérer un projet par son ID", description="Récupère un projet spécifique pour l'utilisateur authentifié.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Projet récupéré avec succès"),
@@ -79,6 +106,12 @@ public class ProjectController {
         return ResponseEntity.ok(project);
     }
 
+    /**
+     * Récupère tous les projets associés à l'utilisateur connecté.
+     *
+     * @param principal L'utilisateur authentifié.
+     * @return Une liste de projets.
+     */
     @Operation(summary = "Récupérer tous les projets de l'utilisateur", description="Récupère tous les projets associés à l'utilisateur authentifié.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Projets récupérés avec succès"),
@@ -93,6 +126,13 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    /**
+     * Supprime un projet spécifique.
+     *
+     * @param projectId L'identifiant du projet à supprimer.
+     * @param principal L'utilisateur authentifié.
+     * @return Une réponse vide (204 No Content) en cas de succès.
+     */
     @Operation(summary = "Supprimer un projet", description="Supprime un projet spécifique pour l'utilisateur authentifié.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Projet supprimé avec succès"),
