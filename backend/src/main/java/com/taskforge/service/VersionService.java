@@ -43,6 +43,11 @@ public class VersionService {
             throw new DuplicateProjectNameException("Une version avec ce numéro existe déjà pour ce projet");
         }
 
+        if (versionRepository.findByProjectIdOrderByIdDesc(request.getProjectId()).stream()
+                .anyMatch(v -> v.getTitle().equals(request.getTitle()))) {
+            throw new DuplicateProjectNameException("Une version avec ce titre existe déjà pour ce projet");
+        }
+
         Version version = Version.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
