@@ -15,6 +15,7 @@ import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
 import com.taskforge.repositories.ProjectRepository;
+import com.taskforge.repositories.SprintRepository;
 import com.taskforge.repositories.TaskRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
@@ -41,6 +42,9 @@ public class ProjectService {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Autowired
+    private SprintRepository sprintRepository;
+  
     /**
      * Crée un nouveau projet.
      * Associe le créateur en tant que propriétaire et membre, et ajoute les autres membres spécifiés.
@@ -169,6 +173,9 @@ public class ProjectService {
         }
         //Supprimer les US lié au projet
         userStoryRepository.deleteAllByProjectId(projectId);
+        
+        // Supprimer tous les sprints du projet
+        sprintRepository.deleteAllByProjectId(projectId);
 
         projectRepository.deleteById(projectId);
     }   

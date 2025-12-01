@@ -1,5 +1,28 @@
 package com.taskforge.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.taskforge.dto.CreateProjectRequest;
 import com.taskforge.dto.UserDto;
 import com.taskforge.exceptions.DuplicateProjectNameException;
@@ -10,19 +33,7 @@ import com.taskforge.models.User;
 import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import com.taskforge.repositories.SprintRepository;
 
 /**
  * Tests unitaires pour le service de gestion des projets (ProjectService).
@@ -40,6 +51,9 @@ class ProjectServiceTest {
 
     @Mock
     private UserStoryRepository userStoryRepository;
+
+    @Mock
+    private SprintRepository sprintRepository;
 
     @InjectMocks
     private ProjectService projectService;

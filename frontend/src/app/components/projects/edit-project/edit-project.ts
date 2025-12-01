@@ -76,7 +76,7 @@ export class EditProjectComponent implements OnInit {
    */
   goBack(): void {
     if (this.projectId) {
-      this.router.navigate(['/projects', this.projectId]);
+      this.router.navigate(['/projects']);
     } else {
       this.router.navigate(['/projects']);
     }

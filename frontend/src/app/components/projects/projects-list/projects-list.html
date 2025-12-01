@@ -30,9 +30,26 @@
           ✎ Modifier
         </button>
         <button (click)="deleteProject(project.id, $event)" class="delete-project-btn" title="Supprimer le projet">
-          🗑️
+          x
         </button>
       </div>
     </div>
   </div>
 </main>
+
+<!-- Modal Supprimer Projet -->
+<div *ngIf="showDeleteModal" class="modal-overlay" (click)="closeDeleteModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteModal()">×</button>
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer le projet "{{ projectToDelete?.name }}" ?</p>
+    <p class="warning">Cette action est irréversible. Toutes les user stories et tâches associées seront supprimées.</p>
+    <div *ngIf="deleteError" class="alert alert-error">{{ deleteError }}</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteModal()">Annuler</button>
+      <button class="btn-danger" (click)="confirmDeleteProject()">Supprimer</button>
+    </div>
+  </div>
+</div>

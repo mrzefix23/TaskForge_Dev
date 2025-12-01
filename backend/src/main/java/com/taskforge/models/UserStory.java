@@ -59,6 +59,10 @@ public class UserStory {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
     
+    @ManyToOne
+    @JoinColumn(name = "sprint_id", nullable = true)
+    private Sprint sprint;
+    
     @ManyToMany
     @JoinTable(
         name = "user_story_assignees",

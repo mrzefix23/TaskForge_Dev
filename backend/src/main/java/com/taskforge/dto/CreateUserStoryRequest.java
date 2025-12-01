@@ -14,4 +14,5 @@ public class CreateUserStoryRequest {
     private Status status;
     private Long projectId;
     private List<String> assignedToUsernames;
+    private Long sprintId;
 }

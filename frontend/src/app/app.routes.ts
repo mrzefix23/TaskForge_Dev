@@ -9,6 +9,7 @@ import { CreateProjectComponent } from './components/projects/create-project/cre
 import { ProjectsListComponent } from './components/projects/projects-list/projects-list';
 import { EditProjectComponent } from './components/projects/edit-project/edit-project';
 import { KanbanComponent } from './components/kanban/kanban';
+import { SprintManagementComponent } from './components/sprint-management/sprint-management';
 
 /**
  * Définition des routes de l'application.
@@ -23,7 +24,7 @@ export const routes: Routes = [
   // --- Routes Protégées (Nécessitent une authentification via AuthGuard) ---
   { path: 'accueil', component: AccueilComponent, canActivate: [AuthGuard] },
   
-  // Gestion des Projets
+  // --- Gestion des Projets ---
   { path: 'projects', component: ProjectsListComponent, canActivate: [AuthGuard] },
   { path: 'projects/create', component: CreateProjectComponent, canActivate: [AuthGuard] },
   { path: 'projects/edit/:id', component: EditProjectComponent, canActivate: [AuthGuard] },
@@ -33,4 +34,7 @@ export const routes: Routes = [
 
   // --- Gestion des erreurs ---
   { path: 'error', component: NotFoundComponent },
+  
+  // --- Gestion des sprints ---
+  { path: 'projects/:id/sprints', component: SprintManagementComponent, canActivate: [AuthGuard] },
 ];

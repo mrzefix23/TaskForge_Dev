@@ -1,50 +1,29 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../header/header';
 import { UserStoryFormComponent } from './user-story-form/user-story-form';
 import { TaskFormComponent } from './task-form/task-form';
-
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  owner: { username: string };
-  members: { username: string }[];
-}
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  assignedTo?: { username: string };
-  userStory: { id: number };
-}
-
-interface UserStory {
-  id: number;
-  title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  assignedTo?: { username: string }[];
-  tasks?: Task[];
-  showTasks?: boolean;
-}
+import { Project, Sprint, Task, UserStory } from '../../models/kanban.models';
+import { ProjectService } from '../../services/project.service';
+import { UserStoryService } from '../../services/user-story.service';
+import { TaskService } from '../../services/task.service';
+import { KanbanHelpers } from './kanban.helpers';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
   templateUrl: './kanban.html',
   styleUrls: ['./kanban.css']
 })
 export class KanbanComponent implements OnInit {
   project: Project | null = null;
   userStories: UserStory[] = [];
+  sprints: Sprint[] = [];
+  selectedSprintFilter: string = 'all'; // 'all', 'backlog', or sprint ID
   loading = true;
   error: string | null = null;
 
@@ -61,11 +40,23 @@ export class KanbanComponent implements OnInit {
   currentEditingTask: Task | null = null;
   currentUserStoryId: number | null = null;
 
+  // Modal states for delete confirmations
+  showDeleteStoryModal = false;
+  showDeleteTaskModal = false;
+  storyToDelete: UserStory | null = null;
+  taskToDelete: { taskId: number, userStoryId: number } | null = null;
+  deleteError: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
     private router: Router
   ) { }
+    private router: Router,
+    private projectService: ProjectService,
+    private userStoryService: UserStoryService,
+    private taskService: TaskService
+  ) {}
 
   /**
    * Initialise le composant.
@@ -77,6 +68,7 @@ export class KanbanComponent implements OnInit {
     if (projectId) {
       this.loadProjectDetails(+projectId);
       this.loadUserStories(+projectId);
+      this.loadSprints(+projectId);
     } else {
       this.error = "ID de projet non trouvé.";
       this.loading = false;
@@ -88,15 +80,12 @@ export class KanbanComponent implements OnInit {
    * @param projectId L'ID du projet à charger.
    */
   loadProjectDetails(projectId: number): void {
-    const token = localStorage.getItem('token');
-    this.http.get<Project>(`/api/projects/${projectId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (data) => {
+    this.projectService.getById(projectId).subscribe({
+      next: (data: Project) => {
         this.project = data;
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'Erreur lors du chargement du projet.';
         this.loading = false;
         console.error(err);
@@ -109,15 +98,12 @@ export class KanbanComponent implements OnInit {
    * @param projectId L'ID du projet dont on veut charger les User Stories.
    */
   loadUserStories(projectId: number): void {
-    const token = localStorage.getItem('token');
-    this.http.get<UserStory[]>(`/api/user-stories/project/${projectId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (data) => {
-        this.userStories = data.map(story => ({ ...story, showTasks: false, tasks: [] }));
+    this.userStoryService.getByProject(projectId).subscribe({
+      next: (data: UserStory[]) => {
+        this.userStories = data.map((story: UserStory) => ({ ...story, showTasks: false, tasks: [] }));
         this.userStories.forEach(story => this.loadTasksForStory(story.id));
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = (this.error ? this.error + ' ' : '') + 'Erreur lors du chargement des user stories.';
         console.error(err);
       }
@@ -129,17 +115,14 @@ export class KanbanComponent implements OnInit {
    * @param userStoryId L'ID de la User Story dont on veut charger les tâches.
    */
   loadTasksForStory(userStoryId: number): void {
-    const token = localStorage.getItem('token');
-    this.http.get<Task[]>(`/api/tasks/user-story/${userStoryId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (tasks) => {
+    this.taskService.getByUserStory(userStoryId).subscribe({
+      next: (tasks: Task[]) => {
         const story = this.userStories.find(s => s.id === userStoryId);
         if (story) {
           story.tasks = tasks;
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Erreur lors du chargement des tâches:', err);
       }
     });
@@ -150,8 +133,36 @@ export class KanbanComponent implements OnInit {
    * @param status Le statut des User Stories à récupérer.
    * @returns Un tableau de User Stories correspondant au statut donné.
    */
+  loadSprints(projectId: number): void {
+    this.projectService.getSprintsByProject(projectId).subscribe({
+      next: (data: Sprint[]) => {
+        this.sprints = data;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des sprints:', err);
+      }
+    });
+  }
+
+  getFilteredUserStories(): UserStory[] {
+    if (this.selectedSprintFilter === 'all') {
+      return this.userStories;
+    } else if (this.selectedSprintFilter === 'backlog') {
+      return this.userStories.filter(story => !story.sprint);
+    } else {
+      const sprintId = parseInt(this.selectedSprintFilter);
+      return this.userStories.filter(story => story.sprint?.id === sprintId);
+    }
+  }
+
   getStoriesByStatus(status: 'TODO' | 'IN_PROGRESS' | 'DONE'): UserStory[] {
-    return this.userStories.filter(story => story.status === status);
+    return this.getFilteredUserStories().filter(story => story.status === status);
+  }
+
+  goToSprintManagement(): void {
+    if (this.project) {
+      this.router.navigate(['/projects', this.project.id, 'sprints']);
+    }
   }
 
   /**
@@ -188,21 +199,18 @@ export class KanbanComponent implements OnInit {
     if (!this.project) return;
 
     this.userStoryError = null;
-    const token = localStorage.getItem('token');
     const payload = {
       ...formValue,
       projectId: this.project.id,
       status: 'TODO'
     };
 
-    this.http.post<UserStory>('/api/user-stories', payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (newStory) => {
+    this.userStoryService.create(payload).subscribe({
+      next: (newStory: UserStory) => {
         this.userStories.push({ ...newStory, showTasks: false, tasks: [] });
         this.closeCreateStoryModal();
       },
-      error: (err) => {
+      error: (err: any) => {
         if (err.status === 400 && err.error?.message) {
           this.userStoryError = err.error.message;
         } else {
@@ -244,22 +252,16 @@ export class KanbanComponent implements OnInit {
     if (!this.currentEditingStory) return;
 
     this.editUserStoryError = null;
-    const token = localStorage.getItem('token');
-    const payload = {
-      ...formValue,
-    };
 
-    this.http.put<UserStory>(`/api/user-stories/${this.currentEditingStory.id}`, payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (updatedStory) => {
+    this.userStoryService.update(this.currentEditingStory.id, formValue).subscribe({
+      next: (updatedStory: UserStory) => {
         const index = this.userStories.findIndex(s => s.id === updatedStory.id);
         if (index !== -1) {
           this.userStories[index] = { ...updatedStory, showTasks: this.userStories[index].showTasks, tasks: this.userStories[index].tasks };
         }
         this.closeEditStoryModal();
       },
-      error: (err) => {
+      error: (err: any) => {
         if (err.status === 400 && err.error?.message) {
           this.editUserStoryError = err.error.message;
         } else {
@@ -280,17 +282,24 @@ export class KanbanComponent implements OnInit {
 
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette User Story et toutes ses tâches ?')) {
       return;
+    const story = this.userStories.find(s => s.id === storyId);
+    if (story) {
+      this.storyToDelete = story;
+      this.showDeleteStoryModal = true;
+      this.deleteError = null;
     }
+  }
 
-    const token = localStorage.getItem('token');
-    this.http.delete(`/api/user-stories/${storyId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
+  confirmDeleteUserStory(): void {
+    if (!this.storyToDelete) return;
+
+    this.userStoryService.delete(this.storyToDelete.id).subscribe({
       next: () => {
-        this.userStories = this.userStories.filter(s => s.id !== storyId);
+        this.userStories = this.userStories.filter(s => s.id !== this.storyToDelete!.id);
+        this.closeDeleteStoryModal();
       },
-      error: (err) => {
-        alert('Erreur lors de la suppression de la User Story.');
+      error: (err: any) => {
+        this.deleteError = 'Erreur lors de la suppression de la User Story.';
         console.error(err);
       }
     });
@@ -301,6 +310,13 @@ export class KanbanComponent implements OnInit {
    * @param userStoryId L'ID de la User Story pour laquelle créer la tâche.
    * @param event L'événement de clic pour empêcher la propagation.
    */
+  closeDeleteStoryModal(): void {
+    this.showDeleteStoryModal = false;
+    this.storyToDelete = null;
+    this.deleteError = null;
+  }
+
+  // Task methods
   openCreateTaskModal(userStoryId: number, event: MouseEvent): void {
     event.stopPropagation();
     this.currentUserStoryId = userStoryId;
@@ -325,23 +341,20 @@ export class KanbanComponent implements OnInit {
     if (!this.currentUserStoryId) return;
 
     this.taskError = null;
-    const token = localStorage.getItem('token');
     const payload = {
       ...formValue,
       userStoryId: this.currentUserStoryId
     };
 
-    this.http.post<Task>('/api/tasks', payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (newTask) => {
+    this.taskService.create(payload).subscribe({
+      next: (newTask: Task) => {
         const story = this.userStories.find(s => s.id === this.currentUserStoryId);
         if (story && story.tasks) {
           story.tasks.push(newTask);
         }
         this.closeCreateTaskModal();
       },
-      error: (err) => {
+      error: (err: any) => {
         if (err.status === 400 && err.error?.message) {
           this.taskError = err.error.message;
         } else {
@@ -409,6 +422,17 @@ export class KanbanComponent implements OnInit {
       }
 
       userStoryId = story.id;
+    
+    this.editTaskError = null;
+    
+    // Trouver la user story qui contient cette tâche
+    const userStoryId = this.currentEditingTask.userStory?.id || 
+      this.userStories.find(s => s.tasks?.some(t => t.id === this.currentEditingTask!.id))?.id;
+    
+    if (!userStoryId) {
+      console.error('User story non trouvée pour la tâche');
+      this.editTaskError = 'Erreur: User story non trouvée';
+      return;
     }
 
     const payload = {
@@ -416,13 +440,8 @@ export class KanbanComponent implements OnInit {
       userStoryId: userStoryId
     };
 
-    console.log('Payload envoyé:', payload);
-
-    this.http.put<Task>(`/api/tasks/${this.currentEditingTask.id}`, payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (updatedTask) => {
-        console.log('Tâche mise à jour avec succès:', updatedTask);
+    this.taskService.update(this.currentEditingTask.id, payload).subscribe({
+      next: (updatedTask: Task) => {
         const story = this.userStories.find(s => s.id === userStoryId);
         if (story && story.tasks) {
           const taskIndex = story.tasks.findIndex(t => t.id === updatedTask.id);
@@ -432,7 +451,7 @@ export class KanbanComponent implements OnInit {
         }
         this.closeEditTaskModal();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Erreur lors de la mise à jour:', err);
         if (err.status === 400 && err.error?.message) {
           this.editTaskError = err.error.message;
@@ -455,19 +474,24 @@ export class KanbanComponent implements OnInit {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
       return;
     }
+    this.taskToDelete = { taskId, userStoryId };
+    this.showDeleteTaskModal = true;
+    this.deleteError = null;
+  }
 
-    const token = localStorage.getItem('token');
-    this.http.delete(`/api/tasks/${taskId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
+  confirmDeleteTask(): void {
+    if (!this.taskToDelete) return;
+
+    this.taskService.delete(this.taskToDelete.taskId).subscribe({
       next: () => {
-        const story = this.userStories.find(s => s.id === userStoryId);
+        const story = this.userStories.find(s => s.id === this.taskToDelete!.userStoryId);
         if (story && story.tasks) {
-          story.tasks = story.tasks.filter(t => t.id !== taskId);
+          story.tasks = story.tasks.filter(t => t.id !== this.taskToDelete!.taskId);
         }
+        this.closeDeleteTaskModal();
       },
-      error: (err) => {
-        alert('Erreur lors de la suppression de la tâche.');
+      error: (err: any) => {
+        this.deleteError = 'Erreur lors de la suppression de la tâche.';
         console.error(err);
       }
     });
@@ -478,13 +502,14 @@ export class KanbanComponent implements OnInit {
    * @param priority La priorité de la tâche.
    * @returns Le label correspondant.
    */
+  closeDeleteTaskModal(): void {
+    this.showDeleteTaskModal = false;
+    this.taskToDelete = null;
+    this.deleteError = null;
+  }
+
   getPriorityLabel(priority: string): string {
-    const labels: { [key: string]: string } = {
-      'LOW': 'Basse',
-      'MEDIUM': 'Moyenne',
-      'HIGH': 'Haute'
-    };
-    return labels[priority] || priority;
+    return KanbanHelpers.getPriorityLabel(priority);
   }
 
   /**
@@ -493,12 +518,7 @@ export class KanbanComponent implements OnInit {
    * @returns Le label correspondant.
    */
   getStatusLabel(status: string): string {
-    const labels: { [key: string]: string } = {
-      'TODO': '📋 À Faire',
-      'IN_PROGRESS': '⏳ En Cours',
-      'DONE': '✅ Terminé'
-    };
-    return labels[status] || status;
+    return KanbanHelpers.getStatusLabel(status);
   }
 
   /**
@@ -507,7 +527,6 @@ export class KanbanComponent implements OnInit {
    * @returns Le label correspondant.
    */
   getTaskCountLabel(story: UserStory): string {
-    if (!story.tasks || story.tasks.length === 0) return 'Aucune tâche';
-    return `${story.tasks.length} tâche${story.tasks.length > 1 ? 's' : ''}`;
+    return KanbanHelpers.getTaskCountLabel(story.tasks?.length || 0);
   }
 }
