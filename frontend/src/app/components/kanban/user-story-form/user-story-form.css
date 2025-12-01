@@ -1,3 +1,8 @@
+/* ==========================================================================
+   STRUCTURE DE LA MODALE & OVERLAY
+   ========================================================================== */
+
+/* Arrière-plan sombre semi-transparent couvrant tout l'écran */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -5,7 +10,7 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px); /* Effet de flou sur l'arrière-plan */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -20,6 +25,7 @@
   to { opacity: 1; }
 }
 
+/* Conteneur blanc principal de la modale */
 .modal-content {
   background: white;
   padding: 2rem;
@@ -27,11 +33,12 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 500px;
   width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: 90vh; /* Empêche la modale de dépasser la hauteur d'écran */
+  overflow-y: auto; /* Scroll interne si contenu trop long */
   animation: slideUp 0.3s ease;
 }
 
+/* Animation d'entrée vers le haut */
 @keyframes slideUp {
   from {
     transform: translateY(20px);
@@ -43,9 +50,14 @@
   }
 }
 
+/* Variante pour les modales plus larges (ex: formulaires complexes) */
 .modal-large {
   max-width: 600px;
 }
+
+/* ==========================================================================
+   TYPOGRAPHIE & ÉLÉMENTS DE FORMULAIRE
+   ========================================================================== */
 
 .modal-content h2 {
   margin: 0 0 1.5rem 0;
@@ -64,6 +76,7 @@
   color: #333;
 }
 
+/* Styles communs pour tous les champs de saisie */
 .form-group input,
 .form-group textarea,
 .form-group select {
@@ -76,23 +89,29 @@
   transition: border-color 0.2s;
 }
 
+/* États focus (clic dans le champ) */
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #667eea; /* Couleur primaire au focus */
 }
 
 .form-group textarea {
-  resize: vertical;
+  resize: vertical; /* Autorise le redimensionnement vertical uniquement */
   min-height: 80px;
 }
 
+/* Grille pour aligner deux champs côte à côte (ex: Priorité / Statut) */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+
+/* ==========================================================================
+   FEEDBACK UTILISATEUR (ERREURS)
+   ========================================================================== */
 
 .modal-error {
   margin-bottom: 1rem;
@@ -107,6 +126,10 @@
   border-radius: 6px;
   font-size: 0.9rem;
 }
+
+/* ==========================================================================
+   ZONE D'ACTIONS (BOUTONS)
+   ========================================================================== */
 
 .modal-actions {
   display: flex;
@@ -126,6 +149,7 @@
   transition: all 0.2s;
 }
 
+/* Bouton secondaire (Annuler) */
 .cancel-btn {
   background: white;
   color: #666;
@@ -137,6 +161,7 @@
   border-color: #999;
 }
 
+/* Bouton primaire (Soumettre) avec dégradé */
 .submit-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -152,10 +177,15 @@
   cursor: not-allowed;
 }
 
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+/* Tablettes et écrans moyens */
 @media (max-width: 768px) {
   .modal-overlay {
     padding: 0.5rem;
-    align-items: flex-start;
+    align-items: flex-start; /* Aligne en haut pour éviter les coupures sur petit écran */
     padding-top: 2rem;
   }
 
@@ -169,6 +199,7 @@
     max-width: 95%;
   }
 
+  /* Passe les grilles en colonne unique sur mobile */
   .form-row {
     grid-template-columns: 1fr;
     gap: 0.75rem;
@@ -179,6 +210,7 @@
     margin-bottom: 1rem;
   }
 
+  /* Inverse l'ordre des boutons et les empile */
   .modal-actions {
     flex-direction: column-reverse;
     gap: 0.75rem;
@@ -189,6 +221,7 @@
   }
 }
 
+/* Mobiles (très petits écrans) */
 @media (max-width: 480px) {
   .modal-content {
     padding: 1rem;
@@ -199,6 +232,7 @@
     font-size: 1.1rem;
   }
 
+  /* Réduction de la taille des polices */
   .form-group label {
     font-size: 0.9rem;
   }

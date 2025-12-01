@@ -16,6 +16,11 @@ import com.taskforge.repositories.UserRepository;
 
 import jakarta.transaction.Transactional;
 
+/**
+ * Service gérant la logique métier liée aux tâches techniques.
+ * Permet de créer, lire, mettre à jour et supprimer des tâches,
+ * ainsi que de gérer leur assignation aux utilisateurs.
+ */
 @Service
 public class TaskService {
     
@@ -28,6 +33,17 @@ public class TaskService {
     @Autowired
     private UserRepository userRepository;
     
+    /**
+     * Crée une nouvelle tâche associée à une User Story.
+     * Vérifie que l'utilisateur a accès au projet, que le titre est unique dans l'US,
+     * et que l'utilisateur assigné (si présent) est membre du projet.
+     *
+     * @param request  Les détails de la tâche à créer.
+     * @param username Le nom d'utilisateur de la personne effectuant la création.
+     * @return La tâche créée et sauvegardée.
+     * @throws DuplicateTaskTitleException Si une tâche avec le même titre existe déjà dans l'US.
+     * @throws RuntimeException            Si l'utilisateur assigné n'est pas trouvé ou n'est pas membre.
+     */
     public Task createTask(CreateTaskRequest request, String username) {
         // Vérifier que l'utilisateur a accès à la user story
         UserStory userStory = userStoryService.getUserStoryById(request.getUserStoryId(), username);
@@ -61,6 +77,15 @@ public class TaskService {
         return taskRepository.save(task);
     }
     
+    /**
+     * Récupère une tâche par son identifiant.
+     * Vérifie que l'utilisateur demandeur a accès au projet contenant la tâche.
+     *
+     * @param taskId   L'identifiant de la tâche.
+     * @param username Le nom d'utilisateur effectuant la requête.
+     * @return La tâche trouvée.
+     * @throws TaskNotFoundException Si la tâche n'existe pas.
+     */
     public Task getTaskById(Long taskId, String username) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Tâche non trouvée"));
@@ -71,6 +96,13 @@ public class TaskService {
         return task;
     }
     
+    /**
+     * Récupère toutes les tâches associées à une User Story spécifique.
+     *
+     * @param userStoryId L'identifiant de la User Story.
+     * @param username    Le nom d'utilisateur effectuant la requête.
+     * @return Une liste de tâches.
+     */
     public List<Task> getTasksByUserStoryId(Long userStoryId, String username) {
         // Vérifier que l'utilisateur a accès à la user story
         userStoryService.getUserStoryById(userStoryId, username);
@@ -78,6 +110,17 @@ public class TaskService {
         return taskRepository.findAllByUserStoryId(userStoryId);
     }
     
+    /**
+     * Met à jour une tâche existante.
+     * Vérifie l'unicité du titre si modifié et met à jour l'assignation si nécessaire.
+     *
+     * @param taskId   L'identifiant de la tâche à mettre à jour.
+     * @param request  Les nouvelles informations de la tâche.
+     * @param username Le nom d'utilisateur effectuant la mise à jour.
+     * @return La tâche mise à jour.
+     * @throws DuplicateTaskTitleException Si le nouveau titre est déjà utilisé dans l'US.
+     * @throws RuntimeException            Si l'utilisateur assigné n'est pas valide.
+     */
     public Task updateTask(Long taskId, CreateTaskRequest request, String username) {
         Task task = getTaskById(taskId, username);
         
@@ -112,6 +155,12 @@ public class TaskService {
         return taskRepository.save(task);
     }
     
+    /**
+     * Supprime une tâche.
+     *
+     * @param taskId   L'identifiant de la tâche à supprimer.
+     * @param username Le nom d'utilisateur effectuant la suppression.
+     */
     @Transactional
     public void deleteTask(Long taskId, String username) {
         Task task = getTaskById(taskId, username);

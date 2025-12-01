@@ -9,15 +9,27 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests unitaires pour le gestionnaire global d'exceptions (GlobalExceptionHandler).
+ * Vérifie que chaque exception métier est correctement interceptée et transformée
+ * en une réponse HTTP appropriée (code statut et message JSON).
+ */
 class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler exceptionHandler;
 
+    /**
+     * Initialise l'instance du gestionnaire d'exceptions avant chaque test.
+     */
     @BeforeEach
     void setUp() {
         exceptionHandler = new GlobalExceptionHandler();
     }
 
+    /**
+     * Vérifie que l'exception UsernameAlreadyExists renvoie une réponse 400 Bad Request
+     * avec le message d'erreur correct.
+     */
     @Test
     void handleUsernameExists_shouldReturnBadRequestWithMessage() {
         UsernameAlreadyExists exception = new UsernameAlreadyExists("Username 'testuser' already exists");
@@ -32,6 +44,10 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "Username 'testuser' already exists");
     }
 
+    /**
+     * Vérifie que l'exception EmailAlreadyExists renvoie une réponse 400 Bad Request
+     * avec le message d'erreur correct.
+     */
     @Test
     void handleEmailExists_shouldReturnBadRequestWithMessage() {
         EmailAlreadyExists exception = new EmailAlreadyExists("Email 'test@example.com' already exists");
@@ -46,6 +62,10 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "Email 'test@example.com' already exists");
     }
 
+    /**
+     * Vérifie que l'exception InvalidCredentialsException renvoie une réponse 401 Unauthorized
+     * avec le message d'erreur correct.
+     */
     @Test
     void handleInvalidCredentials_shouldReturnUnauthorizedWithMessage() {
         InvalidCredentialsException exception = new InvalidCredentialsException("Invalid username or password");
@@ -60,6 +80,10 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "Invalid username or password");
     }
 
+    /**
+     * Vérifie que l'exception DuplicateUserStoryTitleException renvoie une réponse 400 Bad Request
+     * avec le message d'erreur correct.
+     */
     @Test
     void handleDuplicateUserStoryTitle_shouldReturnBadRequestWithMessage() {
         DuplicateUserStoryTitleException exception = new DuplicateUserStoryTitleException("User story title 'Implement login' already exists");
@@ -74,6 +98,10 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "User story title 'Implement login' already exists");
     }
 
+    /**
+     * Vérifie que l'exception DuplicateProjectNameException renvoie une réponse 400 Bad Request
+     * avec le message d'erreur correct.
+     */
     @Test
     void handleDuplicateProjectName_shouldReturnBadRequestWithMessage() {
         DuplicateProjectNameException exception = new DuplicateProjectNameException("Project name 'TaskForge' already exists");
@@ -88,6 +116,10 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "Project name 'TaskForge' already exists");
     }
 
+    /**
+     * Vérifie que l'exception ProjectSuppressionException renvoie une réponse 403 Forbidden
+     * avec le message d'erreur correct.
+     */
     @Test
     void handleProjectSuppression_shouldReturnForbiddenWithMessage() {
         ProjectSuppressionException exception = new ProjectSuppressionException("Cannot delete project: you are not the owner");
@@ -102,6 +134,10 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "Cannot delete project: you are not the owner");
     }
 
+    /**
+     * Vérifie que l'exception UpdateProjectException renvoie une réponse 400 Bad Request
+     * avec le message d'erreur correct.
+     */
     @Test
     void handleUpdateProject_shouldReturnBadRequestWithMessage() {
         UpdateProjectException exception = new UpdateProjectException("Cannot update project: invalid data");
@@ -116,6 +152,9 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "Cannot update project: invalid data");
     }
 
+    /**
+     * Vérifie que le gestionnaire traite correctement une exception avec un message vide.
+     */
     @Test
     void handleUsernameExists_shouldWorkWithEmptyMessage() {
         UsernameAlreadyExists exception = new UsernameAlreadyExists("");
@@ -129,6 +168,9 @@ class GlobalExceptionHandlerTest {
         assertThat(body).containsEntry("message", "");
     }
 
+    /**
+     * Vérifie que le gestionnaire traite correctement une exception avec un message très long.
+     */
     @Test
     void handleInvalidCredentials_shouldHandleLongMessage() {
         String longMessage = "Invalid credentials: " + "a".repeat(500);
@@ -143,6 +185,10 @@ class GlobalExceptionHandlerTest {
         assertThat(body.get("message")).hasSize(longMessage.length());
     }
 
+    /**
+     * Vérifie que tous les gestionnaires d'exceptions retournent un corps de réponse
+     * structuré sous forme de Map (JSON).
+     */
     @Test
     void allHandlers_shouldReturnMapWithMessageKey() {
         ResponseEntity<?> response1 = exceptionHandler.handleUsernameExists(new UsernameAlreadyExists("test"));
@@ -162,6 +208,10 @@ class GlobalExceptionHandlerTest {
         assertThat(response7.getBody()).isInstanceOf(Map.class);
     }
 
+    /**
+     * Vérifie que différentes exceptions retournent bien des codes de statut HTTP distincts
+     * (400, 401, 403) conformément à la logique métier définie.
+     */
     @Test
     void differentExceptions_shouldReturnDifferentStatusCodes() {
         ResponseEntity<?> badRequest = exceptionHandler.handleUsernameExists(new UsernameAlreadyExists("test"));

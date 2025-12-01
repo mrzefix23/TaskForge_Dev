@@ -20,6 +20,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 
 
+/**
+ * Service responsable de la gestion de l'authentification et de l'inscription des utilisateurs.
+ * Il gère la création de nouveaux comptes, la validation des identifiants et la génération de jetons JWT.
+ */
 @Service
 public class AuthService {
 
@@ -35,6 +39,17 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    /**
+     * Enregistre un nouvel utilisateur dans le système.
+     * Vérifie l'unicité du nom d'utilisateur et de l'email, valide le mot de passe,
+     * hache le mot de passe et sauvegarde l'utilisateur avant de générer un token JWT.
+     *
+     * @param request Les informations d'inscription fournies par l'utilisateur.
+     * @return Une réponse contenant les détails de l'utilisateur et le token JWT.
+     * @throws UsernameAlreadyExists Si le nom d'utilisateur est déjà pris.
+     * @throws EmailAlreadyExists Si l'email est déjà utilisé.
+     * @throws ResponseStatusException Si le mot de passe ne respecte pas les critères de sécurité.
+     */
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UsernameAlreadyExists("Ce nom d'utilisateur existe déjà");
@@ -63,6 +78,15 @@ public class AuthService {
             .build();
     }   
 
+    /**
+     * Authentifie un utilisateur avec ses identifiants.
+     * Utilise l'AuthenticationManager pour valider les crédentials.
+     * Si l'authentification réussit, un token JWT est généré.
+     *
+     * @param request Les informations de connexion (username et mot de passe).
+     * @return Une réponse contenant les détails de l'utilisateur et le token JWT.
+     * @throws InvalidCredentialsException Si l'authentification échoue (mauvais username ou mot de passe).
+     */
     public AuthResponse login(LoginRequest request) {
         try {
             authenticationManager.authenticate(
@@ -81,5 +105,5 @@ public class AuthService {
             .email(user.getEmail())
             .token(token)
             .build();
-    }
+    }   
 }

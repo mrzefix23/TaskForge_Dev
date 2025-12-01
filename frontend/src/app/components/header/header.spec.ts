@@ -3,6 +3,9 @@ import { provideRouter, Router, RouterLinkWithHref } from '@angular/router';
 import { HeaderComponent } from './header';
 import { By } from '@angular/platform-browser';
 
+/**
+ * Tests unitaires pour le composant HeaderComponent.
+ */
 describe('HeaderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({

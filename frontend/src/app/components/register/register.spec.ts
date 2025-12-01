@@ -4,6 +4,11 @@ import { Router } from '@angular/router';
 import { RegisterComponent } from './register';
 import { provideRouter } from '@angular/router';
 
+/**
+ * Tests unitaires pour le composant RegisterComponent.
+ * Vérifie la création du composant.
+ */
+describe('Register', () => {
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;

@@ -21,6 +21,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 
 import jakarta.validation.Valid;
 
+/**
+ * Contrôleur REST gérant l'authentification des utilisateurs.
+ * Fournit des points de terminaison pour l'inscription et la connexion.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -28,6 +32,12 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    /**
+     * Enregistre un nouvel utilisateur dans le système.
+     *
+     * @param request Les informations d'inscription (nom d'utilisateur, email, mot de passe).
+     * @return Une réponse contenant le token d'authentification généré.
+     */
     @Operation(summary = "Enregistrer un nouvel utilisateur", description="Permet à un nouvel utilisateur de s'enregistrer.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Utilisateur enregistré avec succès"),
@@ -39,6 +49,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.register(request));
     }
 
+    /**
+     * Authentifie un utilisateur existant.
+     *
+     * @param request Les identifiants de connexion (email/username et mot de passe).
+     * @return Une réponse contenant le token d'authentification si les identifiants sont valides.
+     */
     @Operation(summary = "Authentifier un utilisateur", description="Permet à un utilisateur existant de se connecter.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Utilisateur authentifié avec succès"),

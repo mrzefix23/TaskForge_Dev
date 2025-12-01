@@ -18,6 +18,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entité représentant une tâche technique.
+ * Une tâche est une sous-unité de travail liée à une User Story spécifique.
+ * Elle possède un statut, une priorité et peut être assignée à un utilisateur.
+ */
 @Entity
 @Table(name = "tasks")
 @Data

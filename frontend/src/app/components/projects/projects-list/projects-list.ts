@@ -12,6 +12,10 @@ interface Project {
   members: { username: string }[];
 }
 
+/**
+ * Composant affichant la liste des projets de l'utilisateur.
+ * Permet la navigation vers les détails, l'édition ou la suppression.
+ */
 @Component({
   selector: 'app-projects-list',
   standalone: true,
@@ -31,6 +35,9 @@ export class ProjectsListComponent implements OnInit {
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  /**
+   * Charge la liste des projets associés à l'utilisateur courant au chargement.
+   */
   ngOnInit(): void {
     const token = localStorage.getItem('token');
     
@@ -49,19 +56,38 @@ export class ProjectsListComponent implements OnInit {
     });
   }
 
+  /**
+   * Redirige vers la page de création.
+   */
   createProject(): void {
     this.router.navigate(['/projects/create']);
   }
 
+  /**
+   * Ouvre la vue détaillée d'un projet (Kanban/Board).
+   * @param projectId ID du projet.
+   */
   openProject(projectId: number): void {
     this.router.navigate(['/projects', projectId]);
   }
 
+  /**
+   * Ouvre le formulaire d'édition.
+   * Utilise stopPropagation() pour éviter d'ouvrir le projet en cliquant sur le bouton éditer.
+   * @param projectId ID du projet.
+   * @param event Événement du clic.
+   */
   editProject(projectId: number, event: MouseEvent): void {
     event.stopPropagation(); // Empêche le déclenchement de openProject
     this.router.navigate(['/projects/edit', projectId]);
   }
 
+  /**
+   * Supprime un projet après confirmation.
+   * Met à jour la liste locale en cas de succès pour éviter un rechargement.
+   * @param projectId ID du projet.
+   * @param event Événement du clic.
+   */
   deleteProject(projectId: number, event: MouseEvent): void {
     event.stopPropagation();
     const project = this.projects.find(p => p.id === projectId);
@@ -81,6 +107,8 @@ export class ProjectsListComponent implements OnInit {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: () => {
+        // Mise à jour optimiste de l'UI
+        this.projects = this.projects.filter(p => p.id !== projectId);
         this.projects = this.projects.filter(p => p.id !== this.projectToDelete!.id);
         this.closeDeleteModal();
       },
@@ -94,6 +122,7 @@ export class ProjectsListComponent implements OnInit {
       }
     });
   }
+}
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;

@@ -1,3 +1,8 @@
+/* ==========================================================================
+   LAYOUT & CONTENEUR PRINCIPAL
+   ========================================================================== */
+
+/* Carte centrale contenant le formulaire */
 .create-project-container {
   max-width: 480px;
   margin: 2rem auto;
@@ -7,10 +12,22 @@
   padding: 2.5rem 2rem;
 }
 
+.create-project-container h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   NAVIGATION
+   ========================================================================== */
+
 .form-navigation {
   margin-bottom: 1.5rem;
 }
 
+/* Bouton de retour vers la liste des projets */
 .back-btn {
   background: #fafafa;
   color: #1a1a1a;
@@ -29,15 +46,12 @@
 .back-btn:hover {
   background: #f0f0f0;
   border-color: rgba(0, 0, 0, 0.15);
-  transform: translateX(-3px);
+  transform: translateX(-3px); /* Petit mouvement vers la gauche */
 }
 
-.create-project-container h2 {
-  text-align: center;
-  margin-bottom: 2rem;
-  font-size: 2rem;
-  font-weight: 700;
-}
+/* ==========================================================================
+   FORMULAIRE & CHAMPS
+   ========================================================================== */
 
 .create-project-form {
   display: flex;
@@ -51,6 +65,7 @@
   display: block;
 }
 
+/* Styles communs pour Inputs et Textareas */
 .form-group input,
 .form-group textarea {
   width: 90%;
@@ -63,6 +78,7 @@
   transition: border 0.2s;
 }
 
+/* État d'erreur visuel sur les champs */
 .form-group input.error {
   border-color: #ff3b30;
   background: #fff5f5;
@@ -72,6 +88,10 @@
   min-height: 70px;
   resize: vertical;
 }
+
+/* ==========================================================================
+   GESTION DES MEMBRES
+   ========================================================================== */
 
 .member-select {
   width: 98%;
@@ -105,6 +125,7 @@
   background: #d1d1d1;
 }
 
+/* Bouton rouge rond pour supprimer un membre */
 .remove-btn {
   background: #ff3b30;
   color: #fff;
@@ -120,6 +141,10 @@
 .remove-btn:hover {
   background: #d32f2f;
 }
+
+/* ==========================================================================
+   ACTIONS & FEEDBACK
+   ========================================================================== */
 
 .submit-btn {
   background: #232323;

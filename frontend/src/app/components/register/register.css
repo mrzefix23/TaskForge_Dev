@@ -1,203 +1,32 @@
+/* ==========================================================================
+   STRUCTURE GLOBALE & HERO SECTION
+   ========================================================================== */
+
+/* Conteneur principal avec fond dégradé couvrant l'écran */
+.register-hero,
 .register-container {
   min-height: 100vh;
   display: flex;
+  flex-direction: column; /* ou align-items: center pour le container simple */
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  font-family: 'Segoe UI', Arial, sans-serif;
   padding: 20px;
 }
 
-.register-card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
-  padding: 3rem 2.5rem;
-  max-width: 460px;
-  width: 100%;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-}
-
-.register-card:hover {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-.form-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.form-header h1 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.02em;
-}
-
-.form-header p {
-  font-size: 1rem;
-  color: #6a6a6a;
-  margin: 0;
-}
-
-.register-form {
+.register-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  position: relative;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.95rem 1.2rem;
-  border: 2px solid #e8e8e8;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-family: inherit;
-  background: #fafafa;
-  color: #1a1a1a;
-  transition: all 0.2s ease;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.form-input::placeholder {
-  color: #999;
-}
-
-.form-input:hover {
-  border-color: #d0d0d0;
-  background: #ffffff;
-}
-
-.form-input:focus {
-  border-color: #1a1a1a;
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.05);
-}
-
-.form-input.error {
-  border-color: #e74c3c;
-  background: #fff5f5;
-}
-
-.submit-btn {
-  background: #007aff;
-  color: #ffffff;
-  border: none;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  letter-spacing: -0.01em;
-  margin-top: 10px;
-}
-
-.submit-btn:hover:not(:disabled) {
-  background: #0051d0;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-}
-
-.submit-btn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-}
-
-.submit-btn:disabled {
-  background: #c7c7cc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.form-footer {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.link-text {
-  color: #007aff;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.link-text:hover {
-  color: #0051d0;
-  text-decoration: underline;
-}
-
-.success-msg, .error-msg {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  margin-top: 20px;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.success-msg {
-  background: rgba(52, 199, 89, 0.1);
-  color: #30d158;
-  border: 1px solid rgba(52, 199, 89, 0.2);
-}
-
-.error-msg {
-  background: rgba(255, 59, 48, 0.1);
-  color: #ff3b30;
-  border: 1px solid rgba(255, 59, 48, 0.2);
-}
-
-.message-icon {
-  display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 0.9rem;
+  padding: 3rem 1rem 2rem 1rem;
 }
 
-.success-msg .message-icon {
-  background: #30d158;
-  color: white;
-}
-
-.error-msg .message-icon {
-  background: #ff3b30;
-  color: white;
-}
-
-@media (max-width: 480px) {
-  .register-card {
-    padding: 40px 30px;
-    margin: 20px;
-    border-radius: 16px;
-  }
-  
-  .form-header h1 {
-    font-size: 1.75rem;
-  }
-}
-
-.register-hero {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  display: flex;
-  flex-direction: column;
-  font-family: 'Segoe UI', Arial, sans-serif;
-}
+/* ==========================================================================
+   EN-TÊTE & NAVIGATION
+   ========================================================================== */
 
 .register-header {
   display: flex;
@@ -207,6 +36,8 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .register-logo {
@@ -255,71 +86,95 @@
   color: #fff;
 }
 
-.register-main {
-  flex: 1;
+/* ==========================================================================
+   CARTE D'INSCRIPTION (CARD)
+   ========================================================================== */
+
+.register-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 3rem 2.5rem;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.register-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.form-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.form-header p {
+  font-size: 1rem;
+  color: #6a6a6a;
+  margin: 0;
+}
+
+/* ==========================================================================
+   FORMULAIRE & INPUTS
+   ========================================================================== */
+
+.register-form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem 2rem 1rem;
+  gap: 20px;
 }
 
-.register-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #232323;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.02em;
-  text-align: center;
+.form-group {
+  position: relative;
 }
 
-.register-accent {
-  color: #6c7a89;
-  font-weight: 600;
-}
-
-.register-subtitle {
-  color: #6c7a89;
-  font-size: 1.08rem;
-  font-weight: 400;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.register-cta-btn {
-  display: inline-block;
-  background: #1a1a1a;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  letter-spacing: 0.02em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-top: 1rem;
-  border: none;
+.form-input {
   width: 100%;
-  cursor: pointer;
+  padding: 0.95rem 1.2rem;
+  border: 2px solid #e8e8e8;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fafafa;
+  color: #1a1a1a;
   transition: all 0.2s ease;
-  text-transform: uppercase;
+  outline: none;
+  box-sizing: border-box;
 }
 
-.register-cta-btn:hover:not(:disabled) {
-  background: #2a2a2a;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+.form-input::placeholder {
+  color: #999;
 }
 
-.register-cta-btn:active:not(:disabled) {
-  transform: translateY(0);
+.form-input:hover {
+  border-color: #d0d0d0;
+  background: #ffffff;
 }
 
-.register-cta-btn:disabled {
-  background: #d0d0d0;
-  cursor: not-allowed;
-  box-shadow: none;
+/* État Focus : Bordure sombre et ombre légère */
+.form-input:focus {
+  border-color: #1a1a1a;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.05);
 }
 
+/* État Erreur : Bordure rouge */
+.form-input.error {
+  border-color: #e74c3c;
+  background: #fff5f5;
+}
+
+/* Checkbox "Afficher mot de passe" */
 .show-password-wrapper {
   display: flex;
   align-items: center;
@@ -334,4 +189,146 @@
   height: 16px;
   cursor: pointer;
   accent-color: #1a1a1a;
+}
+
+/* ==========================================================================
+   BOUTONS & PIED DE PAGE
+   ========================================================================== */
+
+/* Boutons principaux (Submit et CTA) */
+.submit-btn,
+.register-cta-btn {
+  background: #007aff; /* ou #1a1a1a selon la variante */
+  color: #ffffff;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  margin-top: 10px;
+  width: 100%;
+  display: inline-block;
+  text-transform: uppercase; /* Spécifique CTA */
+}
+
+/* Styles spécifiques CTA noir */
+.register-cta-btn {
+  background: #1a1a1a;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #0051d0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.register-cta-btn:hover:not(:disabled) {
+  background: #2a2a2a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.submit-btn:active:not(:disabled),
+.register-cta-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.submit-btn:disabled,
+.register-cta-btn:disabled {
+  background: #c7c7cc; /* ou #d0d0d0 */
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.form-footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.link-text {
+  color: #007aff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.link-text:hover {
+  color: #0051d0;
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   FEEDBACK UTILISATEUR
+   ========================================================================== */
+
+.success-msg, .error-msg {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.success-msg {
+  background: rgba(52, 199, 89, 0.1);
+  color: #30d158;
+  border: 1px solid rgba(52, 199, 89, 0.2);
+}
+
+.error-msg {
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+  border: 1px solid rgba(255, 59, 48, 0.2);
+}
+
+.message-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.success-msg .message-icon {
+  background: #30d158;
+  color: white;
+}
+
+.error-msg .message-icon {
+  background: #ff3b30;
+  color: white;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 40px 30px;
+    margin: 20px;
+    border-radius: 16px;
+  }
+  
+  .form-header h1 {
+    font-size: 1.75rem;
+  }
 }

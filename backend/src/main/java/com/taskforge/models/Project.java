@@ -6,6 +6,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.Set;
 
+/**
+ * Entité représentant un projet.
+ * Un projet est créé par un propriétaire et peut avoir plusieurs membres.
+ * Il sert de conteneur pour les User Stories et les tâches.
+ */
 @Entity
 @Table(name = "projects")
 @Data

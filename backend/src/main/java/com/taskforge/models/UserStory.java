@@ -24,6 +24,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+/**
+ * Entité représentant une User Story.
+ * Une User Story décrit une fonctionnalité ou un besoin du point de vue de l'utilisateur final.
+ * Elle est liée à un projet et peut être décomposée en plusieurs tâches techniques.
+ */
 @Entity
 @Table(name = "user_stories")
 @Data

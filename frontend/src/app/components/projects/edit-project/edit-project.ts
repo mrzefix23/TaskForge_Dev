@@ -17,12 +17,16 @@ interface User {
   username: string;
 }
 
+/**
+ * Composant permettant de modifier un projet existant.
+ * Réutilise les styles du formulaire de création pour la cohérence visuelle.
+ */
 @Component({
   selector: 'app-edit-project',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, HttpClientModule, RouterModule, HeaderComponent],
   templateUrl: './edit-project.html',
-  styleUrls: ['../create-project/create-project.css']
+  styleUrls: ['../create-project/create-project.css'] // Réutilisation du CSS de création
 })
 export class EditProjectComponent implements OnInit {
   projectForm: FormGroup;
@@ -31,7 +35,10 @@ export class EditProjectComponent implements OnInit {
   loading = false;
   initialLoading = true;
   projectId: number = 0;
+  
+  /** Liste complète des utilisateurs (sauf le propriétaire actuel). */
   allUsers: User[] = [];
+  
   currentUsername: string | null = null;
   ownerUsername: string | null = null;
 
@@ -41,6 +48,7 @@ export class EditProjectComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {
+    // Initialisation du formulaire
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
@@ -48,6 +56,10 @@ export class EditProjectComponent implements OnInit {
     });
   }
 
+  /**
+   * Initialisation : Récupère l'ID du projet depuis l'URL
+   * et lance la chaîne de chargement des données.
+   */
   ngOnInit(): void {
     this.currentUsername = localStorage.getItem('username');
     const id = this.route.snapshot.paramMap.get('id');
@@ -59,6 +71,9 @@ export class EditProjectComponent implements OnInit {
     }
   }
 
+  /**
+   * Retourne à la vue précédente (Détail du projet si ID connu, sinon Liste).
+   */
   goBack(): void {
     if (this.projectId) {
       this.router.navigate(['/projects']);
@@ -67,6 +82,11 @@ export class EditProjectComponent implements OnInit {
     }
   }
 
+  /**
+   * Orchestre le chargement des données.
+   * Charge D'ABORD les utilisateurs, PUIS le projet pour s'assurer
+   * que la liste des membres est disponible lors du remplissage du formulaire (patchValue).
+   */
   loadAllUsersAndProject(): void {
     const token = localStorage.getItem('token');
     this.http.get<User[]>('/api/users', {
@@ -74,7 +94,7 @@ export class EditProjectComponent implements OnInit {
     }).subscribe({
       next: (users) => {
         this.allUsers = users;
-        this.loadProject(this.projectId); // Load project after users are loaded
+        this.loadProject(this.projectId); // Chaînage séquentiel
       },
       error: (err) => {
         console.error('Erreur lors du chargement des utilisateurs', err);
@@ -84,6 +104,11 @@ export class EditProjectComponent implements OnInit {
     });
   }
 
+  /**
+   * Charge les détails du projet et pré-remplit le formulaire.
+   * Filtre le propriétaire hors de la liste des membres sélectionnables.
+   * @param projectId L'identifiant du projet à charger.
+   */
   loadProject(projectId: number): void {
     const token = localStorage.getItem('token');
     this.http.get<Project>(`/api/projects/${projectId}`, {
@@ -91,8 +116,11 @@ export class EditProjectComponent implements OnInit {
     }).subscribe({
       next: (data) => {
         this.ownerUsername = data.owner.username;
+        
+        // Retire le propriétaire de la liste des membres potentiels
         this.allUsers = this.allUsers.filter(u => u.username !== this.ownerUsername);
 
+        // Mise à jour du formulaire avec les données actuelles
         this.projectForm.patchValue({
           name: data.name,
           description: data.description,
@@ -111,6 +139,10 @@ export class EditProjectComponent implements OnInit {
     });
   }
 
+  /**
+   * Soumet les modifications du projet au serveur.
+   * Redirige vers la liste des projets en cas de succès.
+   */
   onSubmit() {
     if (this.projectForm.invalid) return;
     this.loading = true;
@@ -119,9 +151,11 @@ export class EditProjectComponent implements OnInit {
 
     const token = localStorage.getItem('token');
 
+    // Construction du payload (objet de mise à jour)
     const payload = {
       name: this.projectForm.value.name,
       description: this.projectForm.value.description,
+      // Transformation de la liste de strings en objets utilisateurs
       members: this.projectForm.value.members.map((username: string) => ({ username }))
     };
 

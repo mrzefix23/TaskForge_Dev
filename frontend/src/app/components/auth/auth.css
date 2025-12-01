@@ -1,32 +1,47 @@
+/* ==========================================================================
+   LAYOUT & CONTENEUR PRINCIPAL
+   ========================================================================== */
+
 .auth-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  /* Le background est souvent géré par le parent ou globalement */
 }
+
+/* ==========================================================================
+   CARTE D'AUTHENTIFICATION (GLASSMORPHISM)
+   ========================================================================== */
 
 .auth-card {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px); /* Effet de flou d'arrière-plan */
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 20px;
   padding: 60px 50px;
   max-width: 400px;
   width: 100%;
   text-align: center;
+  /* Ombres douces pour la profondeur */
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
 }
 
+/* Animation au survol de la carte */
 .auth-card:hover {
   transform: translateY(-2px);
   box-shadow: 
     0 12px 40px rgba(0, 0, 0, 0.12),
     0 4px 12px rgba(0, 0, 0, 0.06);
 }
+
+/* ==========================================================================
+   TYPOGRAPHIE & EN-TÊTE
+   ========================================================================== */
 
 .auth-header {
   margin-bottom: 40px;
@@ -49,6 +64,10 @@
   line-height: 1.4;
 }
 
+/* ==========================================================================
+   BOUTONS & ACTIONS
+   ========================================================================== */
+
 .auth-actions {
   display: flex;
   flex-direction: column;
@@ -60,6 +79,7 @@
   width: 100%;
 }
 
+/* Bouton Principal (Style iOS/Apple Blue) */
 .primary-btn {
   background: #007aff;
   color: #ffffff;
@@ -86,6 +106,7 @@
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
 }
 
+/* Bouton Secondaire (Outline style) */
 .secondary-btn {
   background: transparent;
   color: #007aff;
@@ -113,6 +134,10 @@
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
 }
 
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
 @media (max-width: 480px) {
   .auth-card {
     padding: 40px 30px;
@@ -129,6 +154,10 @@
   }
 }
 
+/* ==========================================================================
+   HERO SECTION & STRUCTURE
+   ========================================================================== */
+
 .landing-hero {
   min-height: 100vh;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -138,15 +167,19 @@
   font-family: 'Segoe UI', Arial, sans-serif;
 }
 
+/* ==========================================================================
+   NAVIGATION / EN-TÊTE
+   ========================================================================== */
+
 .landing-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.8rem 3.5rem;
   background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px); /* Effet de verre sur le menu */
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  position: sticky;
+  position: sticky; /* Le menu reste en haut au scroll */
   top: 0;
   z-index: 100;
 }
@@ -185,6 +218,7 @@
   transform: translateY(-1px);
 }
 
+/* Bouton spécifique dans la navigation (ex: "Connexion") */
 .landing-nav-btn {
   background: #1a1a1a;
   color: #fff;
@@ -197,6 +231,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
+
+/* ==========================================================================
+   CONTENU PRINCIPAL
+   ========================================================================== */
 
 .landing-main {
   flex: 1;
@@ -217,6 +255,7 @@
   line-height: 1.1;
 }
 
+/* Effet de texte dégradé (Gradient Text) */
 .landing-accent {
   background: linear-gradient(135deg, #4a4a4a 0%, #6a6a6a 100%);
   -webkit-background-clip: text;
@@ -233,6 +272,7 @@
   line-height: 1.7;
 }
 
+/* Bouton d'appel à l'action (CTA) principal */
 .landing-cta-btn {
   display: inline-block;
   background: #1a1a1a;
@@ -261,6 +301,10 @@
   padding: 2rem 0;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (LANDING)
+   ========================================================================== */
 
 @media (max-width: 768px) {
   .landing-header {

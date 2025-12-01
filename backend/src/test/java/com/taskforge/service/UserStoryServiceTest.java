@@ -31,6 +31,11 @@ import com.taskforge.repositories.TaskRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
 
+/**
+ * Tests unitaires pour le service de gestion des User Stories (UserStoryService).
+ * Vérifie la logique métier de création, récupération, mise à jour et suppression des User Stories,
+ * en isolant les dépendances (Repositories, ProjectService) via Mockito.
+ */
 @ExtendWith(MockitoExtension.class)
 class UserStoryServiceTest {
 
@@ -54,6 +59,10 @@ class UserStoryServiceTest {
     private Project project;
     private UserStory userStory;
 
+    /**
+     * Initialise les données de test avant chaque exécution.
+     * Crée un projet, un propriétaire, un membre et une User Story par défaut.
+     */
     @BeforeEach
     void setUp() {
         projectOwner = User.builder().id(1L).username("owner").build();
@@ -78,6 +87,10 @@ class UserStoryServiceTest {
                 .build();
     }
 
+    /**
+     * Vérifie que la création d'une User Story réussit avec des données valides.
+     * Le service doit vérifier l'accès au projet, l'unicité du titre et sauvegarder l'entité.
+     */
     @Test
     void createUserStory_shouldSucceed() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -99,6 +112,10 @@ class UserStoryServiceTest {
         verify(userStoryRepository, times(1)).save(any(UserStory.class));
     }
 
+    /**
+     * Vérifie que la création échoue si une User Story avec le même titre existe déjà dans le projet.
+     * Doit lever une DuplicateUserStoryTitleException.
+     */
     @Test
     void createUserStory_shouldThrowException_whenTitleExists() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -115,6 +132,9 @@ class UserStoryServiceTest {
         verify(userStoryRepository, never()).save(any());
     }
 
+    /**
+     * Vérifie que la création réussit avec des utilisateurs assignés valides (membres du projet).
+     */
     @Test
     void createUserStory_shouldSucceed_withAssignees() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -133,6 +153,10 @@ class UserStoryServiceTest {
         userStoryService.createUserStory(request, projectOwner.getUsername());
     }
 
+    /**
+     * Vérifie que la création échoue si l'un des utilisateurs assignés n'est pas membre du projet.
+     * Doit lever une RuntimeException.
+     */
     @Test
     void createUserStory_shouldThrow_whenAssigneeNotMember() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -150,6 +174,9 @@ class UserStoryServiceTest {
                 .hasMessageContaining("is not a member of this project");
     }
 
+    /**
+     * Vérifie que la récupération des User Stories d'un projet retourne la liste attendue.
+     */
     @Test
     void getUserStoriesByProject_shouldReturnList() {
         when(userStoryRepository.findByProjectId(project.getId())).thenReturn(Collections.singletonList(userStory));
@@ -161,6 +188,9 @@ class UserStoryServiceTest {
         verify(projectService).getProjectById(project.getId(), projectOwner.getUsername());
     }
 
+    /**
+     * Vérifie qu'une User Story spécifique peut être récupérée par son ID.
+     */
     @Test
     void getUserStoryById_shouldSucceed() {
         when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
@@ -171,6 +201,10 @@ class UserStoryServiceTest {
         verify(projectService).getProjectById(project.getId(), projectOwner.getUsername());
     }
 
+    /**
+     * Vérifie que la récupération échoue si la User Story n'existe pas.
+     * Doit lever une RuntimeException.
+     */
     @Test
     void getUserStoryById_shouldThrowException_whenUserStoryNotFound() {
         when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());
@@ -180,6 +214,9 @@ class UserStoryServiceTest {
                 .hasMessageContaining("User story not found");
     }
 
+    /**
+     * Vérifie que la mise à jour d'une User Story réussit avec des données valides.
+     */
     @Test
     void updateUserStory_shouldSucceed() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -197,6 +234,9 @@ class UserStoryServiceTest {
         assertThat(updated.getAssignedTo()).contains(memberUser);
     }
 
+    /**
+     * Vérifie que la mise à jour échoue si la User Story n'existe pas.
+     */
     @Test
     void updateUserStory_shouldThrowException_whenUserStoryNotFound() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -206,6 +246,9 @@ class UserStoryServiceTest {
                 .hasMessageContaining("User story not found");
     }
 
+    /**
+     * Vérifie que la mise à jour échoue si le nouveau titre est déjà utilisé par une autre User Story du même projet.
+     */
     @Test
     void updateUserStory_shouldThrow_whenTitleDuplicateOnOtherStory() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -221,6 +264,9 @@ class UserStoryServiceTest {
                 .isInstanceOf(DuplicateUserStoryTitleException.class);
     }
     
+    /**
+     * Vérifie que la mise à jour réussit si le titre reste inchangé (pas de conflit avec soi-même).
+     */
     @Test
     void updateUserStory_shouldSucceed_whenTitleSameAsCurrent() {
         CreateUserStoryRequest request = new CreateUserStoryRequest();
@@ -237,6 +283,10 @@ class UserStoryServiceTest {
         assertThat(updated.getDescription()).isEqualTo("New Desc");
     }
 
+    /**
+     * Vérifie que le propriétaire du projet peut supprimer une User Story.
+     * Le service doit également supprimer les tâches associées.
+     */
     @Test
     void deleteUserStory_shouldSucceed_whenUserIsOwner() {
         when(userStoryRepository.findById(userStory.getId())).thenReturn(Optional.of(userStory));
@@ -246,6 +296,9 @@ class UserStoryServiceTest {
         verify(userStoryRepository, times(1)).deleteById(userStory.getId());
     }
 
+    /**
+     * Vérifie que la suppression échoue si l'utilisateur n'est pas le propriétaire du projet.
+     */
     @Test
     void deleteUserStory_shouldThrowException_whenUserIsNotOwner() {
         String notOwnerUsername = "notOwner";
@@ -260,6 +313,9 @@ class UserStoryServiceTest {
         verify(userStoryRepository, never()).deleteById(anyLong());
     }
 
+    /**
+     * Vérifie que la suppression échoue si la User Story n'existe pas.
+     */
     @Test
     void deleteUserStory_shouldThrowException_whenUserStoryNotFound() {
         when(userStoryRepository.findById(999L)).thenReturn(Optional.empty());

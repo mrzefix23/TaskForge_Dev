@@ -20,6 +20,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.taskforge.dto.LoginRequest;
 
+/**
+ * Tests d'intégration pour le contrôleur d'authentification (AuthController).
+ * Ces tests vérifient le bon fonctionnement des endpoints d'inscription et de connexion
+ * en simulant des requêtes HTTP via MockMvc.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -34,6 +39,11 @@ public class AuthControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Teste le scénario d'inscription réussie.
+     * Vérifie que l'appel à /api/auth/register avec des données valides retourne un statut 200 OK
+     * et une réponse contenant le nom d'utilisateur, l'email et un token JWT.
+     */
     @Test
     public void testRegisterShouldReturnAuthResponse() throws Exception {
         RegisterRequest request = new RegisterRequest("damien", "damien@example.com", "damien_password");
@@ -47,6 +57,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.token").isNotEmpty());
     }
 
+    /**
+     * Teste le scénario de connexion réussie.
+     * Inscrit d'abord un utilisateur, puis tente de se connecter avec les mêmes identifiants.
+     * Vérifie que la réponse contient les informations de l'utilisateur et un token JWT.
+     */
     @Test
     public void testLoginShouldReturnAuthResponse() throws Exception {
         // First, register a user to ensure they exist
@@ -67,6 +82,11 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.token").isNotEmpty());
     }
 
+    /**
+     * Teste le scénario d'échec de connexion avec un mauvais mot de passe.
+     * Inscrit un utilisateur, puis tente de se connecter avec un mot de passe erroné.
+     * Vérifie que l'API retourne un statut 401 Unauthorized.
+     */
     @Test
     public void testLoginShouldFailWithWrongPassword() throws Exception {
         // Register a user

@@ -22,6 +22,11 @@ import com.taskforge.repositories.UserStoryRepository;
 
 import jakarta.transaction.Transactional;
 
+/**
+ * Service gérant la logique métier liée aux projets.
+ * Permet de créer, récupérer, mettre à jour et supprimer des projets,
+ * ainsi que de gérer les membres associés.
+ */
 @Service
 public class ProjectService {
     
@@ -39,7 +44,15 @@ public class ProjectService {
 
     @Autowired
     private SprintRepository sprintRepository;
-
+  
+    /**
+     * Crée un nouveau projet.
+     * Associe le créateur en tant que propriétaire et membre, et ajoute les autres membres spécifiés.
+     *
+     * @param createProjectRequest Les informations du projet à créer.
+     * @return Le projet créé et sauvegardé.
+     * @throws RuntimeException Si l'utilisateur propriétaire ou un membre n'est pas trouvé.
+     */
     public Project createProject(CreateProjectRequest createProjectRequest) {
         User owner = userRepository.findByUsername(createProjectRequest.getUser().getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -69,6 +82,14 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    /**
+     * Récupère un projet par son identifiant, en vérifiant que l'utilisateur demandeur est membre.
+     *
+     * @param projectId L'identifiant du projet.
+     * @param username  Le nom d'utilisateur de la personne effectuant la requête.
+     * @return Le projet trouvé.
+     * @throws RuntimeException Si le projet n'existe pas ou si l'utilisateur n'est pas membre.
+     */
     public Project getProjectById(Long projectId, String username) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -83,6 +104,18 @@ public class ProjectService {
         return project;
     }
 
+    /**
+     * Met à jour les informations d'un projet existant.
+     * Seul le propriétaire du projet est autorisé à effectuer cette action.
+     *
+     * @param projectId     L'identifiant du projet à mettre à jour.
+     * @param username      Le nom d'utilisateur effectuant la mise à jour.
+     * @param updateRequest Les nouvelles données du projet.
+     * @return Le projet mis à jour.
+     * @throws DuplicateProjectNameException Si le nouveau nom est déjà pris par un autre projet.
+     * @throws UpdateProjectException        Si l'utilisateur n'est pas le propriétaire.
+     * @throws RuntimeException              Si un membre spécifié n'existe pas.
+     */
     public Project updateProject(Long projectId, String username, CreateProjectRequest updateRequest) {
         Project project = getProjectById(projectId, username);
 
@@ -116,6 +149,14 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    /**
+     * Supprime un projet et toutes ses dépendances (User Stories, Tâches).
+     * Seul le propriétaire du projet peut effectuer cette suppression.
+     *
+     * @param projectId L'identifiant du projet à supprimer.
+     * @param username  Le nom d'utilisateur effectuant la suppression.
+     * @throws ProjectSuppressionException Si l'utilisateur n'est pas le propriétaire.
+     */
     @Transactional
     public void deleteProject(Long projectId, String username) {
         Project project = getProjectById(projectId, username);
@@ -139,6 +180,12 @@ public class ProjectService {
         projectRepository.deleteById(projectId);
     }   
 
+    /**
+     * Récupère la liste de tous les projets dont l'utilisateur est propriétaire ou membre.
+     *
+     * @param username Le nom d'utilisateur.
+     * @return Une liste de projets associés à cet utilisateur.
+     */
     public List<Project> getProjectsByUsername(String username) {
         return projectRepository.findAllByOwnerOrMember(username);
     }

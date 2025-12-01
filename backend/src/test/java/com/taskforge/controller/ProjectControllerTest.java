@@ -21,6 +21,10 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Tests d'intégration pour le contrôleur de projets (ProjectController).
+ * Vérifie les opérations CRUD sur les projets ainsi que les règles de sécurité associées.
+ */
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,6 +39,10 @@ public class ProjectControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * Prépare l'environnement de test avant chaque exécution.
+     * Nettoie la base de données et crée un utilisateur de test par défaut.
+     */
     @BeforeEach
     void setup() throws Exception {
         jdbcTemplate.execute("DELETE FROM user_story_assignees");
@@ -54,6 +62,9 @@ public class ProjectControllerTest {
                 .andExpect(status().isOk());
     }
 
+    /**
+     * Vérifie qu'un utilisateur authentifié peut créer un projet avec succès.
+     */
     @Test
     void createProject_shouldReturnCreatedProject() throws Exception {
         CreateProjectRequest request = new CreateProjectRequest();
@@ -71,6 +82,9 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.description").value("Project Description"));
     }
 
+    /**
+     * Vérifie qu'il est interdit de créer un projet au nom d'un autre utilisateur.
+     */
     @Test
     void createProject_shouldReturnForbidden_WhenUsernameMismatch() throws Exception {
         CreateProjectRequest request = new CreateProjectRequest();
@@ -85,6 +99,9 @@ public class ProjectControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * Vérifie que la création de projet échoue si l'utilisateur n'est pas authentifié.
+     */
     @Test
     void createProject_shouldFail_WhenPrincipalIsNull() throws Exception {
         CreateProjectRequest request = new CreateProjectRequest();
@@ -98,6 +115,9 @@ public class ProjectControllerTest {
                 .andExpect(status().is4xxClientError()); 
     }
 
+    /**
+     * Vérifie que l'utilisateur peut récupérer la liste de ses projets.
+     */
     @Test
     void getProjectsByUsername_shouldReturnUserProjects() throws Exception {
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -118,6 +138,9 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Test Project"));
     }
 
+    /**
+     * Vérifie que la récupération des projets échoue sans authentification.
+     */
     @Test
     void getMyProjects_shouldFail_WhenNotAuthenticated() throws Exception {
         mockMvc.perform(get("/api/projects/myprojects")
@@ -125,6 +148,9 @@ public class ProjectControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
+    /**
+     * Vérifie qu'un utilisateur peut récupérer les détails d'un projet spécifique auquel il a accès.
+     */
     @Test
     void getProjectById_shouldReturnProject() throws Exception {
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -148,6 +174,9 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.name").value("Specific Project"));
     }
 
+    /**
+     * Vérifie que la récupération d'un projet par ID échoue sans authentification.
+     */
     @Test
     void getProjectById_shouldFail_WhenNotAuthenticated() throws Exception {
         mockMvc.perform(get("/api/projects/999")
@@ -155,6 +184,9 @@ public class ProjectControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
+    /**
+     * Vérifie qu'un utilisateur peut mettre à jour les informations d'un projet dont il est propriétaire.
+     */
     @Test
     void updateProject_shouldChangeNameAndDescription() throws Exception {
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -184,6 +216,9 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.name").value("Updated Name"));
     }
 
+    /**
+     * Vérifie que la mise à jour d'un projet échoue sans authentification.
+     */
     @Test
     void updateProject_shouldFail_WhenNotAuthenticated() throws Exception {
         CreateProjectRequest updateRequest = new CreateProjectRequest();
@@ -196,6 +231,9 @@ public class ProjectControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
+    /**
+     * Vérifie qu'un utilisateur peut supprimer un projet dont il est propriétaire.
+     */
     @Test
     void deleteProject_shouldRemoveProject() throws Exception {
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -223,6 +261,9 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
+    /**
+     * Vérifie que la suppression d'un projet échoue sans authentification.
+     */
     @Test
     void deleteProject_shouldFail_WhenNotAuthenticated() throws Exception {
         mockMvc.perform(delete("/api/projects/1")

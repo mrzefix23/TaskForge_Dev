@@ -23,6 +23,10 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Tests d'intégration pour le contrôleur des User Stories (UserStoryController).
+ * Vérifie les opérations CRUD sur les User Stories au sein d'un projet.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -39,6 +43,10 @@ public class UserStoryControllerTest {
 
     private Long projectId;
 
+    /**
+     * Prépare l'environnement de test avant chaque exécution.
+     * Nettoie la base de données, crée un utilisateur propriétaire et un projet de test.
+     */
     @BeforeEach
     void setup() throws Exception {
         // Nettoyer la base de données avant chaque test
@@ -78,6 +86,9 @@ public class UserStoryControllerTest {
         projectId = objectMapper.readTree(projectResponse).get("id").asLong();
     }
 
+    /**
+     * Vérifie qu'un utilisateur authentifié (propriétaire) peut créer une User Story dans son projet.
+     */
     @Test
     @WithMockUser(username = "owner")
     void createUserStory_shouldReturnCreatedUserStory() throws Exception {
@@ -99,6 +110,9 @@ public class UserStoryControllerTest {
                 .andExpect(jsonPath("$.status").value("TODO"));
     }
 
+    /**
+     * Vérifie la récupération de la liste des User Stories associées à un projet spécifique.
+     */
     @Test
     @WithMockUser(username = "owner")
     void getUserStoriesByProject_shouldReturnUserStories() throws Exception {
@@ -128,6 +142,9 @@ public class UserStoryControllerTest {
                 .andExpect(jsonPath("$[2].title").value("User Story 3"));
     }
 
+    /**
+     * Vérifie la récupération des détails d'une User Story spécifique par son ID.
+     */
     @Test
     @WithMockUser(username = "owner")
     void getUserStoryById_shouldReturnUserStory() throws Exception {
@@ -159,6 +176,9 @@ public class UserStoryControllerTest {
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
     }
 
+    /**
+     * Vérifie la mise à jour des informations d'une User Story existante.
+     */
     @Test
     @WithMockUser(username = "owner")
     void updateUserStory_shouldModifyFields() throws Exception {
@@ -198,6 +218,9 @@ public class UserStoryControllerTest {
                 .andExpect(jsonPath("$.status").value("DONE"));
     }
 
+    /**
+     * Vérifie la suppression d'une User Story par le propriétaire du projet.
+     */
     @Test
     @WithMockUser(username = "owner")
     void deleteUserStory_shouldSucceed() throws Exception {
@@ -230,6 +253,9 @@ public class UserStoryControllerTest {
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
+    /**
+     * Vérifie que la création d'une User Story échoue si l'utilisateur n'est pas authentifié.
+     */
     @Test
     void createUserStory_shouldFail_whenNotAuthenticated() throws Exception {
         // Tenter de créer une user story sans être authentifié

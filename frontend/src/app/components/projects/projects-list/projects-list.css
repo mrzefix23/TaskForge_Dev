@@ -1,8 +1,16 @@
+/* ==========================================================================
+   MISE EN PAGE GÉNÉRALE & CONTENEUR
+   ========================================================================== */
+
 .projects-list-main {
   padding: 2.5rem 3.5rem;
   min-height: calc(100vh - 100px);
   background: #fafafa;
 }
+
+/* ==========================================================================
+   EN-TÊTE DE LA LISTE
+   ========================================================================== */
 
 .projects-list-header {
   display: flex;
@@ -28,6 +36,7 @@
   font-weight: 400;
 }
 
+/* Boutons de création (Principal et Empty State) */
 .create-project-btn, .create-first-project-btn {
   background: #1a1a1a;
   color: #fff;
@@ -49,8 +58,13 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* ==========================================================================
+   GRILLE ET CARTES PROJETS
+   ========================================================================== */
+
 .projects-grid {
   display: grid;
+  /* Grille responsive : remplit automatiquement avec des colonnes de min 320px */
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
 }
@@ -69,6 +83,7 @@
   overflow: hidden;
 }
 
+/* Barre de gradient décorative au survol (top) */
 .project-card::before {
   content: '';
   position: absolute;
@@ -105,8 +120,12 @@
   color: #6a6a6a;
   line-height: 1.6;
   margin-bottom: 1.5rem;
-  flex-grow: 1;
+  flex-grow: 1; /* Pousse les actions vers le bas */
 }
+
+/* ==========================================================================
+   ACTIONS SUR LES CARTES
+   ========================================================================== */
 
 .project-actions {
   display: flex;
@@ -156,6 +175,10 @@
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
+/* ==========================================================================
+   ÉTATS VIDES & ERREURS
+   ========================================================================== */
+
 .no-projects {
   text-align: center;
   padding: 6rem 2rem;
@@ -176,6 +199,9 @@
   text-align: center;
 }
 
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -350,6 +376,7 @@
   .projects-grid {
     grid-template-columns: 1fr;
   }
+}
 
   .modal-overlay {
     padding: 0.5rem;

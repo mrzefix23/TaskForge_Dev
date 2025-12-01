@@ -2,6 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthComponent } from './auth';
 
+/**
+ * Tests unitaires pour le composant AuthComponent.
+ */
 describe('Auth', () => {
   let component: AuthComponent;
   let fixture: ComponentFixture<AuthComponent>;

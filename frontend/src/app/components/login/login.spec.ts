@@ -6,6 +6,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
+/**
+ * Tests unitaires pour le composant LoginComponent.
+ * Vérifie la création du composant, la validation du formulaire,
+ * et le comportement lors de la soumission du formulaire.
+ */
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;

@@ -1,26 +1,53 @@
+/* ==========================================================================
+   FRAMEWORK & RESET CSS
+   ========================================================================== */
+
+/* Importation des utilitaires Tailwind CSS */
 @import "tailwindcss";
 
+/* Reset standard pour faciliter le calcul des dimensions */
 * {
   box-sizing: border-box;
 }
+
+/* ==========================================================================
+   STYLES GLOBAUX DU CORPS (BODY)
+   ========================================================================== */
 
 body {
   background: #fafafa;
   min-height: 100vh;
   margin: 0;
+  /* Stack de polices système optimisée pour tous les OS */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
+  /* Amélioration du rendu des polices (plus net) */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
   color: #1a1a1a;
   line-height: 1.6;
 }
 
-/* Smooth transitions globally */
+/* ==========================================================================
+   ANIMATIONS & INTERACTIONS
+   ========================================================================== */
+
+/* * Application de transitions douces sur tous les éléments 
+ * pour fluidifier les changements d'état (hover, focus, active).
+ * Note : Peut impacter les performances sur des pages très chargées.
+ */
 * {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Better focus states */
+/* ==========================================================================
+   ACCESSIBILITÉ (A11Y)
+   ========================================================================== */
+
+/* * Styles de focus améliorés pour la navigation au clavier.
+ * Utilise :focus-visible pour ne pas gêner les utilisateurs souris.
+ */
 *:focus-visible {
   outline: 2px solid #232323;
   outline-offset: 2px;
