@@ -1,19 +1,10 @@
-/* ==========================================================================
-   STRUCTURE GLOBALE & CONTENEUR PRINCIPAL
-   ========================================================================== */
-
-/* Conteneur principal de la page de gestion des sprints */
-.sprint-management-container {
+.version-management-container {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* ==========================================================================
-   EN-TÊTE & NAVIGATION
-   ========================================================================== */
-
-/* Section d'en-tête avec titre et bouton d'action */
+/* En-tête */
 .header-section {
   display: flex;
   justify-content: space-between;
@@ -21,14 +12,12 @@
   margin-bottom: 2rem;
 }
 
-/* Conteneur du titre et sous-titre */
 .header-content {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-/* Bouton de retour vers le projet */
 .back-button {
   background: none;
   border: none;
@@ -43,18 +32,18 @@
   color: #2d3748;
 }
 
-/* Titre principal de la page */
-h1 {
+.header-content h1 {
   font-size: 1.8rem;
   color: #2d3748;
   margin: 0;
 }
 
-/* ==========================================================================
-   LAYOUT PRINCIPAL (GRILLE SIDEBAR + CONTENU)
-   ========================================================================== */
+.header-content p {
+  margin: 0;
+  color: #718096;
+}
 
-/* Grille à deux colonnes : sidebar des sprints + contenu principal */
+/* Layout principal */
 .content-layout {
   display: grid;
   grid-template-columns: 350px 1fr;
@@ -62,12 +51,8 @@ h1 {
   margin-top: 2rem;
 }
 
-/* ==========================================================================
-   SIDEBAR DES SPRINTS
-   ========================================================================== */
-
-/* Panneau latéral listant tous les sprints */
-.sprints-sidebar {
+/* Sidebar des versions */
+.versions-sidebar {
   background: white;
   border-radius: 8px;
   padding: 1.5rem;
@@ -77,25 +62,20 @@ h1 {
   overflow-y: auto;
 }
 
-.sprints-sidebar h2 {
+.versions-sidebar h2 {
   font-size: 1.3rem;
   color: #2d3748;
   margin-bottom: 1rem;
 }
 
-/* Liste des cartes de sprint */
-.sprints-list {
+/* Liste des versions */
+.versions-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* ==========================================================================
-   CARTES DE SPRINT
-   ========================================================================== */
-
-/* Carte individuelle représentant un sprint */
-.sprint-card {
+.version-card {
   background: #f7fafc;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
@@ -104,46 +84,46 @@ h1 {
   transition: all 0.2s;
 }
 
-/* État survol : bordure bleue et ombre légère */
-.sprint-card:hover {
+.version-card:hover {
   border-color: #4299e1;
   box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
 }
 
-/* État actif/sélectionné : fond bleu clair */
-.sprint-card.active {
+.version-card.active {
   border-color: #3182ce;
   background: #ebf8ff;
 }
 
-/* En-tête de la carte avec titre et statut */
-.sprint-header {
+.version-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.5rem;
 }
 
-/* ==========================================================================
-   INFORMATIONS DU SPRINT
-   ========================================================================== */
-
-/* Conteneur des informations textuelles */
-.sprint-info h3 {
+.version-info h3 {
   font-size: 1.1rem;
   color: #2d3748;
   margin: 0 0 0.5rem 0;
 }
 
-/* Description du sprint (texte secondaire) */
-.sprint-description {
+.version-number {
+  background: #bee3f8;
+  color: #2c5282;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.version-description {
   color: #718096;
   font-size: 0.9rem;
   margin: 0.5rem 0;
 }
 
-/* Métadonnées : dates, nombre de stories */
-.sprint-meta {
+.version-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -152,21 +132,25 @@ h1 {
   margin-top: 0.5rem;
 }
 
-/* Plage de dates du sprint */
-.sprint-dates {
-  color: #4a5568;
+.release-date {
+  color: #22543d;
+  font-weight: 500;
 }
 
-/* Compteur de User Stories */
 .story-count {
   color: #4a5568;
 }
 
-/* ==========================================================================
-   BADGES DE STATUT
-   ========================================================================== */
+.version-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+}
 
-/* Style de base pour tous les badges de statut */
+/* Badges de statut */
 .status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
@@ -175,37 +159,26 @@ h1 {
   text-transform: uppercase;
 }
 
-/* Statut : Planifié (orange) */
 .status-planned {
   background: #feebc8;
   color: #c05621;
 }
 
-/* Statut : En cours (bleu) */
 .status-in-progress {
   background: #bee3f8;
   color: #2c5282;
 }
 
-/* Statut : Terminé (vert) */
-.status-completed {
+.status-released {
   background: #c6f6d5;
   color: #22543d;
 }
 
-/* ==========================================================================
-   ACTIONS DU SPRINT
-   ========================================================================== */
-
-/* Conteneur des boutons d'action */
-.sprint-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  justify-content: flex-end;
+.status-archived {
+  background: #e2e8f0;
+  color: #4a5568;
 }
 
-/* Sélecteur de statut (dropdown) */
 .status-select {
   padding: 0.5rem;
   border: 1px solid #e2e8f0;
@@ -220,11 +193,21 @@ h1 {
   border-color: #4299e1;
 }
 
-/* ==========================================================================
-   BOUTONS ICÔNES (ÉDITION, SUPPRESSION)
-   ========================================================================== */
+/* Boutons icônes */
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
 
-/* Bouton d'édition (crayon) - style circulaire */
+.btn-icon:hover {
+  opacity: 1;
+}
+
 .edit-btn {
   background: #fafafa;
   color: #1a1a1a;
@@ -248,7 +231,6 @@ h1 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Bouton de suppression (croix) - style circulaire rouge */
 .delete-btn {
   background: #fff5f5;
   color: #e74c3c;
@@ -272,19 +254,14 @@ h1 {
   box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
 }
 
-/* ==========================================================================
-   CONTENU PRINCIPAL (DÉTAILS DU SPRINT)
-   ========================================================================== */
-
-/* Zone de contenu principale affichant les détails */
-.sprint-content {
+/* Contenu principal - Détails version */
+.version-content {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-/* Sections de détails et de stories disponibles */
-.sprint-details,
+.version-details,
 .available-stories-section {
   background: white;
   border-radius: 8px;
@@ -292,38 +269,33 @@ h1 {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.sprint-details h2,
+.version-details h2,
 .available-stories-section h2 {
   font-size: 1.5rem;
   color: #2d3748;
   margin-bottom: 1rem;
 }
 
-.sprint-details h3 {
+.version-details h3 {
   font-size: 1.2rem;
   color: #4a5568;
   margin-top: 1.5rem;
   margin-bottom: 1rem;
 }
 
-/* Encadré d'informations du sprint */
-.sprint-info-box {
+.version-info-box {
   background: #f7fafc;
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.sprint-info-box p {
+.version-info-box p {
   margin: 0.5rem 0;
   color: #4a5568;
 }
 
-/* ==========================================================================
-   LISTE DES USER STORIES
-   ========================================================================== */
-
-/* Liste des User Stories (assignées ou disponibles) */
+/* Liste des User Stories */
 .user-stories-list {
   display: flex;
   flex-direction: column;
@@ -333,7 +305,6 @@ h1 {
   margin: 0;
 }
 
-/* Carte individuelle d'une User Story */
 .user-story-item {
   background: #f7fafc;
   border: 1px solid #e2e8f0;
@@ -349,7 +320,6 @@ h1 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Informations de la User Story */
 .story-info {
   display: flex;
   align-items: center;
@@ -363,7 +333,6 @@ h1 {
   font-weight: 500;
 }
 
-/* Badges de statut des User Stories */
 .story-status {
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
@@ -387,7 +356,6 @@ h1 {
   color: #22543d;
 }
 
-/* Bouton pour retirer une US du sprint */
 .btn-remove {
   background: #fff5f5;
   color: #e74c3c;
@@ -404,11 +372,7 @@ h1 {
   color: #fff;
 }
 
-/* ==========================================================================
-   ÉTATS DE CHARGEMENT & MESSAGES
-   ========================================================================== */
-
-/* État de chargement et état vide */
+/* États */
 .loading,
 .empty-state {
   text-align: center;
@@ -417,7 +381,6 @@ h1 {
   font-style: italic;
 }
 
-/* Message lorsqu'aucune story n'est assignée */
 .no-stories {
   text-align: center;
   padding: 2rem;
@@ -425,30 +388,23 @@ h1 {
   font-style: italic;
 }
 
-/* ==========================================================================
-   ALERTES & FEEDBACK UTILISATEUR
-   ========================================================================== */
-
-/* Style de base pour les alertes */
+/* Alertes */
 .alert {
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
 }
 
-/* Alerte d'erreur (rouge) */
 .alert-error {
   background: #fed7d7;
   color: #c53030;
 }
 
-/* Alerte de succès (vert) */
 .alert-success {
   background: #c6f6d5;
   color: #22543d;
 }
 
-/* Message d'information (bleu) */
 .info-message {
   background: #bee3f8;
   color: #2c5282;
@@ -457,11 +413,7 @@ h1 {
   margin-top: 1rem;
 }
 
-/* ==========================================================================
-   BOUTONS PRINCIPAUX
-   ========================================================================== */
-
-/* Styles communs pour les boutons d'action */
+/* Boutons */
 .btn-primary,
 .btn-secondary,
 .btn-danger {
@@ -474,7 +426,6 @@ h1 {
   transition: all 0.2s;
 }
 
-/* Bouton principal (noir) */
 .btn-primary {
   background: #000000;
   color: white;
@@ -486,7 +437,6 @@ h1 {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Bouton secondaire (gris) */
 .btn-secondary {
   background: #e2e8f0;
   color: #4a5568;
@@ -496,7 +446,6 @@ h1 {
   background: #cbd5e0;
 }
 
-/* Bouton danger (rouge) */
 .btn-danger {
   background: #fc8181;
   color: white;
@@ -506,11 +455,7 @@ h1 {
   background: #f56565;
 }
 
-/* ==========================================================================
-   MODALES
-   ========================================================================== */
-
-/* Overlay semi-transparent couvrant l'écran */
+/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -524,7 +469,6 @@ h1 {
   z-index: 1000;
 }
 
-/* Contenu de la modale */
 .modal-content {
   background: white;
   border-radius: 12px;
@@ -535,7 +479,6 @@ h1 {
   overflow-y: auto;
 }
 
-/* En-tête de la modale avec titre et bouton fermer */
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -549,7 +492,6 @@ h1 {
   margin: 0;
 }
 
-/* Bouton de fermeture (croix) */
 .close-btn {
   background: none;
   border: none;
@@ -563,16 +505,10 @@ h1 {
   color: #4a5568;
 }
 
-/* ==========================================================================
-   FORMULAIRES
-   ========================================================================== */
-
-/* Groupe de champ de formulaire */
 .form-group {
   margin-bottom: 1.5rem;
 }
 
-/* Labels des champs */
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
@@ -580,7 +516,6 @@ h1 {
   font-weight: 600;
 }
 
-/* Champs de saisie (input, textarea, select) */
 .form-group input,
 .form-group textarea,
 .form-group select {
@@ -592,7 +527,6 @@ h1 {
   box-sizing: border-box;
 }
 
-/* État focus des champs */
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -600,7 +534,6 @@ h1 {
   border-color: #4299e1;
 }
 
-/* Conteneur des boutons d'action de la modale */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -608,37 +541,29 @@ h1 {
   margin-top: 2rem;
 }
 
-/* Message d'avertissement dans les modales */
 .warning {
   color: #c05621;
   font-style: italic;
   margin: 1rem 0;
 }
 
-/* ==========================================================================
-   RESPONSIVE DESIGN
-   ========================================================================== */
-
+/* Responsive */
 @media (max-width: 768px) {
-  /* Sur mobile : layout en une seule colonne */
   .content-layout {
     grid-template-columns: 1fr;
   }
 
-  /* Limiter la hauteur de la sidebar sur mobile */
-  .sprints-sidebar {
+  .versions-sidebar {
     max-height: 300px;
   }
 
-  /* Header en colonne sur mobile */
   .header-section {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
 
-  /* Aligner les actions à gauche sur mobile */
-  .sprint-actions {
+  .version-actions {
     justify-content: flex-start;
   }
 }
