@@ -23,6 +23,11 @@ export class ProjectsListComponent implements OnInit {
   projects: Project[] = [];
   error: string | null = null;
   loading = true;
+  
+  // Modal state for delete confirmation
+  showDeleteModal = false;
+  projectToDelete: Project | null = null;
+  deleteError: string | null = null;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -58,28 +63,41 @@ export class ProjectsListComponent implements OnInit {
   }
 
   deleteProject(projectId: number, event: MouseEvent): void {
-    event.stopPropagation(); // Empêche le déclenchement de openProject
-
-    if(!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
-      return;
+    event.stopPropagation();
+    const project = this.projects.find(p => p.id === projectId);
+    if (project) {
+      this.projectToDelete = project;
+      this.showDeleteModal = true;
+      this.deleteError = null;
     }
+  }
+
+  confirmDeleteProject(): void {
+    if (!this.projectToDelete) return;
 
     const token = localStorage.getItem('token');
 
-    this.http.delete(`/api/projects/${projectId}`, {
+    this.http.delete(`/api/projects/${this.projectToDelete.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: () => {
-        this.projects = this.projects.filter(p => p.id !== projectId);
+        this.projects = this.projects.filter(p => p.id !== this.projectToDelete!.id);
+        this.closeDeleteModal();
       },
       error: (err) => {
-        if(err.status === 403 && err.error && err.error.message) {
-          this.error = err.error.message;
+        if (err.status === 403 && err.error?.message) {
+          this.deleteError = err.error.message;
         } else {
-          alert('Erreur lors de la suppression du projet.');
+          this.deleteError = 'Erreur lors de la suppression du projet.';
         }
         console.error(err);
       }
     });
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.projectToDelete = null;
+    this.deleteError = null;
   }
 }

@@ -241,3 +241,36 @@
   (closeModal)="closeEditTaskModal()"
   (submitForm)="onEditTask($event)"
 ></app-task-form>
+
+<!-- Modal Supprimer User Story -->
+<div *ngIf="showDeleteStoryModal" class="modal-overlay" (click)="closeDeleteStoryModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteStoryModal()">×</button>
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer la User Story "{{ storyToDelete?.title }}" ?</p>
+    <p class="warning">Toutes les tâches associées seront également supprimées.</p>
+    <div *ngIf="deleteError" class="alert alert-error">{{ deleteError }}</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteStoryModal()">Annuler</button>
+      <button class="btn-danger" (click)="confirmDeleteUserStory()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Supprimer Tâche -->
+<div *ngIf="showDeleteTaskModal" class="modal-overlay" (click)="closeDeleteTaskModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteTaskModal()">×</button>
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer cette tâche ?</p>
+    <div *ngIf="deleteError" class="alert alert-error">{{ deleteError }}</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteTaskModal()">Annuler</button>
+      <button class="btn-danger" (click)="confirmDeleteTask()">Supprimer</button>
+    </div>
+  </div>
+</div>
