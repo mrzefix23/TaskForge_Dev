@@ -164,6 +164,57 @@
   border: none;
 }
 
+.sprint-filter {
+  margin-bottom: 2rem;
+  padding: 1.5rem 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sprint-filter label {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.sprint-select {
+  padding: 0.6rem 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sprint-select:focus {
+  outline: none;
+  border-color: #3498db;
+  background: #ffffff;
+}
+
+.manage-sprint-btn {
+  background: #3498db;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.9rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.manage-sprint-btn:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
 .kanban-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -241,7 +292,6 @@
 .delete-story-btn:hover {
   background: #e74c3c;
   color: #fff;
-  transform: scale(1.15);
   box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
 }
 

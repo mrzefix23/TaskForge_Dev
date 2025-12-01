@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../header/header';
 import { UserStoryFormComponent } from './user-story-form/user-story-form';
 import { TaskFormComponent } from './task-form/task-form';
@@ -12,6 +13,15 @@ interface Project {
   description: string;
   owner: { username: string };
   members: { username: string }[];
+}
+
+interface Sprint {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: 'PLANNED' | 'ACTIVE' | 'COMPLETED';
+  projectId: number;
 }
 
 interface Task {
@@ -31,6 +41,7 @@ interface UserStory {
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   assignedTo?: { username: string }[];
+  sprint?: Sprint;
   tasks?: Task[];
   showTasks?: boolean;
 }
@@ -38,13 +49,15 @@ interface UserStory {
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
   templateUrl: './kanban.html',
   styleUrls: ['./kanban.css']
 })
 export class KanbanComponent implements OnInit {
   project: Project | null = null;
   userStories: UserStory[] = [];
+  sprints: Sprint[] = [];
+  selectedSprintFilter: string = 'all'; // 'all', 'backlog', or sprint ID
   loading = true;
   error: string | null = null;
   
@@ -72,6 +85,7 @@ export class KanbanComponent implements OnInit {
     if (projectId) {
       this.loadProjectDetails(+projectId);
       this.loadUserStories(+projectId);
+      this.loadSprints(+projectId);
     } else {
       this.error = "ID de projet non trouvé.";
       this.loading = false;
@@ -128,8 +142,39 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  loadSprints(projectId: number): void {
+    const token = localStorage.getItem('token');
+    this.http.get<Sprint[]>(`/api/sprints/project/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (data) => {
+        this.sprints = data;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des sprints:', err);
+      }
+    });
+  }
+
+  getFilteredUserStories(): UserStory[] {
+    if (this.selectedSprintFilter === 'all') {
+      return this.userStories;
+    } else if (this.selectedSprintFilter === 'backlog') {
+      return this.userStories.filter(story => !story.sprint);
+    } else {
+      const sprintId = parseInt(this.selectedSprintFilter);
+      return this.userStories.filter(story => story.sprint?.id === sprintId);
+    }
+  }
+
   getStoriesByStatus(status: 'TODO' | 'IN_PROGRESS' | 'DONE'): UserStory[] {
-    return this.userStories.filter(story => story.status === status);
+    return this.getFilteredUserStories().filter(story => story.status === status);
+  }
+
+  goToSprintManagement(): void {
+    if (this.project) {
+      this.router.navigate(['/projects', this.project.id, 'sprints']);
+    }
   }
 
   toggleTasks(story: UserStory, event: MouseEvent): void {

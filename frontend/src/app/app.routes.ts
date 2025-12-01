@@ -9,6 +9,7 @@ import { CreateProjectComponent } from './components/projects/create-project/cre
 import { ProjectsListComponent } from './components/projects/projects-list/projects-list';
 import { EditProjectComponent } from './components/projects/edit-project/edit-project';
 import { KanbanComponent } from './components/kanban/kanban';
+import { SprintManagementComponent } from './components/sprint-management/sprint-management';
 
 export const routes: Routes = [
   { path: '', component: AuthComponent },
@@ -20,4 +21,5 @@ export const routes: Routes = [
   { path: 'projects', component: ProjectsListComponent, canActivate: [AuthGuard] },
   { path: 'error', component: NotFoundComponent },
   { path: 'projects/:id', component: KanbanComponent, canActivate: [AuthGuard] },
+  { path: 'projects/:id/sprints', component: SprintManagementComponent, canActivate: [AuthGuard] },
 ];
