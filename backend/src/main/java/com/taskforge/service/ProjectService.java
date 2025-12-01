@@ -15,6 +15,7 @@ import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
 import com.taskforge.repositories.ProjectRepository;
+import com.taskforge.repositories.SprintRepository;
 import com.taskforge.repositories.TaskRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
@@ -35,6 +36,9 @@ public class ProjectService {
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private SprintRepository sprintRepository;
 
     public Project createProject(CreateProjectRequest createProjectRequest) {
         User owner = userRepository.findByUsername(createProjectRequest.getUser().getUsername())
@@ -128,6 +132,9 @@ public class ProjectService {
         }
         //Supprimer les US lié au projet
         userStoryRepository.deleteAllByProjectId(projectId);
+        
+        // Supprimer tous les sprints du projet
+        sprintRepository.deleteAllByProjectId(projectId);
 
         projectRepository.deleteById(projectId);
     }   

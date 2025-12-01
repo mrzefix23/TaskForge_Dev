@@ -16,6 +16,9 @@
         <p class="project-description">{{ project.description }}</p>
       </div>
       <div class="project-header-actions">
+        <button (click)="goToSprintManagement()" class="manage-sprint-btn" title="Gérer les sprints">
+          📋 Gérer les Sprints
+        </button>
         <button routerLink="/projects/edit/{{ project.id }}" class="edit-project-header-btn" title="Modifier le projet">
           ✎ Modifier le projet
         </button>
@@ -25,10 +28,26 @@
 
     <div class="project-members">
       <strong>Membres:</strong>
-      <span class="member-badge owner">{{ project.owner.username }} (Propriétaire)</span>
-      <span *ngFor="let member of project.members" class="member-badge">
-        {{ member.username }}
+      <span class="member-badge owner-badge">
+        {{ project.owner.username }} (Propriétaire)
       </span>
+      <ng-container *ngFor="let member of project.members">
+        <span *ngIf="member.username !== project.owner.username" class="member-badge">
+        {{ member.username }}
+        </span>
+      </ng-container>
+    </div>
+
+    <!-- Sprint Filter -->
+    <div class="sprint-filter">
+      <label for="sprintFilter">Filtrer par sprint:</label>
+      <select id="sprintFilter" [(ngModel)]="selectedSprintFilter" class="sprint-select">
+        <option value="all">Toutes les user stories</option>
+        <option value="backlog">Backlog (sans sprint)</option>
+        <option *ngFor="let sprint of sprints" [value]="sprint.id">
+          {{ sprint.name }} ({{ sprint.status }})
+        </option>
+      </select>
     </div>
 
     <div class="kanban-board">
@@ -222,3 +241,36 @@
   (closeModal)="closeEditTaskModal()"
   (submitForm)="onEditTask($event)"
 ></app-task-form>
+
+<!-- Modal Supprimer User Story -->
+<div *ngIf="showDeleteStoryModal" class="modal-overlay" (click)="closeDeleteStoryModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteStoryModal()">×</button>
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer la User Story "{{ storyToDelete?.title }}" ?</p>
+    <p class="warning">Toutes les tâches associées seront également supprimées.</p>
+    <div *ngIf="deleteError" class="alert alert-error">{{ deleteError }}</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteStoryModal()">Annuler</button>
+      <button class="btn-danger" (click)="confirmDeleteUserStory()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Supprimer Tâche -->
+<div *ngIf="showDeleteTaskModal" class="modal-overlay" (click)="closeDeleteTaskModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteTaskModal()">×</button>
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer cette tâche ?</p>
+    <div *ngIf="deleteError" class="alert alert-error">{{ deleteError }}</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteTaskModal()">Annuler</button>
+      <button class="btn-danger" (click)="confirmDeleteTask()">Supprimer</button>
+    </div>
+  </div>
+</div>

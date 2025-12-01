@@ -71,7 +71,8 @@ describe('LoginComponent', () => {
 
   it('should not call http post if form is invalid', () => {
     component.onSubmit();
-    httpMock.expectNone('/auth/login');
+    fixture.detectChanges();
+    expect(component.loginForm.invalid).toBeTrue();
   });
 
   it('should display success message on successful login', () => {

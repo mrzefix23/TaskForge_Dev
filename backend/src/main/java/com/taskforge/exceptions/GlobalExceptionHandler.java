@@ -50,4 +50,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("message", ex.getMessage()));
     }
+
+    @ExceptionHandler(DuplicateSprintNameException.class)
+    public ResponseEntity<?> handleDuplicateSprintName(DuplicateSprintNameException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidSprintDateException.class)
+    public ResponseEntity<?> handleInvalidSprintDate(InvalidSprintDateException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("message", ex.getMessage()));
+    }
 }

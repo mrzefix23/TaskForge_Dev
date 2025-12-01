@@ -1,0 +1,232 @@
+<app-header></app-header>
+
+<div class="sprint-management-container">
+  <div class="header-section">
+    <div class="header-content">
+      <button class="back-button" (click)="goToKanban()">
+        ← Retour au Kanban
+      </button>
+      <h1>Gestion des Sprints - {{ project?.name }}</h1>
+    </div>
+    <button *ngIf="isOwner()" class="btn-primary" (click)="openCreateModal()">
+      + Nouveau Sprint
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+  <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+  <div class="content-layout">
+    <!-- Liste des sprints -->
+    <div class="sprints-sidebar">
+      <h2>Sprints</h2>
+      <div class="sprints-list">
+        <div 
+          *ngFor="let sprint of sprints" 
+          class="sprint-card"
+          [class.active]="selectedSprint?.id === sprint.id"
+          (click)="selectSprint(sprint)">
+          <div class="sprint-header">
+            <h3>{{ sprint.name }}</h3>
+            <span class="status-badge" [ngClass]="getStatusBadgeClass(sprint.status)">
+              {{ getStatusLabel(sprint.status) }}
+            </span>
+          </div>
+          <div class="sprint-dates">
+            <span>📅 {{ sprint.startDate | date:'dd/MM/yyyy' }} - {{ sprint.endDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div *ngIf="isOwner()" class="sprint-actions">
+            <button class="edit-story-btn" (click)="openEditModal(sprint); $event.stopPropagation()" title="Modifier">✎</button>
+            <button class="delete-story-btn" (click)="openDeleteModal(sprint); $event.stopPropagation()" title="Supprimer">×</button>
+          </div>
+        </div>
+        <div *ngIf="sprints.length === 0" class="empty-state">
+          Aucun sprint créé
+        </div>
+      </div>
+    </div>
+
+    <!-- Détails du sprint ou backlog -->
+    <div class="sprint-content">
+      <div *ngIf="selectedSprint" class="sprint-details">
+        <h2>{{ selectedSprint.name }}</h2>
+        <div class="sprint-info">
+          <p><strong>Status:</strong> {{ getStatusLabel(selectedSprint.status) }}</p>
+          <p><strong>Dates:</strong> {{ selectedSprint.startDate | date:'dd/MM/yyyy' }} - {{ selectedSprint.endDate | date:'dd/MM/yyyy' }}</p>
+        </div>
+
+        <h3>User Stories ({{ sprintStories.length }})</h3>
+        <div class="user-stories-list">
+          <div *ngFor="let story of sprintStories" class="user-story-card">
+            <div class="story-header">
+              <h4>{{ story.title }}</h4>
+              <span class="priority-badge" [ngClass]="getPriorityBadgeClass(story.priority)">
+                {{ story.priority }}
+              </span>
+            </div>
+            <p class="story-description">{{ story.description }}</p>
+            <div class="story-footer">
+              <span class="status">{{ story.status }}</span>
+              <button 
+                *ngIf="isOwner()"
+                class="btn-secondary btn-sm" 
+                (click)="removeStoryFromSprint(story.id)">
+                Retirer du sprint
+              </button>
+            </div>
+          </div>
+          <div *ngIf="sprintStories.length === 0" class="empty-state">
+            Aucune user story dans ce sprint
+          </div>
+        </div>
+      </div>
+
+      <!-- Backlog -->
+      <div class="backlog-section">
+        <h2>Backlog ({{ backlogStories.length }})</h2>
+        <div class="user-stories-list">
+          <div *ngFor="let story of backlogStories" class="user-story-card">
+            <div class="story-header">
+              <h4>{{ story.title }}</h4>
+              <span class="priority-badge" [ngClass]="getPriorityBadgeClass(story.priority)">
+                {{ story.priority }}
+              </span>
+            </div>
+            <p class="story-description">{{ story.description }}</p>
+            <div class="story-footer">
+              <span class="status">{{ story.status }}</span>
+              <div *ngIf="isOwner() && sprints.length > 0" class="assign-dropdown">
+                <select 
+                  (change)="assignStoryToSprint(story.id, +$any($event.target).value)"
+                  class="sprint-select">
+                  <option value="">Assigner à un sprint...</option>
+                  <option *ngFor="let sprint of sprints" [value]="sprint.id">
+                    {{ sprint.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="backlogStories.length === 0" class="empty-state">
+            Le backlog est vide
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Créer Sprint -->
+<div *ngIf="showCreateModal" class="modal-overlay" (click)="closeCreateModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Créer un nouveau sprint</h2>
+      <button class="close-btn" (click)="closeCreateModal()">×</button>
+    </div>
+    <form (ngSubmit)="createSprint()">
+      <div class="form-group">
+        <label>Nom du sprint *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="sprintForm.name" 
+          name="name"
+          required>
+      </div>
+      <div class="form-group">
+        <label>Date de début *</label>
+        <input 
+          type="date" 
+          [(ngModel)]="sprintForm.startDate" 
+          name="startDate"
+          required>
+      </div>
+      <div class="form-group">
+        <label>Date de fin *</label>
+        <input 
+          type="date" 
+          [(ngModel)]="sprintForm.endDate" 
+          name="endDate"
+          required>
+      </div>
+      <div class="form-group">
+        <label>Statut *</label>
+        <select [(ngModel)]="sprintForm.status" name="status" required>
+          <option value="PLANNED">Planifié</option>
+          <option value="ACTIVE">Actif</option>
+          <option value="COMPLETED">Terminé</option>
+        </select>
+      </div>
+      <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeCreateModal()">Annuler</button>
+        <button type="submit" class="btn-primary">Créer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Éditer Sprint -->
+<div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Modifier le sprint</h2>
+      <button class="close-btn" (click)="closeEditModal()">×</button>
+    </div>
+    <form (ngSubmit)="updateSprint()">
+      <div class="form-group">
+        <label>Nom du sprint *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="sprintForm.name" 
+          name="name"
+          required>
+      </div>
+      <div class="form-group">
+        <label>Date de début *</label>
+        <input 
+          type="date" 
+          [(ngModel)]="sprintForm.startDate" 
+          name="startDate"
+          required>
+      </div>
+      <div class="form-group">
+        <label>Date de fin *</label>
+        <input 
+          type="date" 
+          [(ngModel)]="sprintForm.endDate" 
+          name="endDate"
+          required>
+      </div>
+      <div class="form-group">
+        <label>Statut *</label>
+        <select [(ngModel)]="sprintForm.status" name="status" required>
+          <option value="PLANNED">Planifié</option>
+          <option value="ACTIVE">Actif</option>
+          <option value="COMPLETED">Terminé</option>
+        </select>
+      </div>
+      <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeEditModal()">Annuler</button>
+        <button type="submit" class="btn-primary">Mettre à jour</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Supprimer Sprint -->
+<div *ngIf="showDeleteModal" class="modal-overlay" (click)="closeDeleteModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteModal()">×</button>
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer le sprint "{{ sprintToDelete?.name }}" ?</p>
+    <p class="warning">Les user stories seront déplacées dans le backlog.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteModal()">Annuler</button>
+      <button class="btn-danger" (click)="deleteSprint()">Supprimer</button>
+    </div>
+  </div>
+</div>
