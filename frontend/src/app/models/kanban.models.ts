@@ -35,6 +35,17 @@ export interface UserStory {
   sprint?: Sprint;
   tasks?: Task[];
   showTasks?: boolean;
+  version?: Version;
+}
+
+export interface Version {
+  id: number;
+  title: string;
+  description: string;
+  versionNumber: string;
+  releaseDate?: string;
+  status: 'PLANNED' | 'IN_PROGRESS' | 'RELEASED' | 'ARCHIVED';
+  userStories?: UserStory[];
 }
 
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';

@@ -16,6 +16,9 @@
         <p class="project-description">{{ project.description }}</p>
       </div>
       <div class="project-header-actions">
+        <button (click)="goToVersionManagement()" class="manage-versions-btn" title="Gérer les versions">
+          📦 Versions
+        </button>
         <button (click)="goToSprintManagement()" class="manage-sprint-btn" title="Gérer les sprints">
           📋 Gérer les Sprints
         </button>
