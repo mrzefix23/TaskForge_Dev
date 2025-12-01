@@ -108,7 +108,6 @@ export class ProjectsListComponent implements OnInit {
     }).subscribe({
       next: () => {
         // Mise à jour optimiste de l'UI
-        this.projects = this.projects.filter(p => p.id !== projectId);
         this.projects = this.projects.filter(p => p.id !== this.projectToDelete!.id);
         this.closeDeleteModal();
       },
@@ -122,11 +121,12 @@ export class ProjectsListComponent implements OnInit {
       }
     });
   }
-}
+
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.projectToDelete = null;
     this.deleteError = null;
   }
+
 }

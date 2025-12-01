@@ -743,7 +743,7 @@
   .modal-actions button {
     width: 100%;
   }
-}
+
 
 @media (max-width: 480px) {
   .modal-content {

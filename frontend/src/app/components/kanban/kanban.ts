@@ -23,7 +23,7 @@ export class KanbanComponent implements OnInit {
   project: Project | null = null;
   userStories: UserStory[] = [];
   sprints: Sprint[] = [];
-  selectedSprintFilter: string = 'all'; // 'all', 'backlog', or sprint ID
+  selectedSprintFilter: string = 'all';
   loading = true;
   error: string | null = null;
 
@@ -40,7 +40,6 @@ export class KanbanComponent implements OnInit {
   currentEditingTask: Task | null = null;
   currentUserStoryId: number | null = null;
 
-  // Modal states for delete confirmations
   showDeleteStoryModal = false;
   showDeleteTaskModal = false;
   storyToDelete: UserStory | null = null;
@@ -49,20 +48,12 @@ export class KanbanComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private http: HttpClient,
-    private router: Router
-  ) { }
     private router: Router,
     private projectService: ProjectService,
     private userStoryService: UserStoryService,
     private taskService: TaskService
   ) {}
 
-  /**
-   * Initialise le composant.
-   * Récupère l'ID du projet depuis l'URL, charge les détails du projet
-   * et lance la récupération des User Stories associées.
-    */
   ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('id');
     if (projectId) {
@@ -75,10 +66,6 @@ export class KanbanComponent implements OnInit {
     }
   }
 
-  /**
-   * Charge les détails d'un projet donné par son ID.
-   * @param projectId L'ID du projet à charger.
-   */
   loadProjectDetails(projectId: number): void {
     this.projectService.getById(projectId).subscribe({
       next: (data: Project) => {
@@ -93,10 +80,6 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Charge les User Stories associées à un projet donné par son ID.
-   * @param projectId L'ID du projet dont on veut charger les User Stories.
-   */
   loadUserStories(projectId: number): void {
     this.userStoryService.getByProject(projectId).subscribe({
       next: (data: UserStory[]) => {
@@ -110,10 +93,6 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Charge les tâches associées à une User Story donnée par son ID.
-   * @param userStoryId L'ID de la User Story dont on veut charger les tâches.
-   */
   loadTasksForStory(userStoryId: number): void {
     this.taskService.getByUserStory(userStoryId).subscribe({
       next: (tasks: Task[]) => {
@@ -128,11 +107,6 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Récupère les User Stories filtrées par statut.
-   * @param status Le statut des User Stories à récupérer.
-   * @returns Un tableau de User Stories correspondant au statut donné.
-   */
   loadSprints(projectId: number): void {
     this.projectService.getSprintsByProject(projectId).subscribe({
       next: (data: Sprint[]) => {
@@ -165,36 +139,23 @@ export class KanbanComponent implements OnInit {
     }
   }
 
-  /**
-   * Bascule l'affichage des tâches pour une User Story donnée.
-   * @param story La User Story dont on veut basculer l'affichage des tâches.
-   * @param event L'événement de clic pour empêcher la propagation.
-   */
   toggleTasks(story: UserStory, event: MouseEvent): void {
     event.stopPropagation();
     story.showTasks = !story.showTasks;
   }
 
-  /**
-   * Ouvre la modal de création de User Story.
-   */
+  // ========== User Story Modal Methods ==========
+
   openCreateStoryModal(): void {
     this.showCreateStoryModal = true;
     this.userStoryError = null;
   }
 
-  /**
-   * Ferme la modal de création de User Story.
-   */
   closeCreateStoryModal(): void {
     this.showCreateStoryModal = false;
     this.userStoryError = null;
   }
 
-  /**
-   * Crée une nouvelle User Story.
-   * @param formValue Les valeurs du formulaire de création.
-   */
   onCreateUserStory(formValue: any): void {
     if (!this.project) return;
 
@@ -221,11 +182,6 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Ouvre la modal d'édition d'une User Story.
-   * @param story La User Story à éditer.
-   * @param event L'événement de clic pour empêcher la propagation.
-   */
   openEditStoryModal(story: UserStory, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -235,19 +191,12 @@ export class KanbanComponent implements OnInit {
     this.editUserStoryError = null;
   }
 
-  /**
-   * Ferme la modal d'édition d'une User Story.
-   */
   closeEditStoryModal(): void {
     this.showEditStoryModal = false;
     this.currentEditingStory = null;
     this.editUserStoryError = null;
   }
 
-  /**
-   * Met à jour une User Story existante.
-   * @param formValue Les valeurs du formulaire d'édition.
-   */
   onEditUserStory(formValue: any): void {
     if (!this.currentEditingStory) return;
 
@@ -257,7 +206,11 @@ export class KanbanComponent implements OnInit {
       next: (updatedStory: UserStory) => {
         const index = this.userStories.findIndex(s => s.id === updatedStory.id);
         if (index !== -1) {
-          this.userStories[index] = { ...updatedStory, showTasks: this.userStories[index].showTasks, tasks: this.userStories[index].tasks };
+          this.userStories[index] = { 
+            ...updatedStory, 
+            showTasks: this.userStories[index].showTasks, 
+            tasks: this.userStories[index].tasks 
+          };
         }
         this.closeEditStoryModal();
       },
@@ -272,16 +225,8 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Supprime une User Story donnée par son ID.
-   * @param storyId L'ID de la User Story à supprimer.
-   * @param event L'événement de clic pour empêcher la propagation.
-   */
   deleteUserStory(storyId: number, event: MouseEvent): void {
     event.stopPropagation();
-
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette User Story et toutes ses tâches ?')) {
-      return;
     const story = this.userStories.find(s => s.id === storyId);
     if (story) {
       this.storyToDelete = story;
@@ -305,18 +250,14 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Ouvre la modal de création d'une tâche pour une User Story donnée.
-   * @param userStoryId L'ID de la User Story pour laquelle créer la tâche.
-   * @param event L'événement de clic pour empêcher la propagation.
-   */
   closeDeleteStoryModal(): void {
     this.showDeleteStoryModal = false;
     this.storyToDelete = null;
     this.deleteError = null;
   }
 
-  // Task methods
+  // ========== Task Modal Methods ==========
+
   openCreateTaskModal(userStoryId: number, event: MouseEvent): void {
     event.stopPropagation();
     this.currentUserStoryId = userStoryId;
@@ -324,19 +265,12 @@ export class KanbanComponent implements OnInit {
     this.taskError = null;
   }
 
-  /**
-   * Ferme la modal de création d'une tâche.
-   */
   closeCreateTaskModal(): void {
     this.showCreateTaskModal = false;
     this.currentUserStoryId = null;
     this.taskError = null;
   }
 
-  /**
-   * Crée une nouvelle tâche pour une User Story donnée.
-   * @param formValue Les valeurs du formulaire de création.
-   */
   onCreateTask(formValue: any): void {
     if (!this.currentUserStoryId) return;
 
@@ -365,11 +299,6 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Ouvre la modal d'édition d'une tâche.
-   * @param task La tâche à éditer.
-   * @param event L'événement de clic pour empêcher la propagation.
-   */
   openEditTaskModal(task: Task, event: MouseEvent): void {
     event.stopPropagation();
     console.log('Task à éditer:', task);
@@ -378,19 +307,12 @@ export class KanbanComponent implements OnInit {
     this.editTaskError = null;
   }
 
-  /**
-   * Ferme la modal d'édition d'une tâche.
-   */
   closeEditTaskModal(): void {
     this.showEditTaskModal = false;
     this.currentEditingTask = null;
     this.editTaskError = null;
   }
 
-  /**
-   * Met à jour une tâche existante.
-   * @param formValue Les valeurs du formulaire d'édition.
-   */
   onEditTask(formValue: any): void {
     console.log('onEditTask appelé avec:', formValue);
 
@@ -401,28 +323,6 @@ export class KanbanComponent implements OnInit {
 
     console.log('currentEditingTask:', this.currentEditingTask);
 
-    this.editTaskError = null;
-    const token = localStorage.getItem('token');
-
-    // Trouver la user story qui contient cette tâche
-    let userStoryId: number;
-
-    if (this.currentEditingTask.userStory && this.currentEditingTask.userStory.id) {
-      userStoryId = this.currentEditingTask.userStory.id;
-    } else {
-      // Chercher la user story dans la liste
-      const story = this.userStories.find(s =>
-        s.tasks && s.tasks.some(t => t.id === this.currentEditingTask!.id)
-      );
-
-      if (!story) {
-        console.error('User story non trouvée pour la tâche');
-        this.editTaskError = 'Erreur: User story non trouvée';
-        return;
-      }
-
-      userStoryId = story.id;
-    
     this.editTaskError = null;
     
     // Trouver la user story qui contient cette tâche
@@ -462,18 +362,8 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Supprime une tâche donnée par son ID.
-   * @param taskId L'ID de la tâche à supprimer.
-   * @param userStoryId L'ID de la User Story associée à la tâche.
-   * @param event L'événement de clic pour empêcher la propagation.
-   */
   deleteTask(taskId: number, userStoryId: number, event: MouseEvent): void {
     event.stopPropagation();
-
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-      return;
-    }
     this.taskToDelete = { taskId, userStoryId };
     this.showDeleteTaskModal = true;
     this.deleteError = null;
@@ -497,35 +387,22 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  /**
-   * Retourne le label lisible pour une priorité donnée.
-   * @param priority La priorité de la tâche.
-   * @returns Le label correspondant.
-   */
   closeDeleteTaskModal(): void {
     this.showDeleteTaskModal = false;
     this.taskToDelete = null;
     this.deleteError = null;
   }
 
+  // ========== Helper Methods ==========
+
   getPriorityLabel(priority: string): string {
     return KanbanHelpers.getPriorityLabel(priority);
   }
 
-  /**
-   * Retourne le label lisible pour un statut donné.
-   * @param status Le statut de la tâche.
-   * @returns Le label correspondant.
-   */
   getStatusLabel(status: string): string {
     return KanbanHelpers.getStatusLabel(status);
   }
 
-  /**
-   * Retourne le label lisible pour le nombre de tâches dans une User Story.
-   * @param story La User Story.
-   * @returns Le label correspondant.
-   */
   getTaskCountLabel(story: UserStory): string {
     return KanbanHelpers.getTaskCountLabel(story.tasks?.length || 0);
   }
