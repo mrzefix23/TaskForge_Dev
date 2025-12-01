@@ -23,6 +23,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Entité représentant une User Story.
@@ -74,6 +75,11 @@ public class UserStory {
     @OneToMany(mappedBy = "userStory", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Task> tasks;
+
+    @ManyToOne
+    @JoinColumn(name = "version_id", nullable = true)
+    @JsonIgnoreProperties({"userStories", "project"})
+    private Version version;
     
     public enum Priority {
         LOW, MEDIUM, HIGH

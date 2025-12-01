@@ -139,6 +139,12 @@ export class KanbanComponent implements OnInit {
     }
   }
 
+  goToVersionManagement(): void {
+    if (this.project && this.project.id) {
+      this.router.navigate(['/projects', this.project.id, 'versions']);
+    }
+  }
+
   toggleTasks(story: UserStory, event: MouseEvent): void {
     event.stopPropagation();
     story.showTasks = !story.showTasks;

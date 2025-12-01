@@ -241,6 +241,25 @@
   box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
+.manage-versions-btn {
+  background: #8e44ad;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.9rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.manage-versions-btn:hover {
+  background: #732d91;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
+}
+
 .kanban-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

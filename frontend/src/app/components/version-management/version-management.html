@@ -1,0 +1,222 @@
+<app-header></app-header>
+
+<div class="version-management-container">
+  <div class="header-section">
+    <div class="header-content">
+      <button class="back-button" (click)="goBack()">← Retour au Kanban</button>
+      <h1>Gestion des Versions</h1>
+      <p *ngIf="project">Projet : {{ project.name }}</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateVersionModal()">
+      + Nouvelle Version
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <p>Chargement des versions...</p>
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error" class="content-layout">
+    <!-- Sidebar des versions -->
+    <div class="versions-sidebar">
+      <h2>Versions</h2>
+      
+      <div *ngIf="versions.length === 0" class="empty-state">
+        <p>Aucune version créée.</p>
+      </div>
+
+      <div class="versions-list">
+        <div *ngFor="let version of versions" 
+             class="version-card" 
+             [class.active]="expandedVersionId === version.id"
+             (click)="toggleVersionDetails(version.id)">
+          <div class="version-header">
+            <div class="version-info">
+              <h3>
+                <span class="version-number">v{{ version.versionNumber }}</span>
+                {{ version.title }}
+              </h3>
+              <span class="status-badge" [ngClass]="getStatusClass(version.status)">
+                {{ getStatusLabel(version.status) }}
+              </span>
+            </div>
+          </div>
+          <div class="version-meta">
+            <span *ngIf="version.releaseDate" class="release-date">
+              Publiée le {{ formatDate(version.releaseDate) }}
+            </span>
+            <span class="story-count">
+              {{ version.userStories?.length || 0 }} US
+            </span>
+          </div>
+          <div class="version-actions">
+            <select 
+              class="status-select" 
+              [value]="version.status" 
+              (change)="changeStatus(version, $any($event.target).value)"
+              (click)="$event.stopPropagation()">
+              <option value="PLANNED">Planifiée</option>
+              <option value="IN_PROGRESS">En cours</option>
+              <option value="RELEASED">Publiée</option>
+              <option value="ARCHIVED">Archivée</option>
+            </select>
+            <button class="edit-btn" (click)="openEditVersionModal(version); $event.stopPropagation()" title="Modifier">✎</button>
+            <button class="delete-btn" (click)="openDeleteModal(version); $event.stopPropagation()" title="Supprimer">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="version-content">
+      <div *ngIf="!expandedVersionId" class="version-details">
+        <h2>Sélectionnez une version</h2>
+        <p class="empty-state">Cliquez sur une version dans la liste pour voir ses détails et les User Stories associées.</p>
+      </div>
+
+      <div *ngIf="expandedVersionId" class="version-details">
+        <h2>{{ getSelectedVersion()?.title }}</h2>
+        
+        <div class="version-info-box">
+          <p><strong>Version :</strong> v{{ getSelectedVersion()?.versionNumber }}</p>
+          <p><strong>Statut :</strong> {{ getStatusLabel(getSelectedVersion()?.status || '') }}</p>
+          <p *ngIf="getSelectedVersion()?.description"><strong>Description :</strong> {{ getSelectedVersion()?.description }}</p>
+          <p *ngIf="getSelectedVersion()?.releaseDate"><strong>Date de publication :</strong> {{ formatDate(getSelectedVersion()?.releaseDate || '') }}</p>
+        </div>
+
+        <h3>User Stories associées</h3>
+        
+        <div *ngIf="!getSelectedVersion()?.userStories || getSelectedVersion()?.userStories?.length === 0" class="no-stories">
+          Aucune User Story assignée à cette version.
+        </div>
+        
+        <ul *ngIf="getSelectedVersion()?.userStories && getSelectedVersion()!.userStories!.length > 0" class="user-stories-list">
+          <li *ngFor="let story of getSelectedVersion()?.userStories" class="user-story-item">
+            <div class="story-info">
+              <span class="story-title">{{ story.title }}</span>
+              <span class="story-status" [ngClass]="'status-' + story.status.toLowerCase()">
+                {{ story.status }}
+              </span>
+            </div>
+            <button class="btn-remove" (click)="removeUserStoryFromVersion(getSelectedVersion()!, story.id)">
+              Retirer
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div *ngIf="expandedVersionId" class="available-stories-section">
+        <h2>User Stories disponibles</h2>
+        <div *ngIf="availableUserStories.length === 0" class="empty-state">
+          Toutes les User Stories sont déjà assignées à une version.
+        </div>
+        <ul *ngIf="availableUserStories.length > 0" class="user-stories-list">
+          <li *ngFor="let story of availableUserStories" class="user-story-item">
+            <div class="story-info">
+              <span class="story-title">{{ story.title }}</span>
+              <span class="story-status" [ngClass]="'status-' + story.status.toLowerCase()">
+                {{ story.status }}
+              </span>
+            </div>
+            <button class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" (click)="quickAssignUserStory(story.id)">
+              + Ajouter
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showVersionModal" class="modal-overlay" (click)="closeVersionModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Modifier la version' : 'Nouvelle version' }}</h2>
+      <button class="close-btn" (click)="closeVersionModal()">×</button>
+    </div>
+    <div *ngIf="versionError" class="alert alert-error">
+      {{ versionError }}
+    </div>
+    <div class="form-group">
+      <label for="versionNumber">Numéro de version *</label>
+      <input 
+        type="text" 
+        id="versionNumber" 
+        [(ngModel)]="versionForm.versionNumber" 
+        placeholder="ex: 1.0.0"
+        required>
+    </div>
+    <div class="form-group">
+      <label for="title">Titre *</label>
+      <input 
+        type="text" 
+        id="title" 
+        [(ngModel)]="versionForm.title" 
+        placeholder="ex: Release initiale"
+        required>
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea 
+        id="description" 
+        [(ngModel)]="versionForm.description" 
+        rows="3"
+        placeholder="Description de cette version..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeVersionModal()">Annuler</button>
+      <button class="btn-primary" (click)="saveVersion()">
+        {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showDeleteModal" class="modal-overlay" (click)="closeDeleteModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteModal()">×</button>
+    </div>
+    <div *ngIf="deleteError" class="alert alert-error">
+      {{ deleteError }}
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer la version <strong>v{{ versionToDelete?.versionNumber }}</strong> ?</p>
+    <p class="warning">Les User Stories associées seront dissociées mais pas supprimées.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteModal()">Annuler</button>
+      <button class="btn-danger" (click)="confirmDelete()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showAssignModal" class="modal-overlay" (click)="closeAssignModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Assigner une User Story</h2>
+      <button class="close-btn" (click)="closeAssignModal()">×</button>
+    </div>
+    <p>Version : <strong>v{{ versionToAssign?.versionNumber }} - {{ versionToAssign?.title }}</strong></p>
+    <div class="form-group">
+      <label for="userStory">Sélectionner une User Story</label>
+      <select id="userStory" [(ngModel)]="selectedUserStoryId">
+        <option [ngValue]="null">-- Choisir une User Story --</option>
+        <option *ngFor="let story of availableUserStories" [ngValue]="story.id">
+          {{ story.title }} ({{ story.status }})
+        </option>
+      </select>
+    </div>
+    <div *ngIf="availableUserStories.length === 0" class="info-message">
+      Toutes les User Stories sont déjà assignées à une version.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeAssignModal()">Annuler</button>
+      <button class="btn-primary" (click)="assignUserStory()" [disabled]="!selectedUserStoryId">
+        Assigner
+      </button>
+    </div>
+  </div>
+</div>

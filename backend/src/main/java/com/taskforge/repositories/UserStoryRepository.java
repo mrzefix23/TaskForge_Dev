@@ -11,4 +11,5 @@ public interface UserStoryRepository extends JpaRepository<UserStory, Long> {
     boolean existsByTitleAndProjectId(String title, Long projectId);
     UserStory findByTitleAndProjectId(String title, Long projectId);
     void deleteAllByProjectId(Long projectId);
+    List<UserStory> findByVersionId(Long versionId);
 }

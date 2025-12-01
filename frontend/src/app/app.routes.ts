@@ -10,6 +10,7 @@ import { ProjectsListComponent } from './components/projects/projects-list/proje
 import { EditProjectComponent } from './components/projects/edit-project/edit-project';
 import { KanbanComponent } from './components/kanban/kanban';
 import { SprintManagementComponent } from './components/sprint-management/sprint-management';
+import { VersionManagementComponent } from './components/version-management/version-management';
 
 /**
  * Définition des routes de l'application.
@@ -37,4 +38,8 @@ export const routes: Routes = [
   
   // --- Gestion des sprints ---
   { path: 'projects/:id/sprints', component: SprintManagementComponent, canActivate: [AuthGuard] },
+
+  // --- Gestions des versions ---
+  { path: 'projects/:id/versions', component: VersionManagementComponent, canActivate: [AuthGuard] },
+  
 ];
