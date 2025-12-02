@@ -18,6 +18,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Entité représentant une tâche technique.
  * Une tâche est une sous-unité de travail liée à une User Story spécifique.
@@ -31,38 +33,47 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Task {
     
+    @Schema(description = "Identifiant unique de la tâche", example = "1")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Schema(description = "Titre de la tâche", example = "Implémenter l'authentification OAuth2")
     @Column(nullable = false)
     private String title;
     
+    @Schema(description = "Description détaillée de la tâche", example = "Mettre en place OAuth2 avec JWT pour sécuriser les endpoints")
     @Column(length = 2000)
     private String description;
     
+    @Schema(description = "Priorité de la tâche", example = "HIGH")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Priority priority;
     
+    @Schema(description = "Statut de la tâche", example = "TODO")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
     
+    @Schema(description = "User Story associée à la tâche")
     @ManyToOne
     @JoinColumn(name = "user_story_id", nullable = false)
     @JsonBackReference
     private UserStory userStory;
     
+    @Schema(description = "Utilisateur assigné à la tâche", example = "john.doe")
     @ManyToOne
     @JoinColumn(name = "assigned_to_user_id")
     @JsonIgnore
     private User assignedTo;
     
+    @Schema(description = "Priorité de la tâche", example = "HIGH")
     public enum Priority {
         LOW, MEDIUM, HIGH
     }
     
+    @Schema(description = "Statut de la tâche", example = "TODO")
     public enum Status {
         TODO, IN_PROGRESS, DONE
     }
