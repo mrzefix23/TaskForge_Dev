@@ -15,6 +15,15 @@ export interface Sprint {
   projectId: number;
 }
 
+export interface KanbanColumn {
+  id: number;
+  name: string;
+  status: string;
+  order: number;
+  projectId: number;
+  isDefault: boolean;
+}
+
 export interface Task {
   id: number;
   title: string;
@@ -30,12 +39,13 @@ export interface UserStory {
   title: string;
   description: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  status: string;
   assignedTo?: { username: string }[];
   sprint?: Sprint;
   tasks?: Task[];
   showTasks?: boolean;
   version?: Version;
+  kanbanColumn?: KanbanColumn;
 }
 
 export interface Version {
@@ -49,4 +59,4 @@ export interface Version {
 }
 
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
-export type Status = 'TODO' | 'IN_PROGRESS' | 'DONE';
+export type Status = string;

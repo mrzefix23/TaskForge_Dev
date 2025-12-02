@@ -17,6 +17,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,8 @@ import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.UserRepository;
 import com.taskforge.repositories.UserStoryRepository;
 import com.taskforge.repositories.SprintRepository;
+import com.taskforge.repositories.KanbanColumnRepository;
+import com.taskforge.service.KanbanColumnService;
 
 /**
  * Tests unitaires pour le service de gestion des projets (ProjectService).
@@ -54,6 +57,12 @@ class ProjectServiceTest {
 
     @Mock
     private SprintRepository sprintRepository;
+
+    @Mock
+    private KanbanColumnRepository kanbanColumnRepository;
+
+    @Mock
+    private KanbanColumnService kanbanColumnService;
 
     @InjectMocks
     private ProjectService projectService;
@@ -89,6 +98,7 @@ class ProjectServiceTest {
     @Test
     void createProject_shouldCreateProject_WhenValidRequest() {
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+        lenient().doNothing().when(kanbanColumnService).initializeDefaultColumns(any(Project.class));
         
         Project savedProject = Project.builder()
                 .id(1L)
@@ -132,6 +142,7 @@ class ProjectServiceTest {
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.findByUsername("member")).thenReturn(Optional.of(memberUser));
+        lenient().doNothing().when(kanbanColumnService).initializeDefaultColumns(any(Project.class));
         
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -371,11 +382,13 @@ class ProjectServiceTest {
                 .build();
 
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+        doNothing().when(kanbanColumnRepository).deleteAllByProjectId(1L);
         doNothing().when(userStoryRepository).deleteAllByProjectId(1L);
         doNothing().when(projectRepository).deleteById(1L);
 
         projectService.deleteProject(1L, "testuser");
 
+        verify(kanbanColumnRepository, times(1)).deleteAllByProjectId(1L);
         verify(userStoryRepository, times(1)).deleteAllByProjectId(1L);
         verify(projectRepository, times(1)).deleteById(1L);
     }

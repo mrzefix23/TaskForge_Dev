@@ -14,6 +14,7 @@ import com.taskforge.exceptions.UpdateProjectException;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
+import com.taskforge.repositories.KanbanColumnRepository;
 import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.SprintRepository;
 import com.taskforge.repositories.TaskRepository;
@@ -44,6 +45,9 @@ public class ProjectService {
 
     @Autowired
     private SprintRepository sprintRepository;
+    
+    @Autowired
+    private KanbanColumnRepository kanbanColumnRepository;
   
     /**
      * Crée un nouveau projet.
@@ -53,6 +57,7 @@ public class ProjectService {
      * @return Le projet créé et sauvegardé.
      * @throws RuntimeException Si l'utilisateur propriétaire ou un membre n'est pas trouvé.
      */
+    @Transactional
     public Project createProject(CreateProjectRequest createProjectRequest) {
         User owner = userRepository.findByUsername(createProjectRequest.getUser().getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -79,7 +84,12 @@ public class ProjectService {
         // Set members to project
         project.setMembers(members);
         
-        return projectRepository.save(project);
+        Project savedProject = projectRepository.save(project);
+        
+        // Initialize default Kanban columns
+        initializeDefaultKanbanColumns(savedProject);
+        
+        return savedProject;
     }
 
     /**
@@ -176,6 +186,9 @@ public class ProjectService {
         
         // Supprimer tous les sprints du projet
         sprintRepository.deleteAllByProjectId(projectId);
+        
+        // Supprimer toutes les colonnes Kanban du projet
+        kanbanColumnRepository.deleteAllByProjectId(projectId);
 
         projectRepository.deleteById(projectId);
     }   
@@ -188,5 +201,40 @@ public class ProjectService {
      */
     public List<Project> getProjectsByUsername(String username) {
         return projectRepository.findAllByOwnerOrMember(username);
+    }
+    
+    /**
+     * Initialise les colonnes Kanban par défaut pour un projet.
+     *
+     * @param project Le projet pour lequel créer les colonnes.
+     */
+    private void initializeDefaultKanbanColumns(Project project) {
+        com.taskforge.models.KanbanColumn todoColumn = com.taskforge.models.KanbanColumn.builder()
+                .name("À faire")
+                .status("TODO")
+                .order(1)
+                .project(project)
+                .isDefault(true)
+                .build();
+        
+        com.taskforge.models.KanbanColumn inProgressColumn = com.taskforge.models.KanbanColumn.builder()
+                .name("En cours")
+                .status("IN_PROGRESS")
+                .order(2)
+                .project(project)
+                .isDefault(true)
+                .build();
+        
+        com.taskforge.models.KanbanColumn doneColumn = com.taskforge.models.KanbanColumn.builder()
+                .name("Terminé")
+                .status("DONE")
+                .order(3)
+                .project(project)
+                .isDefault(true)
+                .build();
+        
+        kanbanColumnRepository.save(todoColumn);
+        kanbanColumnRepository.save(inProgressColumn);
+        kanbanColumnRepository.save(doneColumn);
     }
 }
