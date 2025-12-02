@@ -35,6 +35,12 @@ export class KanbanComponent implements OnInit {
   newColumnOrder = 4;
   columnError: string | null = null;
 
+  showRenameColumnModal = false;
+  renameColumnId: number | null = null;
+  renameColumnName = '';
+  renameColumnOrder = 1;
+  renameError: string | null = null;
+
   showCreateStoryModal = false;
   showEditStoryModal = false;
   userStoryError: string | null = null;
@@ -558,7 +564,57 @@ export class KanbanComponent implements OnInit {
         this.kanbanColumns = this.kanbanColumns.filter(c => c.id !== column.id);
       },
       error: (err: any) => {
-        alert('Erreur lors de la suppression de la colonne.');
+        alert('Erreur vous ne pouvez pas supprimer une colonne non vide.');
+        console.error(err);
+      }
+    });
+  }
+
+  openRenameColumnModal(column: KanbanColumn, event: MouseEvent): void {
+    event.stopPropagation();
+    this.renameColumnId = column.id;
+    this.renameColumnName = column.name;
+    this.renameColumnOrder = column.order;
+    this.showRenameColumnModal = true;
+    this.renameError = null;
+  }
+
+  closeRenameColumnModal(): void {
+    this.showRenameColumnModal = false;
+    this.renameColumnId = null;
+    this.renameColumnName = '';
+    this.renameError = null;
+  }
+
+  renameColumn(): void {
+    if (!this.renameColumnId || !this.renameColumnName.trim()) {
+      this.renameError = 'Le nom de la colonne est requis.';
+      return;
+    }
+
+    const column = this.kanbanColumns.find(c => c.id === this.renameColumnId);
+    if (!column) {
+      this.renameError = 'Colonne non trouvée.';
+      return;
+    }
+
+    const updatedColumn: Partial<KanbanColumn> = {
+      name: this.renameColumnName,
+      status: column.status,
+      order: this.renameColumnOrder,
+      projectId: column.projectId
+    };
+
+    this.kanbanColumnService.update(this.renameColumnId, updatedColumn).subscribe({
+      next: (updated: KanbanColumn) => {
+        const index = this.kanbanColumns.findIndex(c => c.id === this.renameColumnId);
+        if (index !== -1) {
+          this.kanbanColumns[index] = updated;
+        }
+        this.closeRenameColumnModal();
+      },
+      error: (err: any) => {
+        this.renameError = err.error?.message || 'Erreur lors du renommage de la colonne.';
         console.error(err);
       }
     });

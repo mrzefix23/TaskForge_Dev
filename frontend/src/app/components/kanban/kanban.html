@@ -59,7 +59,10 @@
       <div *ngFor="let column of kanbanColumns" class="kanban-column">
         <div class="column-header">
           <h2 class="column-title" [ngClass]="column.status.toLowerCase()">{{ column.name }}</h2>
-          <button *ngIf="!column.isDefault" (click)="deleteColumn(column, $event)" class="delete-column-btn" title="Supprimer la colonne">×</button>
+          <div class="column-actions">
+            <button (click)="openRenameColumnModal(column, $event)" class="rename-column-btn" title="Renommer la colonne">✎</button>
+            <button *ngIf="!column.isDefault" (click)="deleteColumn(column, $event)" class="delete-column-btn" title="Supprimer la colonne">×</button>
+          </div>
         </div>
         <div 
           class="story-list"
@@ -231,6 +234,31 @@
     <div class="modal-actions">
       <button class="btn-secondary" (click)="closeAddColumnModal()">Annuler</button>
       <button class="btn-primary" (click)="addColumn()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Renommer une Colonne -->
+<div *ngIf="showRenameColumnModal" class="modal-overlay" (click)="closeRenameColumnModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Renommer la Colonne</h2>
+      <button class="close-btn" (click)="closeRenameColumnModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label for="renameColumnName">Nouveau nom:</label>
+      <input 
+        type="text" 
+        id="renameColumnName" 
+        [(ngModel)]="renameColumnName" 
+        class="form-control" 
+        placeholder="Nom de la colonne"
+        (keyup.enter)="renameColumn()">
+    </div>
+    <div *ngIf="renameError" class="alert alert-error">{{ renameError }}</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeRenameColumnModal()">Annuler</button>
+      <button class="btn-primary" (click)="renameColumn()">Renommer</button>
     </div>
   </div>
 </div>

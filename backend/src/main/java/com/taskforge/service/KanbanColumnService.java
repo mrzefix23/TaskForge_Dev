@@ -82,13 +82,14 @@ public class KanbanColumnService {
         // Vérifier l'accès au projet
         projectService.getProjectById(column.getProject().getId(), username);
         
-        // Ne pas permettre la modification des colonnes par défaut
-        if (column.getIsDefault()) {
-            throw new RuntimeException("Les colonnes par défaut ne peuvent pas être modifiées");
-        }
-        
+        // Toujours permettre la modification du nom
         column.setName(request.getName());
-        column.setOrder(request.getOrder());
+        
+        // Pour les colonnes par défaut, ne pas modifier le statut ni l'ordre
+        if (!column.getIsDefault()) {
+            column.setOrder(request.getOrder());
+            // Le statut n'est pas modifié car il sert de clé
+        }
         
         return kanbanColumnRepository.save(column);
     }
