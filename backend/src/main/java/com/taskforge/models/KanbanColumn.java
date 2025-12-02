@@ -1,6 +1,14 @@
 package com.taskforge.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +20,9 @@ import lombok.NoArgsConstructor;
  * pour organiser leurs User Stories selon leur workflow.
  */
 @Entity
-@Table(name = "kanban_columns")
+@Table(name = "kanban_columns", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_status_project", columnNames = {"status", "project_id"})
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -26,7 +36,7 @@ public class KanbanColumn {
     @Column(nullable = false)
     private String name;
     
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String status;
     
     @Column(name = "column_order", nullable = false)
