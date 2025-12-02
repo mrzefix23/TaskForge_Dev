@@ -3,19 +3,21 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { DragDropModule, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { HeaderComponent } from '../header/header';
 import { UserStoryFormComponent } from './user-story-form/user-story-form';
 import { TaskFormComponent } from './task-form/task-form';
-import { Project, Sprint, Task, UserStory } from '../../models/kanban.models';
+import { Project, Sprint, Task, UserStory, KanbanColumn } from '../../models/kanban.models';
 import { ProjectService } from '../../services/project.service';
 import { UserStoryService } from '../../services/user-story.service';
 import { TaskService } from '../../services/task.service';
+import { KanbanColumnService } from '../../services/kanban-column.service';
 import { KanbanHelpers } from './kanban.helpers';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule, HeaderComponent, UserStoryFormComponent, TaskFormComponent, DragDropModule],
   templateUrl: './kanban.html',
   styleUrls: ['./kanban.css']
 })
@@ -23,9 +25,15 @@ export class KanbanComponent implements OnInit {
   project: Project | null = null;
   userStories: UserStory[] = [];
   sprints: Sprint[] = [];
+  kanbanColumns: KanbanColumn[] = [];
   selectedSprintFilter: string = 'all';
   loading = true;
   error: string | null = null;
+
+  showAddColumnModal = false;
+  newColumnName = '';
+  newColumnOrder = 4;
+  columnError: string | null = null;
 
   showCreateStoryModal = false;
   showEditStoryModal = false;
@@ -51,7 +59,8 @@ export class KanbanComponent implements OnInit {
     private router: Router,
     private projectService: ProjectService,
     private userStoryService: UserStoryService,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private kanbanColumnService: KanbanColumnService
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +69,7 @@ export class KanbanComponent implements OnInit {
       this.loadProjectDetails(+projectId);
       this.loadUserStories(+projectId);
       this.loadSprints(+projectId);
+      this.loadKanbanColumns(+projectId);
     } else {
       this.error = "ID de projet non trouvé.";
       this.loading = false;
@@ -129,8 +139,83 @@ export class KanbanComponent implements OnInit {
     }
   }
 
-  getStoriesByStatus(status: 'TODO' | 'IN_PROGRESS' | 'DONE'): UserStory[] {
+  getStoriesByStatus(status: string): UserStory[] {
     return this.getFilteredUserStories().filter(story => story.status === status);
+  }
+
+  loadKanbanColumns(projectId: number): void {
+    this.kanbanColumnService.getByProject(projectId).subscribe({
+      next: (columns: KanbanColumn[]) => {
+        this.kanbanColumns = columns;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des colonnes Kanban:', err);
+      }
+    });
+  }
+
+  getConnectedDropLists(): string[] {
+    return this.kanbanColumns.map(col => `column-${col.status}`);
+  }
+
+  onDrop(event: CdkDragDrop<UserStory[]>, targetStatus: string): void {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      const story = event.previousContainer.data[event.previousIndex];
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+      
+      // Update status in backend
+      this.userStoryService.updateStatus(story.id, targetStatus).subscribe({
+        next: (updatedStory: UserStory) => {
+          const index = this.userStories.findIndex(s => s.id === updatedStory.id);
+          if (index !== -1) {
+            this.userStories[index] = {
+              ...updatedStory,
+              showTasks: this.userStories[index].showTasks,
+              tasks: this.userStories[index].tasks
+            };
+          }
+        },
+        error: (err: any) => {
+          console.error('Erreur lors de la mise à jour du statut:', err);
+          // Revert the change on error
+          transferArrayItem(
+            event.container.data,
+            event.previousContainer.data,
+            event.currentIndex,
+            event.previousIndex
+          );
+        }
+      });
+    }
+  }
+
+  changeStatus(story: UserStory, newStatus: string, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    this.userStoryService.updateStatus(story.id, newStatus).subscribe({
+      next: (updatedStory: UserStory) => {
+        const index = this.userStories.findIndex(s => s.id === updatedStory.id);
+        if (index !== -1) {
+          this.userStories[index] = {
+            ...updatedStory,
+            showTasks: this.userStories[index].showTasks,
+            tasks: this.userStories[index].tasks
+          };
+        }
+      },
+      error: (err: any) => {
+        console.error('Erreur lors de la mise à jour du statut:', err);
+      }
+    });
   }
 
   goToSprintManagement(): void {
@@ -411,5 +496,71 @@ export class KanbanComponent implements OnInit {
 
   getTaskCountLabel(story: UserStory): string {
     return KanbanHelpers.getTaskCountLabel(story.tasks?.length || 0);
+  }
+
+  // ========== Column Management Methods ==========
+
+  openAddColumnModal(): void {
+    this.showAddColumnModal = true;
+    this.newColumnName = '';
+    this.newColumnOrder = this.kanbanColumns.length + 1;
+    this.columnError = null;
+  }
+
+  closeAddColumnModal(): void {
+    this.showAddColumnModal = false;
+    this.newColumnName = '';
+    this.columnError = null;
+  }
+
+  addColumn(): void {
+    if (!this.project || !this.newColumnName.trim()) {
+      this.columnError = 'Le nom de la colonne est requis.';
+      return;
+    }
+
+    const status = this.newColumnName.toUpperCase().replace(/\s+/g, '_');
+    
+    const newColumn: Partial<KanbanColumn> = {
+      name: this.newColumnName,
+      status: status,
+      order: this.newColumnOrder,
+      projectId: this.project.id
+    };
+
+    this.kanbanColumnService.create(newColumn).subscribe({
+      next: (column: KanbanColumn) => {
+        this.kanbanColumns.push(column);
+        this.kanbanColumns.sort((a, b) => a.order - b.order);
+        this.closeAddColumnModal();
+      },
+      error: (err: any) => {
+        this.columnError = err.error?.message || 'Erreur lors de la création de la colonne.';
+        console.error(err);
+      }
+    });
+  }
+
+  deleteColumn(column: KanbanColumn, event: MouseEvent): void {
+    event.stopPropagation();
+    
+    if (column.isDefault) {
+      alert('Les colonnes par défaut ne peuvent pas être supprimées.');
+      return;
+    }
+
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer la colonne "${column.name}" ?`)) {
+      return;
+    }
+
+    this.kanbanColumnService.delete(column.id).subscribe({
+      next: () => {
+        this.kanbanColumns = this.kanbanColumns.filter(c => c.id !== column.id);
+      },
+      error: (err: any) => {
+        alert('Erreur lors de la suppression de la colonne.');
+        console.error(err);
+      }
+    });
   }
 }

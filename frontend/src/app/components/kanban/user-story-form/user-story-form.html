@@ -25,9 +25,9 @@
         <div class="form-group" *ngIf="isEditMode">
           <label [for]="'story-status-' + mode">Statut *</label>
           <select [id]="'story-status-' + mode" formControlName="status">
-            <option value="TODO">📋 À Faire</option>
-            <option value="IN_PROGRESS">⚙️ En Cours</option>
-            <option value="DONE">✅ Terminé</option>
+            <option *ngFor="let column of kanbanColumns" [value]="column.status">
+              {{ column.name }}
+            </option>
           </select>
         </div>
       </div>

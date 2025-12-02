@@ -39,4 +39,10 @@ export class UserStoryService {
       headers: this.getHeaders()
     });
   }
+
+  updateStatus(id: number, status: string): Observable<UserStory> {
+    return this.http.put<UserStory>(`${this.API_URL}/${id}/status`, { status }, {
+      headers: this.getHeaders()
+    });
+  }
 }
