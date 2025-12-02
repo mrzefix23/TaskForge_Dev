@@ -14,6 +14,11 @@ import { TaskService } from '../../services/task.service';
 import { KanbanColumnService } from '../../services/kanban-column.service';
 import { KanbanHelpers } from './kanban.helpers';
 
+/**
+ * Composant principal du tableau Kanban.
+ * Gère l'affichage et la manipulation des user stories, tâches et colonnes Kanban.
+ * Permet le drag & drop, la création/édition/suppression d'éléments et la gestion des sprints.
+ */
 @Component({
   selector: 'app-project-detail',
   standalone: true,
@@ -22,47 +27,109 @@ import { KanbanHelpers } from './kanban.helpers';
   styleUrls: ['./kanban.css']
 })
 export class KanbanComponent implements OnInit {
+  /** Projet actuellement affiché. */
   project: Project | null = null;
+  
+  /** Liste des user stories du projet. */
   userStories: UserStory[] = [];
+  
+  /** Liste des sprints disponibles pour le filtrage. */
   sprints: Sprint[] = [];
+  
+  /** Colonnes Kanban personnalisées du projet. */
   kanbanColumns: KanbanColumn[] = [];
+  
+  /** Filtre de sprint sélectionné ('all', 'backlog' ou ID de sprint). */
   selectedSprintFilter: string = 'all';
+  
+  /** État de chargement des données. */
   loading = true;
+  
+  /** Message d'erreur de chargement. */
   error: string | null = null;
 
+  /** État d'affichage de la modale d'ajout de colonne. */
   showAddColumnModal = false;
+  
+  /** Nom de la nouvelle colonne à créer. */
   newColumnName = '';
+  
+  /** Ordre de la nouvelle colonne. */
   newColumnOrder = 4;
+  
+  /** Message d'erreur lors de la création de colonne. */
   columnError: string | null = null;
 
+  /** État d'affichage de la modale de renommage de colonne. */
   showRenameColumnModal = false;
+  
+  /** ID de la colonne en cours de renommage. */
   renameColumnId: number | null = null;
+  
+  /** Nouveau nom pour la colonne en cours de renommage. */
   renameColumnName = '';
+  
+  /** Ordre de la colonne en cours de renommage. */
   renameColumnOrder = 1;
+  
+  /** Message d'erreur lors du renommage de colonne. */
   renameError: string | null = null;
 
+  /** État d'affichage de la modale de création de user story. */
   showCreateStoryModal = false;
+  
+  /** État d'affichage de la modale d'édition de user story. */
   showEditStoryModal = false;
+  
+  /** Message d'erreur lors de la création de user story. */
   userStoryError: string | null = null;
+  
+  /** Message d'erreur lors de l'édition de user story. */
   editUserStoryError: string | null = null;
+  
+  /** User story actuellement en cours d'édition. */
   currentEditingStory: UserStory | null = null;
 
+  /** État d'affichage de la modale de création de tâche. */
   showCreateTaskModal = false;
+  
+  /** État d'affichage de la modale d'édition de tâche. */
   showEditTaskModal = false;
+  
+  /** Message d'erreur lors de la création de tâche. */
   taskError: string | null = null;
+  
+  /** Message d'erreur lors de l'édition de tâche. */
   editTaskError: string | null = null;
+  
+  /** Tâche actuellement en cours d'édition. */
   currentEditingTask: Task | null = null;
+  
+  /** ID de la user story pour laquelle créer une tâche. */
   currentUserStoryId: number | null = null;
 
+  /** État d'affichage de la modale de suppression de user story. */
   showDeleteStoryModal = false;
+  
+  /** État d'affichage de la modale de suppression de tâche. */
   showDeleteTaskModal = false;
+  
+  /** État d'affichage de la modale de suppression de colonne. */
   showDeleteColumnModal = false;
+  
+  /** User story en attente de suppression. */
   storyToDelete: UserStory | null = null;
+  
+  /** Tâche en attente de suppression (avec son ID de user story). */
   taskToDelete: { taskId: number, userStoryId: number } | null = null;
+  
+  /** Colonne en attente de suppression. */
   columnToDelete: KanbanColumn | null = null;
+  
+  /** Message d'erreur lors d'une suppression. */
   deleteError: string | null = null;
 
-  // Système de notification globale
+  /** Notification globale affichée en haut de la page. */
   notification: { message: string, type: 'success' | 'error' | 'info' } | null = null;
 
   constructor(
@@ -74,6 +141,10 @@ export class KanbanComponent implements OnInit {
     private kanbanColumnService: KanbanColumnService
   ) {}
 
+  /**
+   * Initialise le composant en chargeant les données du projet.
+   * Récupère l'ID du projet depuis la route et charge toutes les données nécessaires.
+   */
   ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('id');
     if (projectId) {
@@ -87,6 +158,10 @@ export class KanbanComponent implements OnInit {
     }
   }
 
+  /**
+   * Charge les détails du projet.
+   * @param projectId - ID du projet à charger.
+   */
   loadProjectDetails(projectId: number): void {
     this.projectService.getById(projectId).subscribe({
       next: (data: Project) => {
@@ -101,6 +176,11 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Charge les user stories du projet.
+   * Pour chaque user story, initialise la liste des tâches et l'état d'affichage.
+   * @param projectId - ID du projet.
+   */
   loadUserStories(projectId: number): void {
     this.userStoryService.getByProject(projectId).subscribe({
       next: (data: UserStory[]) => {
@@ -114,6 +194,10 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Charge les tâches associées à une user story.
+   * @param userStoryId - ID de la user story.
+   */
   loadTasksForStory(userStoryId: number): void {
     this.taskService.getByUserStory(userStoryId).subscribe({
       next: (tasks: Task[]) => {
@@ -128,6 +212,10 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Charge les sprints du projet pour le filtrage.
+   * @param projectId - ID du projet.
+   */
   loadSprints(projectId: number): void {
     this.projectService.getSprintsByProject(projectId).subscribe({
       next: (data: Sprint[]) => {
@@ -139,6 +227,10 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Retourne les user stories filtrées selon le sprint sélectionné.
+   * @returns Liste des user stories filtrées.
+   */
   getFilteredUserStories(): UserStory[] {
     if (this.selectedSprintFilter === 'all') {
       return this.userStories;
@@ -150,10 +242,19 @@ export class KanbanComponent implements OnInit {
     }
   }
 
+  /**
+   * Retourne les user stories filtrées par statut (colonne).
+   * @param status - Statut de la colonne.
+   * @returns Liste des user stories pour cette colonne.
+   */
   getStoriesByStatus(status: string): UserStory[] {
     return this.getFilteredUserStories().filter(story => story.status === status);
   }
 
+  /**
+   * Charge les colonnes Kanban personnalisées du projet.
+   * @param projectId - ID du projet.
+   */
   loadKanbanColumns(projectId: number): void {
     this.kanbanColumnService.getByProject(projectId).subscribe({
       next: (columns: KanbanColumn[]) => {
@@ -165,10 +266,22 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Retourne la liste des IDs de drop lists connectées pour le drag & drop.
+   * Permet de déplacer les user stories entre toutes les colonnes.
+   * @returns Liste des IDs de colonnes.
+   */
   getConnectedDropLists(): string[] {
     return this.kanbanColumns.map(col => `column-${col.status}`);
   }
 
+  /**
+   * Gère le dépôt d'une user story après drag & drop.
+   * Met à jour le statut de la user story dans la base de données.
+   * En cas d'erreur, annule le déplacement.
+   * @param event - Événement de drag & drop CDK.
+   * @param targetStatus - Statut de la colonne de destination.
+   */
   onDrop(event: CdkDragDrop<UserStory[]>, targetStatus: string): void {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
@@ -208,6 +321,12 @@ export class KanbanComponent implements OnInit {
     }
   }
 
+  /**
+   * Change le statut d'une user story via le sélecteur de statut.
+   * @param story - User story à modifier.
+   * @param newStatus - Nouveau statut.
+   * @param event - Événement de clic (optionnel).
+   */
   changeStatus(story: UserStory, newStatus: string, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -231,18 +350,29 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Navigue vers la page de gestion des sprints du projet.
+   */
   goToSprintManagement(): void {
     if (this.project) {
       this.router.navigate(['/projects', this.project.id, 'sprints']);
     }
   }
 
+  /**
+   * Navigue vers la page de gestion des versions du projet.
+   */
   goToVersionManagement(): void {
     if (this.project && this.project.id) {
       this.router.navigate(['/projects', this.project.id, 'versions']);
     }
   }
 
+  /**
+   * Bascule l'affichage des tâches d'une user story.
+   * @param story - User story concernée.
+   * @param event - Événement de clic.
+   */
   toggleTasks(story: UserStory, event: MouseEvent): void {
     event.stopPropagation();
     story.showTasks = !story.showTasks;
@@ -250,16 +380,27 @@ export class KanbanComponent implements OnInit {
 
   // ========== User Story Modal Methods ==========
 
+  /**
+   * Ouvre la modale de création de user story.
+   */
   openCreateStoryModal(): void {
     this.showCreateStoryModal = true;
     this.userStoryError = null;
   }
 
+  /**
+   * Ferme la modale de création de user story.
+   */
   closeCreateStoryModal(): void {
     this.showCreateStoryModal = false;
     this.userStoryError = null;
   }
 
+  /**
+   * Crée une nouvelle user story.
+   * Affiche une notification de succès ou d'erreur.
+   * @param formValue - Données du formulaire.
+   */
   onCreateUserStory(formValue: any): void {
     if (!this.project) return;
 
@@ -287,6 +428,11 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Ouvre la modale d'édition pour une user story.
+   * @param story - User story à éditer.
+   * @param event - Événement de clic (optionnel).
+   */
   openEditStoryModal(story: UserStory, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -296,12 +442,20 @@ export class KanbanComponent implements OnInit {
     this.editUserStoryError = null;
   }
 
+  /**
+   * Ferme la modale d'édition de user story.
+   */
   closeEditStoryModal(): void {
     this.showEditStoryModal = false;
     this.currentEditingStory = null;
     this.editUserStoryError = null;
   }
 
+  /**
+   * Met à jour une user story existante.
+   * Affiche une notification de succès ou d'erreur.
+   * @param formValue - Données du formulaire.
+   */
   onEditUserStory(formValue: any): void {
     if (!this.currentEditingStory) return;
 
@@ -331,6 +485,11 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Prépare la suppression d'une user story (ouvre la modale de confirmation).
+   * @param storyId - ID de la user story à supprimer.
+   * @param event - Événement de clic.
+   */
   deleteUserStory(storyId: number, event: MouseEvent): void {
     event.stopPropagation();
     const story = this.userStories.find(s => s.id === storyId);
@@ -341,6 +500,10 @@ export class KanbanComponent implements OnInit {
     }
   }
 
+  /**
+   * Confirme et exécute la suppression d'une user story.
+   * Affiche une notification de succès ou d'erreur.
+   */
   confirmDeleteUserStory(): void {
     if (!this.storyToDelete) return;
 
@@ -357,6 +520,9 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Ferme la modale de suppression de user story.
+   */
   closeDeleteStoryModal(): void {
     this.showDeleteStoryModal = false;
     this.storyToDelete = null;
@@ -365,6 +531,11 @@ export class KanbanComponent implements OnInit {
 
   // ========== Task Modal Methods ==========
 
+  /**
+   * Ouvre la modale de création de tâche pour une user story.
+   * @param userStoryId - ID de la user story parente.
+   * @param event - Événement de clic.
+   */
   openCreateTaskModal(userStoryId: number, event: MouseEvent): void {
     event.stopPropagation();
     this.currentUserStoryId = userStoryId;
@@ -372,12 +543,20 @@ export class KanbanComponent implements OnInit {
     this.taskError = null;
   }
 
+  /**
+   * Ferme la modale de création de tâche.
+   */
   closeCreateTaskModal(): void {
     this.showCreateTaskModal = false;
     this.currentUserStoryId = null;
     this.taskError = null;
   }
 
+  /**
+   * Crée une nouvelle tâche pour une user story.
+   * Affiche une notification de succès ou d'erreur.
+   * @param formValue - Données du formulaire.
+   */
   onCreateTask(formValue: any): void {
     if (!this.currentUserStoryId) return;
 
@@ -407,6 +586,11 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Ouvre la modale d'édition pour une tâche.
+   * @param task - Tâche à éditer.
+   * @param event - Événement de clic.
+   */
   openEditTaskModal(task: Task, event: MouseEvent): void {
     event.stopPropagation();
     console.log('Task à éditer:', task);
@@ -415,12 +599,20 @@ export class KanbanComponent implements OnInit {
     this.editTaskError = null;
   }
 
+  /**
+   * Ferme la modale d'édition de tâche.
+   */
   closeEditTaskModal(): void {
     this.showEditTaskModal = false;
     this.currentEditingTask = null;
     this.editTaskError = null;
   }
 
+  /**
+   * Met à jour une tâche existante.
+   * Affiche une notification de succès ou d'erreur.
+   * @param formValue - Données du formulaire.
+   */
   onEditTask(formValue: any): void {
     console.log('onEditTask appelé avec:', formValue);
 
@@ -471,6 +663,12 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Prépare la suppression d'une tâche (ouvre la modale de confirmation).
+   * @param taskId - ID de la tâche à supprimer.
+   * @param userStoryId - ID de la user story parente.
+   * @param event - Événement de clic.
+   */
   deleteTask(taskId: number, userStoryId: number, event: MouseEvent): void {
     event.stopPropagation();
     this.taskToDelete = { taskId, userStoryId };
@@ -478,6 +676,10 @@ export class KanbanComponent implements OnInit {
     this.deleteError = null;
   }
 
+  /**
+   * Confirme et exécute la suppression d'une tâche.
+   * Affiche une notification de succès ou d'erreur.
+   */
   confirmDeleteTask(): void {
     if (!this.taskToDelete) return;
 
@@ -497,6 +699,9 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Ferme la modale de suppression de tâche.
+   */
   closeDeleteTaskModal(): void {
     this.showDeleteTaskModal = false;
     this.taskToDelete = null;
@@ -505,6 +710,12 @@ export class KanbanComponent implements OnInit {
 
   // ========== Notification Methods ==========
 
+  /**
+   * Affiche une notification globale en haut de la page.
+   * La notification disparaît automatiquement après 5 secondes.
+   * @param message - Message à afficher.
+   * @param type - Type de notification (success, error, info).
+   */
   showNotification(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
     this.notification = { message, type };
     setTimeout(() => {
@@ -512,26 +723,47 @@ export class KanbanComponent implements OnInit {
     }, 5000); // Masquer après 5 secondes
   }
 
+  /**
+   * Ferme manuellement la notification globale.
+   */
   closeNotification(): void {
     this.notification = null;
   }
 
   // ========== Helper Methods ==========
 
+  /**
+   * Retourne le libellé traduit d'une priorité.
+   * @param priority - Code de priorité.
+   * @returns Libellé de la priorité.
+   */
   getPriorityLabel(priority: string): string {
     return KanbanHelpers.getPriorityLabel(priority);
   }
 
+  /**
+   * Retourne le libellé traduit d'un statut.
+   * @param status - Code de statut.
+   * @returns Libellé du statut.
+   */
   getStatusLabel(status: string): string {
     return KanbanHelpers.getStatusLabel(status);
   }
 
+  /**
+   * Retourne le libellé du nombre de tâches d'une user story.
+   * @param story - User story concernée.
+   * @returns Libellé (ex: "3 tâches").
+   */
   getTaskCountLabel(story: UserStory): string {
     return KanbanHelpers.getTaskCountLabel(story.tasks?.length || 0);
   }
 
   // ========== Column Management Methods ==========
 
+  /**
+   * Ouvre la modale d'ajout de colonne Kanban.
+   */
   openAddColumnModal(): void {
     this.showAddColumnModal = true;
     this.newColumnName = '';
@@ -539,12 +771,20 @@ export class KanbanComponent implements OnInit {
     this.columnError = null;
   }
 
+  /**
+   * Ferme la modale d'ajout de colonne.
+   */
   closeAddColumnModal(): void {
     this.showAddColumnModal = false;
     this.newColumnName = '';
     this.columnError = null;
   }
 
+  /**
+   * Crée une nouvelle colonne Kanban personnalisée.
+   * Le statut est généré automatiquement à partir du nom.
+   * Affiche une notification de succès ou d'erreur.
+   */
   addColumn(): void {
     if (!this.project || !this.newColumnName.trim()) {
       this.columnError = 'Le nom de la colonne est requis.';
@@ -574,7 +814,13 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-  deleteColumn(column: KanbanColumn, event: MouseEvent): void {
+  /**
+   * Prépare la suppression d'une colonne (ouvre la modale de confirmation).
+   * Les colonnes par défaut ne peuvent pas être supprimées.
+   * @param column - Colonne à supprimer.
+   * @param event - Événement de clic.
+   */
+  deleteColumn(column: KanbanColumn, event: MouseEvent): void{
     event.stopPropagation();
     
     if (column.isDefault) {
@@ -587,6 +833,10 @@ export class KanbanComponent implements OnInit {
     this.deleteError = null;
   }
 
+  /**
+   * Confirme et exécute la suppression d'une colonne.
+   * Affiche une notification de succès ou une erreur si la colonne n'est pas vide.
+   */
   confirmDeleteColumn(): void {
     if (!this.columnToDelete) return;
 
@@ -603,12 +853,20 @@ export class KanbanComponent implements OnInit {
     });
   }
 
+  /**
+   * Ferme la modale de suppression de colonne.
+   */
   closeDeleteColumnModal(): void {
     this.showDeleteColumnModal = false;
     this.columnToDelete = null;
     this.deleteError = null;
   }
 
+  /**
+   * Ouvre la modale de renommage pour une colonne.
+   * @param column - Colonne à renommer.
+   * @param event - Événement de clic.
+   */
   openRenameColumnModal(column: KanbanColumn, event: MouseEvent): void {
     event.stopPropagation();
     this.renameColumnId = column.id;
@@ -618,6 +876,9 @@ export class KanbanComponent implements OnInit {
     this.renameError = null;
   }
 
+  /**
+   * Ferme la modale de renommage de colonne.
+   */
   closeRenameColumnModal(): void {
     this.showRenameColumnModal = false;
     this.renameColumnId = null;
@@ -625,6 +886,10 @@ export class KanbanComponent implements OnInit {
     this.renameError = null;
   }
 
+  /**
+   * Renomme une colonne Kanban existante.
+   * Affiche une notification de succès ou d'erreur.
+   */
   renameColumn(): void {
     if (!this.renameColumnId || !this.renameColumnName.trim()) {
       this.renameError = 'Le nom de la colonne est requis.';
