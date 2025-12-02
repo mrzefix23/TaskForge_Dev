@@ -65,6 +65,7 @@ describe('SprintManagementComponent', () => {
       'updateSprint',
       'deleteSprint',
       'getBacklogUserStories',
+      'getUserStoriesBySprint',
       'assignUserStoryToSprint',
       'removeUserStoryFromSprint'
     ]);
@@ -78,6 +79,7 @@ describe('SprintManagementComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
+            params: of({ id: '1' }),
             snapshot: {
               paramMap: {
                 get: (key: string) => (key === 'id' ? '1' : null)
@@ -95,10 +97,14 @@ describe('SprintManagementComponent', () => {
 
     sprintService.getSprintsByProject.and.returnValue(of(mockSprints));
     sprintService.getBacklogUserStories.and.returnValue(of(mockBacklogStories));
+    sprintService.getUserStoriesBySprint.and.returnValue(of([]));
     projectService.getById.and.returnValue(of(mockProject));
 
     fixture = TestBed.createComponent(SprintManagementComponent);
     component = fixture.componentInstance;
+    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('username', 'testuser');
+    spyOn(router, 'navigate').and.stub();
   });
 
   afterEach(() => {
@@ -109,10 +115,162 @@ describe('SprintManagementComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('Component Setup', () => {
-    it('should have correct initial state', () => {
-      expect(component.sprints).toEqual([]);
-      expect(component.error).toBeNull();
+  it('should open create sprint modal', () => {
+    component.openCreateModal();
+    expect(component.showCreateModal).toBeTrue();
+    expect(component.sprintForm.name).toBe('');
+    expect(component.error).toBeNull();
+  });
+
+  it('should close create modal', () => {
+    component.showCreateModal = true;
+    component.closeCreateModal();
+    expect(component.showCreateModal).toBeFalse();
+  });
+
+  it('should create sprint successfully', () => {
+    component.projectId = 1; // Ensure projectId is set
+    const newSprint = {
+      id: 3,
+      name: 'Sprint 3',
+      startDate: '2025-02-01',
+      endDate: '2025-02-15',
+      status: 'PLANNED' as 'PLANNED',
+      projectId: 1
+    };
+
+    component.sprintForm = {
+      name: 'Sprint 3',
+      startDate: '2025-02-01',
+      endDate: '2025-02-15',
+      status: 'PLANNED'
+    };
+
+    sprintService.createSprint.and.returnValue(of(newSprint));
+
+    component.createSprint();
+
+    expect(sprintService.createSprint).toHaveBeenCalledWith({
+      name: 'Sprint 3',
+      startDate: '2025-02-01',
+      endDate: '2025-02-15',
+      status: 'PLANNED',
+      projectId: 1
     });
+    expect(component.showCreateModal).toBeFalse();
+    expect(component.success).toBeTruthy();
+  });
+
+  it('should open edit sprint modal', () => {
+    component.openEditModal(mockSprints[0]);
+    expect(component.showEditModal).toBeTrue();
+    expect(component.selectedSprint).toEqual(mockSprints[0]);
+    expect(component.sprintForm.name).toBe('Sprint 1');
+  });
+
+  it('should update sprint successfully', () => {
+    component.projectId = 1; // Ensure projectId is set
+    component.selectedSprint = mockSprints[0];
+    component.sprintForm = {
+      name: 'Updated Sprint',
+      startDate: '2025-01-01',
+      endDate: '2025-01-15',
+      status: 'ACTIVE'
+    };
+
+    const updatedSprint = { ...mockSprints[0], name: 'Updated Sprint' };
+    sprintService.updateSprint.and.returnValue(of(updatedSprint));
+
+    component.updateSprint();
+
+    expect(sprintService.updateSprint).toHaveBeenCalledWith(1, {
+      name: 'Updated Sprint',
+      startDate: '2025-01-01',
+      endDate: '2025-01-15',
+      status: 'ACTIVE',
+      projectId: 1
+    });
+    expect(component.showEditModal).toBeFalse();
+  });
+
+  it('should open delete confirmation modal', () => {
+    component.openDeleteModal(mockSprints[0]);
+    expect(component.showDeleteModal).toBeTrue();
+    expect(component.sprintToDelete).toEqual(mockSprints[0]);
+  });
+
+  it('should delete sprint successfully', () => {
+    component.sprintToDelete = mockSprints[0];
+    sprintService.deleteSprint.and.returnValue(of(void 0));
+    sprintService.getSprintsByProject.and.returnValue(of([mockSprints[1]]));
+
+    component.deleteSprint();
+
+    expect(sprintService.deleteSprint).toHaveBeenCalledWith(1);
+    expect(component.showDeleteModal).toBeFalse();
+  });
+
+  it('should assign user story to sprint', () => {
+    const mockUserStory = { ...mockBacklogStories[0] } as any;
+    
+    sprintService.assignUserStoryToSprint.and.returnValue(of(mockUserStory));
+    sprintService.getBacklogUserStories.and.returnValue(of([]));
+
+    component.assignStoryToSprint(1, 1);
+
+    expect(sprintService.assignUserStoryToSprint).toHaveBeenCalledWith(1, 1);
+  });
+
+  it('should remove user story from sprint', () => {
+    component.selectedSprint = mockSprints[0];
+    const mockUserStory = { ...mockBacklogStories[0] } as any;
+    
+    sprintService.removeUserStoryFromSprint.and.returnValue(of(mockUserStory));
+    sprintService.getBacklogUserStories.and.returnValue(of(mockBacklogStories));
+
+    component.removeStoryFromSprint(1);
+
+    expect(sprintService.removeUserStoryFromSprint).toHaveBeenCalledWith(1);
+  });
+
+  it('should validate form correctly', () => {
+    component.sprintForm = {
+      name: '',
+      startDate: '',
+      endDate: '',
+      status: 'PLANNED'
+    };
+    expect(component.validateForm()).toBeFalse();
+
+    component.sprintForm = {
+      name: 'Test Sprint',
+      startDate: '2025-01-01',
+      endDate: '2024-12-01', // End before start
+      status: 'PLANNED'
+    };
+    expect(component.validateForm()).toBeFalse();
+
+    component.sprintForm = {
+      name: 'Test Sprint',
+      startDate: '2025-01-01',
+      endDate: '2025-01-15',
+      status: 'PLANNED'
+    };
+    expect(component.validateForm()).toBeTrue();
+  });
+
+  it('should check if user is owner', () => {
+    component.project = mockProject;
+    component.currentUsername = 'testuser';
+    expect(component.isOwner()).toBeTrue();
+
+    component.currentUsername = 'otheruser';
+    expect(component.isOwner()).toBeFalse();
+  });
+
+  it('should navigate to kanban', () => {
+    component.projectId = 1;
+    component.goToKanban();
+    expect(router.navigate).toHaveBeenCalledWith(['/projects', 1]);
   });
 });

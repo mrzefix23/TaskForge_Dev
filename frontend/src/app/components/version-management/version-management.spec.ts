@@ -105,6 +105,9 @@ describe('VersionManagementComponent', () => {
 
     fixture = TestBed.createComponent(VersionManagementComponent);
     component = fixture.componentInstance;
+    versionService.getUserStories = jasmine.createSpy('getUserStories').and.returnValue(of(mockUserStories));
+    localStorage.setItem('token', 'test-token');
+    spyOn(router, 'navigate').and.stub();
   });
 
   afterEach(() => {
@@ -115,11 +118,149 @@ describe('VersionManagementComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('Component Setup', () => {
-    it('should have correct initial state', () => {
-      expect(component.versions).toEqual([]);
-      expect(component.loading).toBeTrue();
-      expect(component.error).toBeNull();
+  it('should open create version modal', () => {
+    component.openCreateVersionModal();
+    expect(component.showVersionModal).toBeTrue();
+    expect(component.isEditMode).toBeFalse();
+    expect(component.versionForm.title).toBe('');
+  });
+
+  it('should close version modal', () => {
+    component.showVersionModal = true;
+    component.closeVersionModal();
+    expect(component.showVersionModal).toBeFalse();
+  });
+
+  it('should create version successfully', () => {
+    component.versionForm = {
+      title: 'Version 1.0',
+      description: 'First version',
+      versionNumber: '1.0.0',
+      projectId: 1
+    };
+
+    const newVersion: Version = {
+      id: 3,
+      title: 'Version 1.0',
+      description: 'First version',
+      versionNumber: '1.0.0',
+      status: 'PLANNED',
+      userStories: []
+    };
+
+    versionService.create.and.returnValue(of(newVersion));
+    versionService.getByProject.and.returnValue(of([...mockVersions, newVersion]));
+
+    component.saveVersion();
+
+    expect(versionService.create).toHaveBeenCalledWith({
+      title: 'Version 1.0',
+      description: 'First version',
+      versionNumber: '1.0.0',
+      projectId: 1
     });
+    expect(component.showVersionModal).toBeFalse();
+  });
+
+  it('should open edit version modal', () => {
+    component.openEditVersionModal(mockVersions[0]);
+    expect(component.showVersionModal).toBeTrue();
+    expect(component.isEditMode).toBeTrue();
+    expect(component.currentVersion).toEqual(mockVersions[0]);
+    expect(component.versionForm.title).toBe('Version 1.0');
+  });
+
+  it('should update version successfully', () => {
+    component.isEditMode = true;
+    component.currentVersion = mockVersions[0];
+    component.versionForm = {
+      title: 'Updated Version',
+      description: 'Updated description',
+      versionNumber: '1.0.1',
+      projectId: 1
+    };
+
+    const updatedVersion = { ...mockVersions[0], title: 'Updated Version' };
+    versionService.update.and.returnValue(of(updatedVersion));
+    versionService.getByProject.and.returnValue(of([updatedVersion, mockVersions[1]]));
+
+    component.saveVersion();
+
+    expect(versionService.update).toHaveBeenCalledWith(1, {
+      title: 'Updated Version',
+      description: 'Updated description',
+      versionNumber: '1.0.1',
+      projectId: 1
+    });
+    expect(component.showVersionModal).toBeFalse();
+  });
+
+  it('should open delete confirmation modal', () => {
+    component.openDeleteModal(mockVersions[0]);
+    expect(component.showDeleteModal).toBeTrue();
+    expect(component.versionToDelete).toEqual(mockVersions[0]);
+  });
+
+  it('should delete version successfully', () => {
+    component.versionToDelete = mockVersions[0];
+    versionService.delete.and.returnValue(of(void 0));
+    versionService.getByProject.and.returnValue(of([mockVersions[1]]));
+
+    component.confirmDelete();
+
+    expect(versionService.delete).toHaveBeenCalledWith(1);
+    expect(component.showDeleteModal).toBeFalse();
+  });
+
+  it('should open assign modal', () => {
+    component.openAssignModal(mockVersions[0]);
+    expect(component.showAssignModal).toBeTrue();
+    expect(component.versionToAssign).toEqual(mockVersions[0]);
+  });
+
+  it('should assign user story to version', () => {
+    component.versionToAssign = mockVersions[0];
+    component.selectedUserStoryId = 1;
+    const userStory = mockUserStories[0];
+    
+    versionService.assignUserStory.and.returnValue(of(userStory as any));
+    versionService.getByProject.and.returnValue(of(mockVersions));
+    userStoryService.getByProject.and.returnValue(of([]));
+
+    component.assignUserStory();
+
+    expect(versionService.assignUserStory).toHaveBeenCalledWith(1, 1);
+  });
+
+  it('should remove user story from version', () => {
+    const version = mockVersions[0];
+    const userStory = { ...mockUserStories[0], version: { id: 1 } } as any;
+    
+    versionService.removeUserStory.and.returnValue(of(userStory));
+    versionService.getByProject.and.returnValue(of(mockVersions));
+    userStoryService.getByProject.and.returnValue(of(mockUserStories));
+
+    component.removeUserStoryFromVersion(version, userStory.id);
+
+    expect(versionService.removeUserStory).toHaveBeenCalledWith(version.id, userStory.id);
+  });
+
+  it('should toggle version expansion', () => {
+    if (versionService.getUserStories) {
+      (versionService.getUserStories as jasmine.Spy).and.returnValue(of(mockUserStories));
+    }
+    
+    component.expandedVersionId = null;
+    component.toggleVersionDetails(1);
+    expect(component.expandedVersionId).not.toBeNull();
+
+    component.toggleVersionDetails(1);
+    expect(component.expandedVersionId).toBeNull();
+  });
+
+  it('should navigate back to kanban', () => {
+    component.project = mockProject;
+    component.goBack();
+    expect(router.navigate).toHaveBeenCalledWith(['/projects', 1]);
   });
 });

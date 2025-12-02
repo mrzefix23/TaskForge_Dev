@@ -27,7 +27,6 @@ describe('Register', () => {
       httpMock = TestBed.inject(HttpTestingController);
       router = TestBed.inject(Router);
       spyOn(router, 'navigate').and.stub();
-      fixture.detectChanges();
     });
 
     afterEach(() => {
@@ -79,6 +78,12 @@ describe('Register', () => {
       component.onSubmit();
       fixture.detectChanges();
       expect(component.registerForm.valid).toBeFalse();
+    });
+
+    it('should toggle password visibility', () => {
+      expect(component.showPassword).toBeFalse();
+      component.showPassword = true;
+      expect(component.showPassword).toBeTrue();
     });
   });
 

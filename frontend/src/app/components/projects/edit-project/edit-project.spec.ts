@@ -3,10 +3,19 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
 import { EditProjectComponent } from './edit-project';
-import { ProjectService } from '../../../services/project.service';
-import { Project } from '../../../models/kanban.models';
+
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  owner: { username: string };
+  members: { username: string }[];
+}
+
+interface User {
+  username: string;
+}
 
 /**
  * Tests unitaires pour le composant EditProjectComponent.
@@ -15,7 +24,6 @@ import { Project } from '../../../models/kanban.models';
 describe('EditProjectComponent', () => {
   let component: EditProjectComponent;
   let fixture: ComponentFixture<EditProjectComponent>;
-  let projectService: jasmine.SpyObj<ProjectService>;
   let httpMock: HttpTestingController;
   let router: Router;
 
@@ -27,16 +35,17 @@ describe('EditProjectComponent', () => {
     members: [{ username: 'member1' }, { username: 'member2' }]
   };
 
-  beforeEach(async () => {
-    const projectServiceSpy = jasmine.createSpyObj('ProjectService', [
-      'getById',
-      'update'
-    ]);
+  const mockUsers: User[] = [
+    { username: 'user1' },
+    { username: 'user2' },
+    { username: 'member1' },
+    { username: 'member2' }
+  ];
 
+  beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EditProjectComponent, HttpClientTestingModule, ReactiveFormsModule],
       providers: [
-        { provide: ProjectService, useValue: projectServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -51,17 +60,17 @@ describe('EditProjectComponent', () => {
       ]
     }).compileComponents();
 
-    projectService = TestBed.inject(ProjectService) as jasmine.SpyObj<ProjectService>;
-    httpMock = TestBed.inject(HttpTestingController);
-    router = TestBed.inject(Router);
-
-    projectService.getById.and.returnValue(of(mockProject));
-
     fixture = TestBed.createComponent(EditProjectComponent);
     component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('username', 'testuser');
+    spyOn(router, 'navigate').and.stub();
   });
 
   afterEach(() => {
+    httpMock.verify();
     localStorage.clear();
   });
 
@@ -69,11 +78,34 @@ describe('EditProjectComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('Component Setup', () => {
-    it('should initialize with a form', () => {
-      expect(component.projectForm).toBeDefined();
-      expect(component.projectForm.get('name')).toBeDefined();
-      expect(component.projectForm.get('description')).toBeDefined();
-    });
+  it('should not submit if form is invalid', () => {
+    component.projectForm.controls['name'].setValue('');
+    component.onSubmit();
+    expect(component.projectForm.invalid).toBeTrue();
+  });
+
+  it('should navigate back to projects list on goBack', () => {
+    component.projectId = 1;
+    component.goBack();
+    expect(router.navigate).toHaveBeenCalledWith(['/projects']);
+  });
+
+  it('should filter owner from available members', () => {
+    component.ownerUsername = 'testowner';
+    component.allUsers = [
+      { username: 'testowner' },
+      { username: 'user1' },
+      { username: 'user2' }
+    ];
+
+    const availableMembers = component.allUsers.filter(
+      u => u.username !== component.ownerUsername
+    );
+
+    expect(availableMembers.length).toBe(2);
+    expect(availableMembers).toEqual([
+      { username: 'user1' },
+      { username: 'user2' }
+    ]);
   });
 });
