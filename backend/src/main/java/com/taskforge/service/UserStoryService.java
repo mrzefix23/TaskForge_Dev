@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.taskforge.dto.CreateUserStoryRequest;
 import com.taskforge.exceptions.DuplicateUserStoryTitleException;
-import com.taskforge.models.KanbanColumn;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
@@ -52,7 +51,7 @@ public class UserStoryService {
      *
      * @param request  Les détails de la User Story à créer.
      * @param username Le nom d'utilisateur de la personne effectuant la création.
-     * @return La User Story créée et sauvegardée.
+     * @return La User Story crée et sauvegardée.
      * @throws DuplicateUserStoryTitleException Si une User Story avec le même titre existe déjà dans le projet.
      * @throws RuntimeException                 Si un utilisateur assigné n'est pas trouvé ou n'est pas membre du projet.
      */

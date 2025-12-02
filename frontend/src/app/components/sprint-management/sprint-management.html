@@ -100,7 +100,7 @@
 
       <!-- Backlog -->
       <div class="backlog-section">
-        <h2>Backlog ({{ backlogStories.length }})</h2>
+        <h2>User Stories disponibles ({{ backlogStories.length }})</h2>
         <div class="user-stories-list">
           <div *ngFor="let story of backlogStories" class="user-story-card">
             <div class="story-header">
@@ -125,7 +125,7 @@
             </div>
           </div>
           <div *ngIf="backlogStories.length === 0" class="empty-state">
-            Le backlog est vide
+            Il n'y a pas de user stories disponibles dans le backlog.
           </div>
         </div>
       </div>

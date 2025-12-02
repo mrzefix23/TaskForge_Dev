@@ -142,7 +142,8 @@ describe('SprintManagementComponent', () => {
     component.sprintForm = {
       name: 'Sprint 3',
       startDate: '2025-02-01',
-      endDate: '2025-02-15'
+      endDate: '2025-02-15',
+      status: 'PLANNED'
     };
 
     sprintService.createSprint.and.returnValue(of(newSprint));
@@ -173,7 +174,8 @@ describe('SprintManagementComponent', () => {
     component.sprintForm = {
       name: 'Updated Sprint',
       startDate: '2025-01-01',
-      endDate: '2025-01-15'
+      endDate: '2025-01-15',
+      status: 'PLANNED'
     };
 
     const updatedSprint = { ...mockSprints[0], name: 'Updated Sprint' };
@@ -235,21 +237,24 @@ describe('SprintManagementComponent', () => {
     component.sprintForm = {
       name: '',
       startDate: '',
-      endDate: ''
+      endDate: '',
+      status: 'PLANNED'
     };
     expect(component.validateForm()).toBeFalse();
 
     component.sprintForm = {
       name: 'Test Sprint',
       startDate: '2025-01-01',
-      endDate: '2024-12-01' // End before start
+      endDate: '2024-12-01', // End before start
+      status: 'PLANNED'
     };
     expect(component.validateForm()).toBeFalse();
 
     component.sprintForm = {
       name: 'Test Sprint',
       startDate: '2025-01-01',
-      endDate: '2025-01-15'
+      endDate: '2025-01-15',
+      status: 'PLANNED'
     };
     expect(component.validateForm()).toBeTrue();
   });
