@@ -50,7 +50,23 @@
     <!-- Détails du sprint ou backlog -->
     <div class="sprint-content">
       <div *ngIf="selectedSprint" class="sprint-details">
-        <h2>{{ selectedSprint.name }}</h2>
+        <div class="sprint-header-actions">
+          <h2>{{ selectedSprint.name }}</h2>
+          <div *ngIf="isOwner()" class="sprint-action-buttons">
+            <button 
+              *ngIf="selectedSprint.status === 'PLANNED'" 
+              class="btn-primary btn-sm"
+              (click)="startSprint(selectedSprint.id)">
+              ▶ Démarrer le Sprint
+            </button>
+            <button 
+              *ngIf="selectedSprint.status === 'ACTIVE'" 
+              class="btn-success btn-sm"
+              (click)="completeSprint(selectedSprint.id)">
+              ✓ Terminer le Sprint
+            </button>
+          </div>
+        </div>
         <div class="sprint-info">
           <p><strong>Status:</strong> {{ getStatusLabel(selectedSprint.status) }}</p>
           <p><strong>Dates:</strong> {{ selectedSprint.startDate | date:'dd/MM/yyyy' }} - {{ selectedSprint.endDate | date:'dd/MM/yyyy' }}</p>
@@ -197,14 +213,6 @@
           [(ngModel)]="sprintForm.endDate" 
           name="endDate"
           required>
-      </div>
-      <div class="form-group">
-        <label>Statut *</label>
-        <select [(ngModel)]="sprintForm.status" name="status" required>
-          <option value="PLANNED">Planifié</option>
-          <option value="ACTIVE">Actif</option>
-          <option value="COMPLETED">Terminé</option>
-        </select>
       </div>
       <div *ngIf="error" class="alert alert-error">{{ error }}</div>
       <div class="modal-actions">
