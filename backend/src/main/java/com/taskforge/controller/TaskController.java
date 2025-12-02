@@ -20,6 +20,11 @@ import com.taskforge.exceptions.DuplicateTaskTitleException;
 import com.taskforge.exceptions.TaskNotFoundException;
 import com.taskforge.models.Task;
 import com.taskforge.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /**
  * Contrôleur REST pour la gestion des tâches.
@@ -28,6 +33,8 @@ import com.taskforge.service.TaskService;
  */
 @RestController
 @RequestMapping("/api/tasks")
+@Tag(name = "Task Management", description = "API de gestion des tâches au sein des User Stories")
+@SecurityRequirement(name = "bearerAuth")
 public class TaskController {
     
     @Autowired
@@ -40,6 +47,11 @@ public class TaskController {
      * @param authentication L'authentification de l'utilisateur courant.
      * @return La tâche créée avec le statut 201 (Created), ou une erreur 400 (Bad Request) en cas de problème.
      */
+    @Operation(summary = "Créer une nouvelle tâche")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Tâche créée avec succès"),
+        @ApiResponse(responseCode = "400", description = "Requête invalide")
+    })
     @PostMapping
     public ResponseEntity<?> createTask(@RequestBody CreateTaskRequest request, Authentication authentication) {
         try {
@@ -61,6 +73,11 @@ public class TaskController {
      * @param authentication L'authentification de l'utilisateur courant.
      * @return La tâche demandée, ou une erreur 404 (Not Found) si elle n'existe pas.
      */
+    @Operation(summary = "Récupérer une tâche par son identifiant")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Tâche récupérée avec succès"),
+        @ApiResponse(responseCode = "404", description = "Tâche non trouvée")
+    })
     @GetMapping("/{taskId}")
     public ResponseEntity<?> getTask(@PathVariable Long taskId, Authentication authentication) {
         try {
@@ -79,6 +96,10 @@ public class TaskController {
      * @param authentication L'authentification de l'utilisateur courant.
      * @return Une liste de tâches appartenant à la User Story.
      */
+    @Operation(summary = "Récupérer les tâches d'une User Story")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Tâches récupérées avec succès")
+    })
     @GetMapping("/user-story/{userStoryId}")
     public ResponseEntity<List<Task>> getTasksByUserStory(@PathVariable Long userStoryId, Authentication authentication) {
         List<Task> tasks = taskService.getTasksByUserStoryId(userStoryId, authentication.getName());
@@ -93,6 +114,11 @@ public class TaskController {
      * @param authentication L'authentification de l'utilisateur courant.
      * @return La tâche mise à jour, ou une erreur 400 (Bad Request) en cas de problème.
      */
+    @Operation(summary = "Mettre à jour une tâche existante")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Tâche mise à jour avec succès"),
+        @ApiResponse(responseCode = "400", description = "Requête invalide")
+    })
     @PutMapping("/{taskId}")
     public ResponseEntity<?> updateTask(@PathVariable Long taskId, 
                                        @RequestBody CreateTaskRequest request,
@@ -116,6 +142,11 @@ public class TaskController {
      * @param authentication L'authentification de l'utilisateur courant.
      * @return Une réponse vide avec le statut 204 (No Content) en cas de succès, ou une erreur 404 (Not Found).
      */
+    @Operation(summary = "Supprimer une tâche")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Tâche supprimée avec succès"),
+        @ApiResponse(responseCode = "404", description = "Tâche non trouvée")
+    })
     @DeleteMapping("/{taskId}")
     public ResponseEntity<?> deleteTask(@PathVariable Long taskId, Authentication authentication) {
         try {
