@@ -202,4 +202,46 @@ describe('SprintService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockUserStories);
   });
+
+  it('should start a sprint', () => {
+    const mockSprint: Sprint = {
+      id: 1,
+      name: 'Sprint 1',
+      startDate: '2024-01-01',
+      endDate: '2024-01-14',
+      status: 'ACTIVE',
+      projectId: 1
+    };
+
+    service.startSprint(1).subscribe(sprint => {
+      expect(sprint).toEqual(mockSprint);
+      expect(sprint.status).toBe('ACTIVE');
+    });
+
+    const req = httpMock.expectOne('/api/sprints/1/start');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush(mockSprint);
+  });
+
+  it('should complete a sprint', () => {
+    const mockSprint: Sprint = {
+      id: 1,
+      name: 'Sprint 1',
+      startDate: '2024-01-01',
+      endDate: '2024-01-14',
+      status: 'COMPLETED',
+      projectId: 1
+    };
+
+    service.completeSprint(1).subscribe(sprint => {
+      expect(sprint).toEqual(mockSprint);
+      expect(sprint.status).toBe('COMPLETED');
+    });
+
+    const req = httpMock.expectOne('/api/sprints/1/complete');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush(mockSprint);
+  });
 });

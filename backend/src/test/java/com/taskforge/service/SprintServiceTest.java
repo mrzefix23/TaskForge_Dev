@@ -1,5 +1,27 @@
 package com.taskforge.service;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.taskforge.dto.CreateSprintRequest;
 import com.taskforge.exceptions.DuplicateSprintNameException;
 import com.taskforge.exceptions.InvalidSprintDateException;
@@ -9,21 +31,6 @@ import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
 import com.taskforge.repositories.SprintRepository;
 import com.taskforge.repositories.UserStoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SprintServiceTest {
@@ -210,5 +217,96 @@ class SprintServiceTest {
 
         assertThat(updated.getSprint()).isNull();
         verify(userStoryRepository, times(1)).save(userStory);
+    }
+
+    @Test
+    void startSprint_shouldSucceed() {
+        when(sprintRepository.findById(sprint.getId())).thenReturn(Optional.of(sprint));
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+        when(sprintRepository.findByProjectId(project.getId())).thenReturn(List.of(sprint));
+        when(sprintRepository.save(any(Sprint.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Sprint started = sprintService.startSprint(sprint.getId(), projectOwner.getUsername());
+
+        assertThat(started.getStatus()).isEqualTo(Sprint.Status.ACTIVE);
+        verify(sprintRepository, times(1)).save(sprint);
+    }
+
+    @Test
+    void startSprint_shouldThrowException_whenSprintNotPlanned() {
+        sprint.setStatus(Sprint.Status.ACTIVE);
+        when(sprintRepository.findById(sprint.getId())).thenReturn(Optional.of(sprint));
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+
+        assertThatThrownBy(() -> sprintService.startSprint(sprint.getId(), projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Only PLANNED sprints can be started");
+        verify(sprintRepository, never()).save(any(Sprint.class));
+    }
+
+    @Test
+    void startSprint_shouldThrowException_whenActiveSprintExists() {
+        Sprint activeSprint = Sprint.builder()
+                .id(2L)
+                .name("Sprint 2")
+                .status(Sprint.Status.ACTIVE)
+                .project(project)
+                .build();
+
+        when(sprintRepository.findById(sprint.getId())).thenReturn(Optional.of(sprint));
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+        when(sprintRepository.findByProjectId(project.getId())).thenReturn(List.of(sprint, activeSprint));
+
+        assertThatThrownBy(() -> sprintService.startSprint(sprint.getId(), projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("already an active sprint");
+        verify(sprintRepository, never()).save(any(Sprint.class));
+    }
+
+    @Test
+    void startSprint_shouldThrowException_whenUserIsNotOwner() {
+        when(sprintRepository.findById(sprint.getId())).thenReturn(Optional.of(sprint));
+        when(projectService.getProjectById(project.getId(), memberUser.getUsername())).thenReturn(project);
+
+        assertThatThrownBy(() -> sprintService.startSprint(sprint.getId(), memberUser.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Only project owner can start sprints");
+        verify(sprintRepository, never()).save(any(Sprint.class));
+    }
+
+    @Test
+    void completeSprint_shouldSucceed() {
+        sprint.setStatus(Sprint.Status.ACTIVE);
+        when(sprintRepository.findById(sprint.getId())).thenReturn(Optional.of(sprint));
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+        when(sprintRepository.save(any(Sprint.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Sprint completed = sprintService.completeSprint(sprint.getId(), projectOwner.getUsername());
+
+        assertThat(completed.getStatus()).isEqualTo(Sprint.Status.COMPLETED);
+        verify(sprintRepository, times(1)).save(sprint);
+    }
+
+    @Test
+    void completeSprint_shouldThrowException_whenSprintNotActive() {
+        when(sprintRepository.findById(sprint.getId())).thenReturn(Optional.of(sprint));
+        when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
+
+        assertThatThrownBy(() -> sprintService.completeSprint(sprint.getId(), projectOwner.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Only ACTIVE sprints can be completed");
+        verify(sprintRepository, never()).save(any(Sprint.class));
+    }
+
+    @Test
+    void completeSprint_shouldThrowException_whenUserIsNotOwner() {
+        sprint.setStatus(Sprint.Status.ACTIVE);
+        when(sprintRepository.findById(sprint.getId())).thenReturn(Optional.of(sprint));
+        when(projectService.getProjectById(project.getId(), memberUser.getUsername())).thenReturn(project);
+
+        assertThatThrownBy(() -> sprintService.completeSprint(sprint.getId(), memberUser.getUsername()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Only project owner can complete sprints");
+        verify(sprintRepository, never()).save(any(Sprint.class));
     }
 }

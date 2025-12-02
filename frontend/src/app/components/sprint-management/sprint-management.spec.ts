@@ -175,7 +175,7 @@ describe('SprintManagementComponent', () => {
       name: 'Updated Sprint',
       startDate: '2025-01-01',
       endDate: '2025-01-15',
-      status: 'ACTIVE'
+      status: 'PLANNED'
     };
 
     const updatedSprint = { ...mockSprints[0], name: 'Updated Sprint' };

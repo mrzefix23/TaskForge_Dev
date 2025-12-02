@@ -414,7 +414,7 @@ export class KanbanComponent implements OnInit {
     this.userStoryService.create(payload).subscribe({
       next: (newStory: UserStory) => {
         this.userStories.push({ ...newStory, showTasks: false, tasks: [] });
-        this.showNotification('User story créée avec succès.', 'success');
+        this.showNotification('User story crée avec succès.', 'success');
         this.closeCreateStoryModal();
       },
       error: (err: any) => {

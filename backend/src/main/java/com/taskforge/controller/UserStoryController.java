@@ -44,11 +44,11 @@ public class UserStoryController {
      *
      * @param request   Les informations nécessaires à la création de la User Story.
      * @param principal L'utilisateur authentifié effectuant la requête.
-     * @return La User Story créée avec le statut 200 OK, ou 403 Forbidden si non authentifié.
+     * @return La User Story crée avec le statut 200 OK, ou 403 Forbidden si non authentifié.
      */
     @Operation(summary = "Créer une nouvelle User Story")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User Story créée avec succès"),
+        @ApiResponse(responseCode = "200", description = "User Story crée avec succès"),
         @ApiResponse(responseCode = "403", description = "Non autorisé")
     })
     @PostMapping
