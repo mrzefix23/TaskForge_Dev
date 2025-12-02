@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.taskforge.dto.CreateKanbanColumnRequest;
 import com.taskforge.models.KanbanColumn;
 import com.taskforge.service.KanbanColumnService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /**
  * Contrôleur REST pour la gestion des colonnes Kanban.
@@ -24,6 +29,8 @@ import com.taskforge.service.KanbanColumnService;
  */
 @RestController
 @RequestMapping("/api/kanban-columns")
+@Tag(name = "Kanban Column Management", description = "API de gestion des colonnes Kanban personnalisées")
+@SecurityRequirement(name = "bearerAuth")
 public class KanbanColumnController {
     
     @Autowired
@@ -36,6 +43,12 @@ public class KanbanColumnController {
      * @param principal L'utilisateur authentifié.
      * @return La colonne créée.
      */
+    @Operation(summary = "Créer une nouvelle colonne Kanban personnalisée")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Colonne Kanban créée avec succès"),
+        @ApiResponse(responseCode = "400", description = "Requête invalide"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé")
+    })
     @PostMapping
     public ResponseEntity<KanbanColumn> createKanbanColumn(
             @RequestBody CreateKanbanColumnRequest request,
@@ -54,6 +67,11 @@ public class KanbanColumnController {
      * @param principal L'utilisateur authentifié.
      * @return La liste des colonnes triées par ordre.
      */
+    @Operation(summary = "Récupérer les colonnes Kanban d'un projet")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Colonnes récupérées avec succès"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé")
+    })
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<KanbanColumn>> getColumnsByProject(
             @PathVariable Long projectId,
@@ -73,6 +91,13 @@ public class KanbanColumnController {
      * @param principal L'utilisateur authentifié.
      * @return La colonne mise à jour.
      */
+    @Operation(summary = "Mettre à jour une colonne Kanban personnalisée")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Colonne Kanban mise à jour avec succès"),
+        @ApiResponse(responseCode = "400", description = "Requête invalide"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé"),
+        @ApiResponse(responseCode = "404", description = "Colonne non trouvée")
+    })
     @PutMapping("/{columnId}")
     public ResponseEntity<KanbanColumn> updateKanbanColumn(
             @PathVariable Long columnId,
@@ -92,6 +117,12 @@ public class KanbanColumnController {
      * @param principal L'utilisateur authentifié.
      * @return Une réponse vide avec le statut 204 No Content.
      */
+    @Operation(summary = "Supprimer une colonne Kanban personnalisée")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Colonne Kanban supprimée avec succès"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé"),
+        @ApiResponse(responseCode = "404", description = "Colonne non trouvée")
+    })
     @DeleteMapping("/{columnId}")
     public ResponseEntity<Void> deleteKanbanColumn(
             @PathVariable Long columnId,

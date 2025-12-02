@@ -26,6 +26,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Entité représentant une version (release) d'un projet.
  * Une version regroupe un ensemble de User Stories planifiées pour une période donnée.
@@ -38,6 +40,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Version {
 
+    @Schema(description = "Statut de la version", example = "PLANNED")
     public enum VersionStatus {
         PLANNED,
         IN_PROGRESS,
@@ -45,32 +48,40 @@ public class Version {
         ARCHIVED
     }
 
+    @Schema(description = "Identifiant unique de la version", example = "1")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Schema(description = "Titre de la version", example = "Version 1.0")
     @Column(nullable = false)
     private String title;
 
+    @Schema(description = "Description détaillée de la version", example = "Première version majeure avec les fonctionnalités de base")
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Schema(description = "Numéro de version", example = "1.0.0")
     @Column(name="version_number", nullable = false)
     private String versionNumber;
 
+    @Schema(description = "Date de sortie de la version", example = "2024-12-31")
     @Column(name="release_date")
     private LocalDate releaseDate;
 
+    @Schema(description = "Statut actuel de la version", example = "PLANNED")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private VersionStatus status = VersionStatus.PLANNED;
 
+    @Schema(description = "Projet auquel appartient la version")
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     @JsonIgnore
     private Project project;
 
+    @Schema(description = "User Stories associées à la version")
     @OneToMany(mappedBy = "version")
     @Builder.Default
     private List<UserStory> userStories = new ArrayList<>();
