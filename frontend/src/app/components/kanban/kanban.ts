@@ -56,9 +56,14 @@ export class KanbanComponent implements OnInit {
 
   showDeleteStoryModal = false;
   showDeleteTaskModal = false;
+  showDeleteColumnModal = false;
   storyToDelete: UserStory | null = null;
   taskToDelete: { taskId: number, userStoryId: number } | null = null;
+  columnToDelete: KanbanColumn | null = null;
   deleteError: string | null = null;
+
+  // Système de notification globale
+  notification: { message: string, type: 'success' | 'error' | 'info' } | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -190,6 +195,7 @@ export class KanbanComponent implements OnInit {
         },
         error: (err: any) => {
           console.error('Erreur lors de la mise à jour du statut:', err);
+          this.showNotification('Erreur lors du déplacement de la user story.', 'error');
           // Revert the change on error
           transferArrayItem(
             event.container.data,
@@ -220,6 +226,7 @@ export class KanbanComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Erreur lors de la mise à jour du statut:', err);
+        this.showNotification('Erreur lors du changement de statut de la user story.', 'error');
       }
     });
   }
@@ -266,6 +273,7 @@ export class KanbanComponent implements OnInit {
     this.userStoryService.create(payload).subscribe({
       next: (newStory: UserStory) => {
         this.userStories.push({ ...newStory, showTasks: false, tasks: [] });
+        this.showNotification('User story créée avec succès.', 'success');
         this.closeCreateStoryModal();
       },
       error: (err: any) => {
@@ -309,6 +317,7 @@ export class KanbanComponent implements OnInit {
             tasks: this.userStories[index].tasks 
           };
         }
+        this.showNotification('User story mise à jour avec succès.', 'success');
         this.closeEditStoryModal();
       },
       error: (err: any) => {
@@ -338,6 +347,7 @@ export class KanbanComponent implements OnInit {
     this.userStoryService.delete(this.storyToDelete.id).subscribe({
       next: () => {
         this.userStories = this.userStories.filter(s => s.id !== this.storyToDelete!.id);
+        this.showNotification('User story supprimée avec succès.', 'success');
         this.closeDeleteStoryModal();
       },
       error: (err: any) => {
@@ -383,6 +393,7 @@ export class KanbanComponent implements OnInit {
         if (story && story.tasks) {
           story.tasks.push(newTask);
         }
+        this.showNotification('Tâche créée avec succès.', 'success');
         this.closeCreateTaskModal();
       },
       error: (err: any) => {
@@ -446,6 +457,7 @@ export class KanbanComponent implements OnInit {
             story.tasks[taskIndex] = updatedTask;
           }
         }
+        this.showNotification('Tâche mise à jour avec succès.', 'success');
         this.closeEditTaskModal();
       },
       error: (err: any) => {
@@ -475,6 +487,7 @@ export class KanbanComponent implements OnInit {
         if (story && story.tasks) {
           story.tasks = story.tasks.filter(t => t.id !== this.taskToDelete!.taskId);
         }
+        this.showNotification('Tâche supprimée avec succès.', 'success');
         this.closeDeleteTaskModal();
       },
       error: (err: any) => {
@@ -488,6 +501,19 @@ export class KanbanComponent implements OnInit {
     this.showDeleteTaskModal = false;
     this.taskToDelete = null;
     this.deleteError = null;
+  }
+
+  // ========== Notification Methods ==========
+
+  showNotification(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
+    this.notification = { message, type };
+    setTimeout(() => {
+      this.notification = null;
+    }, 5000); // Masquer après 5 secondes
+  }
+
+  closeNotification(): void {
+    this.notification = null;
   }
 
   // ========== Helper Methods ==========
@@ -538,6 +564,7 @@ export class KanbanComponent implements OnInit {
       next: (column: KanbanColumn) => {
         this.kanbanColumns.push(column);
         this.kanbanColumns.sort((a, b) => a.order - b.order);
+        this.showNotification(`Colonne "${column.name}" créée avec succès.`, 'success');
         this.closeAddColumnModal();
       },
       error: (err: any) => {
@@ -551,23 +578,35 @@ export class KanbanComponent implements OnInit {
     event.stopPropagation();
     
     if (column.isDefault) {
-      alert('Les colonnes par défaut ne peuvent pas être supprimées.');
+      this.showNotification('Les colonnes par défaut ne peuvent pas être supprimées.', 'error');
       return;
     }
 
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer la colonne "${column.name}" ?`)) {
-      return;
-    }
+    this.columnToDelete = column;
+    this.showDeleteColumnModal = true;
+    this.deleteError = null;
+  }
 
-    this.kanbanColumnService.delete(column.id).subscribe({
+  confirmDeleteColumn(): void {
+    if (!this.columnToDelete) return;
+
+    this.kanbanColumnService.delete(this.columnToDelete.id).subscribe({
       next: () => {
-        this.kanbanColumns = this.kanbanColumns.filter(c => c.id !== column.id);
+        this.kanbanColumns = this.kanbanColumns.filter(c => c.id !== this.columnToDelete!.id);
+        this.showNotification(`Colonne "${this.columnToDelete!.name}" supprimée avec succès.`, 'success');
+        this.closeDeleteColumnModal();
       },
       error: (err: any) => {
-        alert('Erreur vous ne pouvez pas supprimer une colonne non vide.');
+        this.deleteError = 'Erreur: vous ne pouvez pas supprimer une colonne non vide.';
         console.error(err);
       }
     });
+  }
+
+  closeDeleteColumnModal(): void {
+    this.showDeleteColumnModal = false;
+    this.columnToDelete = null;
+    this.deleteError = null;
   }
 
   openRenameColumnModal(column: KanbanColumn, event: MouseEvent): void {
@@ -611,6 +650,7 @@ export class KanbanComponent implements OnInit {
         if (index !== -1) {
           this.kanbanColumns[index] = updated;
         }
+        this.showNotification(`Colonne renommée en "${updated.name}" avec succès.`, 'success');
         this.closeRenameColumnModal();
       },
       error: (err: any) => {

@@ -1,4 +1,13 @@
 <app-header></app-header>
+
+<!-- Notification globale -->
+<div *ngIf="notification" class="global-notification" [ngClass]="'notification-' + notification.type">
+  <div class="notification-content">
+    <span class="notification-message">{{ notification.message }}</span>
+    <button class="notification-close" (click)="closeNotification()">×</button>
+  </div>
+</div>
+
 <main class="project-detail-main">
   <div class="breadcrumb">
     <a routerLink="/projects" class="breadcrumb-link">← Tous les projets</a>
@@ -259,6 +268,23 @@
     <div class="modal-actions">
       <button class="btn-secondary" (click)="closeRenameColumnModal()">Annuler</button>
       <button class="btn-primary" (click)="renameColumn()">Renommer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Supprimer Colonne -->
+<div *ngIf="showDeleteColumnModal" class="modal-overlay" (click)="closeDeleteColumnModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmer la suppression</h2>
+      <button class="close-btn" (click)="closeDeleteColumnModal()">×</button>
+    </div>
+    <p>Êtes-vous sûr de vouloir supprimer la colonne "{{ columnToDelete?.name }}" ?</p>
+    <p class="warning">Assurez-vous que la colonne ne contient aucune user story.</p>
+    <div *ngIf="deleteError" class="alert alert-error">{{ deleteError }}</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeDeleteColumnModal()">Annuler</button>
+      <button class="btn-danger" (click)="confirmDeleteColumn()">Supprimer</button>
     </div>
   </div>
 </div>
