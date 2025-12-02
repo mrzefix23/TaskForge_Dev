@@ -52,6 +52,7 @@ public class UserStoryControllerTest {
         // Nettoyer la base de données avant chaque test
         jdbcTemplate.execute("DELETE FROM user_story_assignees");
         jdbcTemplate.execute("DELETE FROM user_stories");
+        jdbcTemplate.execute("DELETE FROM kanban_columns");
         jdbcTemplate.execute("DELETE FROM project_members");
         jdbcTemplate.execute("DELETE FROM projects");
         jdbcTemplate.execute("DELETE FROM users");
