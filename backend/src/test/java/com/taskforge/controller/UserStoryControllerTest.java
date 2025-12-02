@@ -97,7 +97,7 @@ public class UserStoryControllerTest {
         request.setDescription("This is a test user story");
         request.setProjectId(projectId);
         request.setPriority(UserStory.Priority.MEDIUM);
-        request.setStatus(UserStory.Status.TODO);
+        request.setStatus("TODO");
 
         mockMvc.perform(post("/api/user-stories")
                 .with(user("owner"))
@@ -123,7 +123,7 @@ public class UserStoryControllerTest {
             request.setDescription("Description for user story " + i);
             request.setProjectId(projectId);
             request.setPriority(UserStory.Priority.LOW);
-            request.setStatus(UserStory.Status.TODO);
+            request.setStatus("TODO");
 
             mockMvc.perform(post("/api/user-stories")
                     .with(user("owner"))
@@ -154,7 +154,7 @@ public class UserStoryControllerTest {
         createRequest.setDescription("Detailed description");
         createRequest.setProjectId(projectId);
         createRequest.setPriority(UserStory.Priority.HIGH);
-        createRequest.setStatus(UserStory.Status.IN_PROGRESS);
+        createRequest.setStatus("IN_PROGRESS");
 
         String createResponse = mockMvc.perform(post("/api/user-stories")
                 .with(user("owner"))
@@ -188,7 +188,7 @@ public class UserStoryControllerTest {
         createRequest.setDescription("Original description");
         createRequest.setProjectId(projectId);
         createRequest.setPriority(UserStory.Priority.LOW);
-        createRequest.setStatus(UserStory.Status.TODO);
+        createRequest.setStatus("TODO");
 
         String createResponse = mockMvc.perform(post("/api/user-stories")
                 .with(user("owner"))
@@ -205,7 +205,7 @@ public class UserStoryControllerTest {
         updateRequest.setTitle("Updated Title");
         updateRequest.setDescription("Updated description");
         updateRequest.setPriority(UserStory.Priority.HIGH);
-        updateRequest.setStatus(UserStory.Status.DONE);
+        updateRequest.setStatus("DONE");
 
         mockMvc.perform(put("/api/user-stories/" + userStoryId)
                 .with(user("owner"))
@@ -230,7 +230,7 @@ public class UserStoryControllerTest {
         createRequest.setDescription("Will be deleted");
         createRequest.setProjectId(projectId);
         createRequest.setPriority(UserStory.Priority.MEDIUM);
-        createRequest.setStatus(UserStory.Status.TODO);
+        createRequest.setStatus("TODO");
 
         String createResponse = mockMvc.perform(post("/api/user-stories")
                 .with(user("owner"))
@@ -264,7 +264,7 @@ public class UserStoryControllerTest {
         request.setTitle("Unauthorized Story");
         request.setDescription("Should fail");
         request.setPriority(UserStory.Priority.LOW);
-        request.setStatus(UserStory.Status.TODO);
+        request.setStatus("TODO");
 
         mockMvc.perform(post("/api/user-stories")
                 .contentType(MediaType.APPLICATION_JSON)

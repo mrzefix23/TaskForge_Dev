@@ -1,7 +1,6 @@
 package com.taskforge.dto;
 
 import com.taskforge.models.UserStory.Priority;
-import com.taskforge.models.UserStory.Status;
 
 import lombok.Data;
 import java.util.List;
@@ -11,7 +10,7 @@ public class CreateUserStoryRequest {
     private String title;
     private String description;
     private Priority priority;
-    private Status status;
+    private String status;
     private Long projectId;
     private List<String> assignedToUsernames;
     private Long sprintId;

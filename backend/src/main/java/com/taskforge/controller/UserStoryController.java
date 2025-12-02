@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taskforge.dto.CreateUserStoryRequest;
+import com.taskforge.dto.UpdateUserStoryStatusRequest;
 import com.taskforge.models.UserStory;
 import com.taskforge.service.UserStoryService;
 
@@ -120,5 +121,25 @@ public class UserStoryController {
         }
         userStoryService.deleteUserStory(userStoryId, principal.getName());
         return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * Met à jour uniquement le statut d'une User Story (drag & drop).
+     *
+     * @param userStoryId L'identifiant de la User Story.
+     * @param request     Le nouveau statut.
+     * @param principal   L'utilisateur authentifié.
+     * @return La User Story avec le statut mis à jour.
+     */
+    @PutMapping("/{userStoryId}/status")
+    public ResponseEntity<UserStory> updateUserStoryStatus(
+            @PathVariable Long userStoryId,
+            @RequestBody UpdateUserStoryStatusRequest request,
+            Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(403).build();
+        }
+        UserStory userStory = userStoryService.updateUserStoryStatus(userStoryId, request.getStatus(), principal.getName());
+        return ResponseEntity.ok(userStory);
     }
 }

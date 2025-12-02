@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 
 import com.taskforge.dto.CreateUserStoryRequest;
 import com.taskforge.exceptions.DuplicateUserStoryTitleException;
+import com.taskforge.models.KanbanColumn;
 import com.taskforge.models.Project;
 import com.taskforge.models.User;
 import com.taskforge.models.UserStory;
+import com.taskforge.repositories.KanbanColumnRepository;
 import com.taskforge.repositories.ProjectRepository;
 import com.taskforge.repositories.TaskRepository;
 import com.taskforge.repositories.UserRepository;
@@ -40,6 +42,9 @@ public class UserStoryService {
 
     @Autowired
     private TaskRepository taskRepository;
+    
+    @Autowired
+    private KanbanColumnRepository kanbanColumnRepository;
     
     /**
      * Crée une nouvelle User Story dans un projet.
@@ -181,5 +186,29 @@ public class UserStoryService {
         taskRepository.deleteAllByUserStoryId(userStoryId);
         
         userStoryRepository.deleteById(userStoryId);
+    }
+    
+    /**
+     * Met à jour uniquement le statut d'une User Story (drag & drop).
+     * Permet de déplacer une User Story entre les colonnes Kanban.
+     *
+     * @param userStoryId L'identifiant de la User Story.
+     * @param status      Le nouveau statut.
+     * @param username    Le nom d'utilisateur effectuant la mise à jour.
+     * @return La User Story avec le statut mis à jour.
+     * @throws RuntimeException Si la User Story n'existe pas ou si l'accès est refusé.
+     */
+    @Transactional
+    public UserStory updateUserStoryStatus(Long userStoryId, String status, String username) {
+        UserStory userStory = getUserStoryById(userStoryId, username);
+        
+        // Mettre à jour le statut
+        userStory.setStatus(status);
+        
+        // Mettre à jour la colonne Kanban si elle existe
+        kanbanColumnRepository.findByStatusAndProjectId(status, userStory.getProject().getId())
+                .ifPresent(userStory::setKanbanColumn);
+        
+        return userStoryRepository.save(userStory);
     }
 }

@@ -98,7 +98,7 @@ class UserStoryServiceTest {
         request.setTitle("New US");
         request.setDescription("A description");
         request.setPriority(UserStory.Priority.HIGH);
-        request.setStatus(UserStory.Status.TODO);
+        request.setStatus("TODO");
 
         when(projectService.getProjectById(project.getId(), projectOwner.getUsername())).thenReturn(project);
         when(userStoryRepository.existsByTitleAndProjectId(request.getTitle(), project.getId())).thenReturn(false);

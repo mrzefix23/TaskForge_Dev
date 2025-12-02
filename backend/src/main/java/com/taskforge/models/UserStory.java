@@ -52,9 +52,8 @@ public class UserStory {
     @Column(nullable = false)
     private Priority priority;
     
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status;
+    private String status;
     
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
@@ -80,12 +79,13 @@ public class UserStory {
     @JoinColumn(name = "version_id", nullable = true)
     @JsonIgnoreProperties({"userStories", "project"})
     private Version version;
+
+    @ManyToOne
+    @JoinColumn(name = "kanban_column_id", nullable = true)
+    @JsonIgnoreProperties({"project"})
+    private KanbanColumn kanbanColumn;
     
     public enum Priority {
         LOW, MEDIUM, HIGH
-    }
-    
-    public enum Status {
-        TODO, IN_PROGRESS, DONE
     }
 }
