@@ -300,8 +300,8 @@ describe('SprintManagement', () => {
 
       component.removeStoryFromSprint(userStoryId);
 
-      const req = httpMock.expectOne(`/api/user-stories/${userStoryId}/remove-from-sprint`);
-      expect(req.request.method).toBe('PUT');
+      const req = httpMock.expectOne(`/api/sprints/user-stories/${userStoryId}/sprint`);
+      expect(req.request.method).toBe('DELETE');
       req.flush({});
 
       // Reload backlog

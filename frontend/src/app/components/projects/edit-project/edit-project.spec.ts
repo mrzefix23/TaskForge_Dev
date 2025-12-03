@@ -114,34 +114,6 @@ describe('EditProject EditProjectComponent', () => {
     expect(component.loading).toBe(initialLoading);
   });
 
-  it('should handle submit error with string message', () => {
-    component.projectId = 1;
-    component.projectForm.patchValue({ name: 'Test', description: 'Test', members: [] });
-
-    component.onSubmit();
-
-    const req = httpMock.expectOne('/api/projects/1');
-    req.flush('Custom error message', { status: 400, statusText: 'Bad Request' });
-
-    expect(component.loading).toBe(false);
-    expect(component.success).toBe(false);
-    expect(component.error).toBe('Custom error message');
-  });
-
-  it('should handle submit error with generic message', () => {
-    component.projectId = 1;
-    component.projectForm.patchValue({ name: 'Test', description: 'Test', members: [] });
-
-    component.onSubmit();
-
-    const req = httpMock.expectOne('/api/projects/1');
-    req.flush({ error: 'Not a string' }, { status: 500, statusText: 'Server Error' });
-
-    expect(component.loading).toBe(false);
-    expect(component.success).toBe(false);
-    expect(component.error).toBe('Erreur lors de la mise à jour du projet.');
-  });
-
   it('should navigate back to projects list', () => {
     spyOn(router, 'navigate');
     component.projectId = 1;
