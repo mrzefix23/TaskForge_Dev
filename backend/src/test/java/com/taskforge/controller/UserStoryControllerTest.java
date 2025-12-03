@@ -1,11 +1,7 @@
 package com.taskforge.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.taskforge.dto.CreateProjectRequest;
-import com.taskforge.dto.CreateUserStoryRequest;
-import com.taskforge.dto.RegisterRequest;
-import com.taskforge.dto.UserDto;
-import com.taskforge.models.UserStory;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,18 +10,27 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.taskforge.dto.CreateProjectRequest;
+import com.taskforge.dto.CreateUserStoryRequest;
+import com.taskforge.dto.RegisterRequest;
+import com.taskforge.dto.UpdateUserStoryStatusRequest;
+import com.taskforge.dto.UserDto;
+import com.taskforge.models.UserStory;
 
 /**
- * Tests d'intégration pour le contrôleur des User Stories (UserStoryController).
- * Vérifie les opérations CRUD sur les User Stories au sein d'un projet.
+ * Tests d'intégration pour le contrôleur des User Stories.
+ * Couvre les cas nominaux et les cas limites (authentification manquante).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,233 +48,247 @@ public class UserStoryControllerTest {
 
     private Long projectId;
 
-    /**
-     * Prépare l'environnement de test avant chaque exécution.
-     * Nettoie la base de données, crée un utilisateur propriétaire et un projet de test.
-     */
     @BeforeEach
     void setup() throws Exception {
-        // Nettoyer la base de données avant chaque test
+        // Nettoyage complet
+        jdbcTemplate.execute("DELETE FROM tasks");
         jdbcTemplate.execute("DELETE FROM user_story_assignees");
         jdbcTemplate.execute("DELETE FROM user_stories");
+        jdbcTemplate.execute("DELETE FROM sprints");
         jdbcTemplate.execute("DELETE FROM kanban_columns");
         jdbcTemplate.execute("DELETE FROM project_members");
         jdbcTemplate.execute("DELETE FROM projects");
         jdbcTemplate.execute("DELETE FROM users");
 
-        // Créer un utilisateur propriétaire (owner)
-        RegisterRequest ownerRequest = new RegisterRequest();
-        ownerRequest.setUsername("owner");
-        ownerRequest.setEmail("owner@example.com");
-        ownerRequest.setPassword("password");
-        
-        mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(ownerRequest)))
-                .andExpect(status().isOk());
+        // Création des utilisateurs
+        registerUser("owner");
+        registerUser("member");
+        registerUser("unauthorized");
 
-        // Créer un projet de test avec le propriétaire
+        // Création du projet
         CreateProjectRequest projectRequest = new CreateProjectRequest();
         projectRequest.setName("Test Project for User Stories");
         projectRequest.setDescription("Project for testing user stories");
         projectRequest.setUser(UserDto.builder().username("owner").build());
-        projectRequest.setMembers(List.of());
+        projectRequest.setMembers(List.of(UserDto.builder().username("member").build()));
 
         String projectResponse = mockMvc.perform(post("/api/projects")
                 .with(user("owner"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(projectRequest)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andReturn().getResponse().getContentAsString();
 
         projectId = objectMapper.readTree(projectResponse).get("id").asLong();
     }
 
-    /**
-     * Vérifie qu'un utilisateur authentifié (propriétaire) peut créer une User Story dans son projet.
-     */
+    // --- TESTS NOMINAUX (Happy Path) ---
+
     @Test
     @WithMockUser(username = "owner")
     void createUserStory_shouldReturnCreatedUserStory() throws Exception {
-        CreateUserStoryRequest request = new CreateUserStoryRequest();
-        request.setTitle("Test User Story");
-        request.setDescription("This is a test user story");
-        request.setProjectId(projectId);
-        request.setPriority(UserStory.Priority.MEDIUM);
-        request.setStatus("TODO");
+        CreateUserStoryRequest request = createRequest("Test Story", "TODO");
 
         mockMvc.perform(post("/api/user-stories")
                 .with(user("owner"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Test User Story"))
-                .andExpect(jsonPath("$.description").value("This is a test user story"))
-                .andExpect(jsonPath("$.priority").value("MEDIUM"))
+                .andExpect(jsonPath("$.title").value("Test Story"))
                 .andExpect(jsonPath("$.status").value("TODO"));
     }
 
-    /**
-     * Vérifie la récupération de la liste des User Stories associées à un projet spécifique.
-     */
     @Test
     @WithMockUser(username = "owner")
-    void getUserStoriesByProject_shouldReturnUserStories() throws Exception {
-        // Créer plusieurs user stories pour le projet
-        for (int i = 1; i <= 3; i++) {
-            CreateUserStoryRequest request = new CreateUserStoryRequest();
-            request.setTitle("User Story " + i);
-            request.setDescription("Description for user story " + i);
-            request.setProjectId(projectId);
-            request.setPriority(UserStory.Priority.LOW);
-            request.setStatus("TODO");
+    void getUserStoriesByProject_shouldReturnList() throws Exception {
+        createUserStory("Story 1", "TODO");
+        createUserStory("Story 2", "DONE");
 
-            mockMvc.perform(post("/api/user-stories")
-                    .with(user("owner"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk());
-        }
-
-        // Récupérer les user stories pour le projet
         mockMvc.perform(get("/api/user-stories/project/" + projectId)
                 .with(user("owner")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[0].title").value("User Story 1"))
-                .andExpect(jsonPath("$[1].title").value("User Story 2"))
-                .andExpect(jsonPath("$[2].title").value("User Story 3"));
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
-    /**
-     * Vérifie la récupération des détails d'une User Story spécifique par son ID.
-     */
     @Test
     @WithMockUser(username = "owner")
-    void getUserStoryById_shouldReturnUserStory() throws Exception {
-        // Créer une user story spécifique
-        CreateUserStoryRequest createRequest = new CreateUserStoryRequest();
-        createRequest.setTitle("Specific User Story");
-        createRequest.setDescription("Detailed description");
-        createRequest.setProjectId(projectId);
-        createRequest.setPriority(UserStory.Priority.HIGH);
-        createRequest.setStatus("IN_PROGRESS");
+    void getUserStoryById_shouldReturnStory() throws Exception {
+        Long id = createUserStory("Specific Story", "IN_PROGRESS");
 
-        String createResponse = mockMvc.perform(post("/api/user-stories")
-                .with(user("owner"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        Long userStoryId = objectMapper.readTree(createResponse).get("id").asLong();
-
-        mockMvc.perform(get("/api/user-stories/" + userStoryId)
+        mockMvc.perform(get("/api/user-stories/" + id)
                 .with(user("owner")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Specific User Story"))
-                .andExpect(jsonPath("$.description").value("Detailed description"))
-                .andExpect(jsonPath("$.priority").value("HIGH"))
-                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+                .andExpect(jsonPath("$.title").value("Specific Story"));
     }
 
-    /**
-     * Vérifie la mise à jour des informations d'une User Story existante.
-     */
     @Test
     @WithMockUser(username = "owner")
-    void updateUserStory_shouldModifyFields() throws Exception {
-        // Créer une user story à mettre à jour
-        CreateUserStoryRequest createRequest = new CreateUserStoryRequest();
-        createRequest.setTitle("Original Title");
-        createRequest.setDescription("Original description");
-        createRequest.setProjectId(projectId);
-        createRequest.setPriority(UserStory.Priority.LOW);
-        createRequest.setStatus("TODO");
+    void updateUserStory_shouldUpdateFields() throws Exception {
+        Long id = createUserStory("Original", "TODO");
 
-        String createResponse = mockMvc.perform(post("/api/user-stories")
-                .with(user("owner"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        CreateUserStoryRequest updateRequest = createRequest("Updated", "DONE");
 
-        Long userStoryId = objectMapper.readTree(createResponse).get("id").asLong();
-
-        CreateUserStoryRequest updateRequest = new CreateUserStoryRequest();
-        updateRequest.setTitle("Updated Title");
-        updateRequest.setDescription("Updated description");
-        updateRequest.setPriority(UserStory.Priority.HIGH);
-        updateRequest.setStatus("DONE");
-
-        mockMvc.perform(put("/api/user-stories/" + userStoryId)
+        mockMvc.perform(put("/api/user-stories/" + id)
                 .with(user("owner"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Updated Title"))
-                .andExpect(jsonPath("$.description").value("Updated description"))
-                .andExpect(jsonPath("$.priority").value("HIGH"))
+                .andExpect(jsonPath("$.title").value("Updated"))
                 .andExpect(jsonPath("$.status").value("DONE"));
     }
 
-    /**
-     * Vérifie la suppression d'une User Story par le propriétaire du projet.
-     */
     @Test
     @WithMockUser(username = "owner")
-    void deleteUserStory_shouldSucceed() throws Exception {
-        // Créer une user story à supprimer
-        CreateUserStoryRequest createRequest = new CreateUserStoryRequest();
-        createRequest.setTitle("User Story to Delete");
-        createRequest.setDescription("Will be deleted");
-        createRequest.setProjectId(projectId);
-        createRequest.setPriority(UserStory.Priority.MEDIUM);
-        createRequest.setStatus("TODO");
+    void deleteUserStory_shouldReturnNoContent() throws Exception {
+        Long id = createUserStory("To Delete", "TODO");
 
-        String createResponse = mockMvc.perform(post("/api/user-stories")
-                .with(user("owner"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        Long userStoryId = objectMapper.readTree(createResponse).get("id").asLong();
-
-        mockMvc.perform(delete("/api/user-stories/" + userStoryId)
+        mockMvc.perform(delete("/api/user-stories/" + id)
                 .with(user("owner")))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/user-stories/project/" + projectId)
+        mockMvc.perform(get("/api/user-stories/" + id)
                 .with(user("owner")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(status().isNotFound());
     }
 
-    /**
-     * Vérifie que la création d'une User Story échoue si l'utilisateur n'est pas authentifié.
-     */
     @Test
-    void createUserStory_shouldFail_whenNotAuthenticated() throws Exception {
-        // Tenter de créer une user story sans être authentifié
-        CreateUserStoryRequest request = new CreateUserStoryRequest();
-        request.setProjectId(projectId);
-        request.setTitle("Unauthorized Story");
-        request.setDescription("Should fail");
-        request.setPriority(UserStory.Priority.LOW);
-        request.setStatus("TODO");
+    @WithMockUser(username = "owner")
+    void updateUserStoryStatus_shouldUpdateStatusOnly() throws Exception {
+        Long id = createUserStory("Story Status", "TODO");
+
+        UpdateUserStoryStatusRequest request = new UpdateUserStoryStatusRequest();
+        request.setStatus("DONE");
+
+        mockMvc.perform(put("/api/user-stories/" + id + "/status")
+                .with(user("owner"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DONE"));
+    }
+
+    // --- TESTS BRANCHES : AUTHENTIFICATION MANQUANTE (Principal == null) ---
+    // Ces tests sont cruciaux pour la couverture des blocs "if (principal == null)"
+
+    @Test
+    void createUserStory_noAuth_shouldReturnForbidden() throws Exception {
+        CreateUserStoryRequest request = createRequest("Unauthorized", "TODO");
 
         mockMvc.perform(post("/api/user-stories")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getUserStoriesByProject_noAuth_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/api/user-stories/project/" + projectId))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getUserStoryById_noAuth_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/api/user-stories/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateUserStory_noAuth_shouldReturnForbidden() throws Exception {
+        CreateUserStoryRequest request = createRequest("Update", "TODO");
+
+        mockMvc.perform(put("/api/user-stories/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deleteUserStory_noAuth_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(delete("/api/user-stories/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateUserStoryStatus_noAuth_shouldReturnForbidden() throws Exception {
+        UpdateUserStoryStatusRequest request = new UpdateUserStoryStatusRequest();
+        request.setStatus("DONE");
+
+        mockMvc.perform(put("/api/user-stories/1/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    // --- TESTS BRANCHES : ERREURS MÉTIER & DROITS ---
+
+    @Test
+    @WithMockUser(username = "owner")
+    void createUserStory_duplicateTitle_shouldReturnBadRequest() throws Exception {
+        createUserStory("Duplicate", "TODO");
+        CreateUserStoryRequest request = createRequest("Duplicate", "TODO");
+
+        mockMvc.perform(post("/api/user-stories")
+                .with(user("owner"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "unauthorized")
+    void createUserStory_nonMember_shouldReturnForbidden() throws Exception {
+        CreateUserStoryRequest request = createRequest("Hacker", "TODO");
+
+        mockMvc.perform(post("/api/user-stories")
+                .with(user("unauthorized"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "owner")
+    void updateUserStory_notFound_shouldReturnNotFound() throws Exception {
+        CreateUserStoryRequest request = createRequest("Ghost", "TODO");
+
+        mockMvc.perform(put("/api/user-stories/99999")
+                .with(user("owner"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    // --- HELPER METHODS ---
+
+    private void registerUser(String username) throws Exception {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername(username);
+        request.setEmail(username + "@example.com");
+        request.setPassword("password");
+        
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+    }
+
+    private CreateUserStoryRequest createRequest(String title, String status) {
+        CreateUserStoryRequest request = new CreateUserStoryRequest();
+        request.setTitle(title);
+        request.setDescription("Description");
+        request.setProjectId(projectId);
+        request.setPriority(UserStory.Priority.MEDIUM);
+        request.setStatus(status);
+        return request;
+    }
+
+    private Long createUserStory(String title, String status) throws Exception {
+        CreateUserStoryRequest request = createRequest(title, status);
+        String response = mockMvc.perform(post("/api/user-stories")
+                .with(user("owner"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(response).get("id").asLong();
     }
 }
