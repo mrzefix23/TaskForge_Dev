@@ -19,9 +19,7 @@ TaskForge is a web-based project management application that allows users to cre
 - **`backend/`**: Contains the Spring Boot backend application, including RESTful APIs, database models, and business logic.
 - **`frontend/`**: Contains the Angular frontend application, including components, services, and UI design.
 - **`ADMIN_GUIDE.md`**: Comprehensive administrator guide for production deployment
-- **`SECURITY.md`**: Security best practices and policies
-- **`docker-compose.yml`**: Production-ready Docker configuration (secure)
-- **`docker-compose.dev.yml`**: Development Docker configuration (ports exposed)
+- **`docker-compose.yml`**: Docker Compose configuration for production deployment
 
 ## Prerequisites
 
@@ -45,6 +43,23 @@ Before starting the application, you need to configure the `.env` files for the 
    cp .env.example .env
    ```
 
+### Generate the JWT secret key
+
+To generate a Base64 secret key to use as the value for SECURITY_JWT_SECRET in the backend `.env` file, you can use openssl. Example (generates 64 random bytes encoded in Base64):
+
+```bash
+openssl rand -base64 64
+```
+
+Copy the output and place it in your backend `.env` file as follows:
+
+```bash
+# backend/src/main/resources/.env
+SECURITY_JWT_SECRET=the_value_generated_by_openssl
+SECURITY_JWT_EXPIRATION-MS=3600000
+```
+
+> Note: The decoded key must be sufficiently long (>= 32 bytes) to be used with HMAC SHA (requirement by the JWT library). The above example produces an appropriate security key.
 ---
 
 ## Running the Application
@@ -131,18 +146,17 @@ This exposes:
 - Swagger: `http://localhost:8080/swagger-ui.html`
 - Database: `localhost:5432`
 
-**⚠️ Warning**: Never use `docker-compose.dev.yml` in production as it exposes sensitive ports.
 
 ### 2. Access the Database
 
-**En développement local :** Si vous avez besoin d'accéder directement à la base de données, vous pouvez temporairement décommenter le mapping du port 5432 dans `docker-compose.yml`.
+**In local development:** If you need direct access to the database, you can temporarily uncomment the port 5432 mapping in `docker-compose.yml`.
 
-**En production Docker :** Utilisez un tunnel SSH ou accédez via le conteneur :
+**In Docker production:** Use an SSH tunnel or access via the container:
 ```bash
 docker-compose exec database psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}
 ```
 
-Les informations de connexion sont configurées dans votre fichier `.env`.
+Connection credentials are configured in your `.env` file.
 
 ---
 
@@ -188,149 +202,116 @@ npm test
 
 ---
 
-## API documentation
+## API Documentation
 
-Une fois l'application lancée, la documentation Swagger est disponible aux adresses suivantes :
+The API documentation is available via Swagger UI. It provides an interactive interface to explore and test the API endpoints.
 
-### Mode Développement Local (backend seul)
-- **Interface Swagger UI** : `http://localhost:8080/swagger-ui.html`
-- **Documentation JSON OpenAPI** : `http://localhost:8080/v3/api-docs`
+### Local Development Mode (backend only)
+- **Swagger UI Interface**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI JSON Documentation**: `http://localhost:8080/v3/api-docs`
 
-### Mode Docker
-- **Interface Swagger UI** : `http://localhost/swagger-ui.html`
-- **Documentation JSON OpenAPI** : `http://localhost/v3/api-docs`
+### Docker Mode
+- **Swagger UI Interface**: `http://localhost/swagger-ui.html`
+- **OpenAPI JSON Documentation**: `http://localhost/v3/api-docs`
 
-### Utiliser l'authentification dans Swagger UI
+### Using Authentication in Swagger UI
 
-1. **Se connecter** :
-   - Aller sur `http://localhost:8080/swagger-ui.html`
-   - Cliquer sur **POST /api/auth/login**
-   - Testez avec : 
+1. **Login**:
+   - Go to `http://localhost:8080/swagger-ui.html`
+   - Click on **POST /api/auth/login**
+   - Test with: 
      ```json
      {
-       "username": "votre_nom_utilisateur",
-       "password": "votre_mot_de_passe"
+       "username": "your_username",
+       "password": "your_password"
      }
      ```
-   - Cliquer sur **Execute**
-   - Copier le token JWT de la réponse.
+   - Click **Execute**
+   - Copy the JWT token from the response.
 
-2. **Ajouter le token JWT** :
-   - Cliquer sur le bouton **Authorize** (icône de cadenas en haut à droite).
-   - Dans le champ `Value`, entrer : `Bearer VOTRE_TOKEN_JWT`
-   - Cliquer sur **Authorize** puis sur **Close**.
+2. **Add the JWT token**:
+   - Click the **Authorize** button (lock icon at the top right).
+   - In the `Value` field, enter: `Bearer YOUR_JWT_TOKEN`
+   - Click **Authorize** then **Close**.
 
-3. **Accéder aux endpoints protégés** :
-   - Vous pouvez maintenant accéder aux endpoints protégés en utilisant Swagger UI.
+3. **Access protected endpoints**:
+   - You can now access protected endpoints using Swagger UI.
 
-### Endpoints disponibles 
+### Available Endpoints
 
-#### Authentification (`/api/auth/`)
-- `POST /login` : Se connecter
-- `POST /register` : S'inscrire
+#### Authentication (`/api/auth/`)
+- `POST /login`: Login
+- `POST /register`: Register
 
-#### Projets (`/api/projects/`)
-- `POST /` : Créer un nouveau projet
-- `GET /myprojects` : Obtenir les projets de l'utilisateur connecté
-- `GET /{projectId}` : Obtenir les détails d'un projet par son ID
-- `PUT /{projectId}` : Mettre à jour un projet par son ID
-- `DELETE /{projectId}` : Supprimer un projet par son ID (propriétaire uniquement)
+#### Projects (`/api/projects/`)
+- `POST /`: Create a new project
+- `GET /myprojects`: Get projects for the logged-in user
+- `GET /{projectId}`: Get project details by ID
+- `PUT /{projectId}`: Update a project by ID
+- `DELETE /{projectId}`: Delete a project by ID (owner only)
 
 #### User Stories (`/api/user-stories/`)
-- `POST /` : Créer une nouvelle user story
-- `GET /project/{projectId}` : Obtenir toutes les user stories d'un projet
-- `GET /{userStoryId}` : Obtenir les détails d'une user story
-- `PUT /{userStoryId}` : Mettre à jour une user story
-- `DELETE /{userStoryId}` : Supprimer une user story
-- `PUT /{userStoryId}/status` : Mettre à jour le statut d'une user story
+- `POST /`: Create a new user story
+- `GET /project/{projectId}`: Get all user stories for a project
+- `GET /{userStoryId}`: Get user story details
+- `PUT /{userStoryId}`: Update a user story
+- `DELETE /{userStoryId}`: Delete a user story
+- `PUT /{userStoryId}/status`: Update user story status
 
 #### Sprints (`/api/sprints/`)
-- `POST /` : Créer un nouveau sprint
-- `GET /project/{projectId}` : Obtenir tous les sprints d'un projet
-- `GET /{sprintId}` : Obtenir les détails d'un sprint
-- `PUT /{sprintId}` : Mettre à jour un sprint
-- `DELETE /{sprintId}` : Supprimer un sprint
-- `PUT /{sprintId}/status` : Mettre à jour le statut d'un sprint
-- `POST /{sprintId}/user-stories/{userStoryId}` : Ajouter une user story à un sprint
-- `DELETE /{sprintId}/user-stories/{userStoryId}` : Retirer une user story d'un sprint
-- `GET /{sprintId}/user-stories` : Obtenir toutes les user stories d'un sprint
+- `POST /`: Create a new sprint
+- `GET /project/{projectId}`: Get all sprints for a project
+- `GET /{sprintId}`: Get sprint details
+- `PUT /{sprintId}`: Update a sprint
+- `DELETE /{sprintId}`: Delete a sprint
+- `PUT /{sprintId}/status`: Update sprint status
+- `POST /{sprintId}/user-stories/{userStoryId}`: Add a user story to a sprint
+- `DELETE /{sprintId}/user-stories/{userStoryId}`: Remove a user story from a sprint
+- `GET /{sprintId}/user-stories`: Get all user stories in a sprint
 
 #### Versions (`/api/versions/`)
-- `POST /` : Créer une nouvelle version
-- `GET /project/{projectId}` : Obtenir toutes les versions d'un projet
-- `GET /{id}` : Obtenir les détails d'une version
-- `PUT /{id}` : Mettre à jour une version
-- `DELETE /{id}` : Supprimer une version
-- `PUT /{id}/status` : Mettre à jour le statut d'une version
-- `POST /{versionId}/user-stories/{userStoryId}` : Ajouter une user story à une version
-- `DELETE /{versionId}/user-stories/{userStoryId}` : Retirer une user story d'une version
-- `GET /{versionId}/user-stories` : Obtenir toutes les user stories d'une version
+- `POST /`: Create a new version
+- `GET /project/{projectId}`: Get all versions for a project
+- `GET /{id}`: Get version details
+- `PUT /{id}`: Update a version
+- `DELETE /{id}`: Delete a version
+- `PUT /{id}/status`: Update version status
+- `POST /{versionId}/user-stories/{userStoryId}`: Add a user story to a version
+- `DELETE /{versionId}/user-stories/{userStoryId}`: Remove a user story from a version
+- `GET /{versionId}/user-stories`: Get all user stories in a version
 
-#### Tâches (`/api/tasks/`)
-- `POST /` : Créer une nouvelle tâche
-- `GET /user-story/{userStoryId}` : Obtenir toutes les tâches d'une user story
-- `GET /{taskId}` : Obtenir les détails d'une tâche
-- `PUT /{taskId}` : Mettre à jour une tâche
-- `DELETE /{taskId}` : Supprimer une tâche
-- `PUT /{taskId}/status` : Mettre à jour le statut d'une tâche
-- `PUT /{taskId}/assign/{userId}` : Assigner une tâche à un utilisateur
-- `DELETE /{taskId}/unassign` : Désassigner une tâche
+#### Tasks (`/api/tasks/`)
+- `POST /`: Create a new task
+- `GET /user-story/{userStoryId}`: Get all tasks for a user story
+- `GET /{taskId}`: Get task details
+- `PUT /{taskId}`: Update a task
+- `DELETE /{taskId}`: Delete a task
+- `PUT /{taskId}/status`: Update task status
+- `PUT /{taskId}/assign/{userId}`: Assign a task to a user
+- `DELETE /{taskId}/unassign`: Unassign a task
 
-#### Colonnes Kanban (`/api/kanban-columns/`)
-- `POST /` : Créer une nouvelle colonne Kanban
-- `GET /project/{projectId}` : Obtenir toutes les colonnes Kanban d'un projet
-- `GET /{columnId}` : Obtenir les détails d'une colonne
-- `PUT /{columnId}` : Mettre à jour une colonne
-- `DELETE /{columnId}` : Supprimer une colonne
-- `PUT /{columnId}/reorder` : Réorganiser l'ordre des colonnes
+#### Kanban Columns (`/api/kanban-columns/`)
+- `POST /`: Create a new Kanban column
+- `GET /project/{projectId}`: Get all Kanban columns for a project
+- `GET /{columnId}`: Get column details
+- `PUT /{columnId}`: Update a column
+- `DELETE /{columnId}`: Delete a column
+- `PUT /{columnId}/reorder`: Reorder columns
 
-#### Utilisateurs (`/api/users/`)
-- `GET /` : Obtenir la liste des utilisateurs
-- `GET /{id}` : Obtenir les détails d'un utilisateur par son ID
-
----
-
-## Security Notes
-
-### Development vs Production
-
-**⚠️ Important Security Considerations:**
-
-> 📖 **For detailed security guidelines, see [SECURITY.md](./SECURITY.md)**
-
-- **Port Exposure**: In the current `docker-compose.yml`, only port 80 (Nginx) is exposed. The backend (8080) and database (5432) are NOT exposed externally and communicate only through the internal Docker network. This is the secure configuration for production.
-
-- **Database Access**: 
-  - In production: Access the database via Docker exec or SSH tunnel
-  - For local development: You can temporarily expose port 5432 by uncommenting it in `docker-compose.yml`
-
-- **Swagger Documentation**: 
-  - In production, consider disabling Swagger or restricting access
-  - Add `SPRINGDOC_SWAGGER_UI_ENABLED=false` to your backend `.env` for production
-
-- **Environment Variables**: 
-  - Never commit `.env` files to the repository
-  - Use strong passwords and secure JWT secrets in production
-  - Change all default credentials before deploying
-
-### HTTPS Configuration
-
-For production deployment, configure HTTPS:
-1. Obtain SSL/TLS certificates (e.g., Let's Encrypt)
-2. Update `nginx.conf` to listen on port 443
-3. Configure automatic HTTP to HTTPS redirect
+#### Users (`/api/users/`)
+- `GET /`: Get list of users
+- `GET /{id}`: Get user details by ID
 
 ---
 
-## Schéma
+## Schema
 
-Section où l'on retrouve le schéma des données utilisées dans l'API :
-
-- **AuthResponse** : Réponse d'authentification contenant le token JWT
-- **CreateProjectRequest** : Requête pour créer un nouveau projet
-- **GrantedAuthority** : Autorité accordée à un utilisateur
-- **LoginRequest** : Requête de connexion avec username et password
-- **Project** : Modèle représentant un projet
-- **RegisterRequest** : Requête d'inscription d'un nouvel utilisateur
-- **User** : Modèle représentant un utilisateur
-- **UserDto** : Objet de transfert de données pour les informations utilisateur
+Section where the data schema used in the API can be found:
+- **AuthResponse**: Authentication response containing the JWT token
+- **CreateProjectRequest**: Request to create a new project
+- **GrantedAuthority**: Authority granted to a user
+- **LoginRequest**: Login request with username and password
+- **Project**: Model representing a project
+- **RegisterRequest**: Request to register a new user
+- **User**: Model representing a user
+- **UserDto**: Data transfer object for user information
