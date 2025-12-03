@@ -15,8 +15,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taskforge.dto.CreateUserStoryRequest;
+import com.taskforge.dto.UpdateUserStoryStatusRequest;
 import com.taskforge.models.UserStory;
 import com.taskforge.service.UserStoryService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /**
  * Contrôleur REST pour la gestion des User Stories.
@@ -25,6 +32,8 @@ import com.taskforge.service.UserStoryService;
  */
 @RestController
 @RequestMapping("/api/user-stories")
+@Tag(name = "User Story Management", description = "API de gestion des User Stories liées aux projets")
+@SecurityRequirement(name = "bearerAuth")
 public class UserStoryController {
     
     @Autowired
@@ -35,8 +44,13 @@ public class UserStoryController {
      *
      * @param request   Les informations nécessaires à la création de la User Story.
      * @param principal L'utilisateur authentifié effectuant la requête.
-     * @return La User Story créée avec le statut 200 OK, ou 403 Forbidden si non authentifié.
+     * @return La User Story crée avec le statut 200 OK, ou 403 Forbidden si non authentifié.
      */
+    @Operation(summary = "Créer une nouvelle User Story")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User Story crée avec succès"),
+        @ApiResponse(responseCode = "403", description = "Non autorisé")
+    })
     @PostMapping
     public ResponseEntity<UserStory> createUserStory(
             @RequestBody CreateUserStoryRequest request, 
@@ -55,6 +69,11 @@ public class UserStoryController {
      * @param principal L'utilisateur authentifié.
      * @return Une liste de User Stories appartenant au projet.
      */
+    @Operation(summary = "Récupérer les User Stories d'un projet")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User Stories récupérées avec succès"),
+        @ApiResponse(responseCode = "403", description = "Non autorisé")
+    })
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<UserStory>> getUserStoriesByProject(
             @PathVariable Long projectId, 
@@ -73,6 +92,11 @@ public class UserStoryController {
      * @param principal   L'utilisateur authentifié.
      * @return La User Story demandée.
      */
+    @Operation(summary = "Récupérer une User Story par son identifiant")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User Story récupérée avec succès"),
+        @ApiResponse(responseCode = "403", description = "Non autorisé")
+    })
     @GetMapping("/{userStoryId}")
     public ResponseEntity<UserStory> getUserStoryById(
             @PathVariable Long userStoryId, 
@@ -92,6 +116,11 @@ public class UserStoryController {
      * @param principal   L'utilisateur authentifié.
      * @return La User Story mise à jour.
      */
+    @Operation(summary = "Mettre à jour une User Story existante")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User Story mise à jour avec succès"),
+        @ApiResponse(responseCode = "403", description = "Non autorisé")
+    })
     @PutMapping("/{userStoryId}")
     public ResponseEntity<UserStory> updateUserStory(
             @PathVariable Long userStoryId,
@@ -111,6 +140,11 @@ public class UserStoryController {
      * @param principal   L'utilisateur authentifié.
      * @return Une réponse vide avec le statut 204 No Content en cas de succès.
      */
+    @Operation(summary = "Supprimer une User Story")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "User Story supprimée avec succès"),
+        @ApiResponse(responseCode = "403", description = "Non autorisé")
+    })
     @DeleteMapping("/{userStoryId}")
     public ResponseEntity<Void> deleteUserStory(
             @PathVariable Long userStoryId, 
@@ -120,5 +154,30 @@ public class UserStoryController {
         }
         userStoryService.deleteUserStory(userStoryId, principal.getName());
         return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * Met à jour uniquement le statut d'une User Story (drag & drop).
+     *
+     * @param userStoryId L'identifiant de la User Story.
+     * @param request     Le nouveau statut.
+     * @param principal   L'utilisateur authentifié.
+     * @return La User Story avec le statut mis à jour.
+     */
+    @Operation(summary = "Mettre à jour le statut d'une User Story")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Statut de la User Story mis à jour avec succès"),
+        @ApiResponse(responseCode = "403", description = "Non autorisé")
+    })
+    @PutMapping("/{userStoryId}/status")
+    public ResponseEntity<UserStory> updateUserStoryStatus(
+            @PathVariable Long userStoryId,
+            @RequestBody UpdateUserStoryStatusRequest request,
+            Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(403).build();
+        }
+        UserStory userStory = userStoryService.updateUserStoryStatus(userStoryId, request.getStatus(), principal.getName());
+        return ResponseEntity.ok(userStory);
     }
 }

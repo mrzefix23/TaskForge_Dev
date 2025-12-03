@@ -98,4 +98,16 @@ export class SprintService {
       headers: this.getHeaders()
     });
   }
+
+  startSprint(sprintId: number): Observable<Sprint> {
+    return this.http.post<Sprint>(`${this.apiUrl}/${sprintId}/start`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  completeSprint(sprintId: number): Observable<Sprint> {
+    return this.http.post<Sprint>(`${this.apiUrl}/${sprintId}/complete`, {}, {
+      headers: this.getHeaders()
+    });
+  }
 }

@@ -175,6 +175,53 @@ public class SprintService {
                 .collect(Collectors.toList());
     }
     
+    @Transactional
+    public Sprint startSprint(Long sprintId, String username) {
+        Sprint sprint = getSprintById(sprintId, username);
+        
+        // Only project owner can start sprint
+        if (!sprint.getProject().getOwner().getUsername().equals(username)) {
+            throw new RuntimeException("Only project owner can start sprints");
+        }
+        
+        // Validate sprint is in PLANNED status
+        if (sprint.getStatus() != Sprint.Status.PLANNED) {
+            throw new RuntimeException("Only PLANNED sprints can be started");
+        }
+        
+        // Check if there's already an active sprint in the project
+        List<Sprint> activeSprints = sprintRepository.findByProjectId(sprint.getProject().getId()).stream()
+                .filter(s -> s.getStatus() == Sprint.Status.ACTIVE)
+                .collect(Collectors.toList());
+        
+        if (!activeSprints.isEmpty()) {
+            throw new RuntimeException("Cannot start sprint. There is already an active sprint in this project.");
+        }
+        
+        // Update sprint status to ACTIVE
+        sprint.setStatus(Sprint.Status.ACTIVE);
+        return sprintRepository.save(sprint);
+    }
+    
+    @Transactional
+    public Sprint completeSprint(Long sprintId, String username) {
+        Sprint sprint = getSprintById(sprintId, username);
+        
+        // Only project owner can complete sprint
+        if (!sprint.getProject().getOwner().getUsername().equals(username)) {
+            throw new RuntimeException("Only project owner can complete sprints");
+        }
+        
+        // Validate sprint is in ACTIVE status
+        if (sprint.getStatus() != Sprint.Status.ACTIVE) {
+            throw new RuntimeException("Only ACTIVE sprints can be completed");
+        }
+        
+        // Update sprint status to COMPLETED
+        sprint.setStatus(Sprint.Status.COMPLETED);
+        return sprintRepository.save(sprint);
+    }
+    
     private SprintResponse convertToResponse(Sprint sprint) {
         return SprintResponse.builder()
                 .id(sprint.getId())

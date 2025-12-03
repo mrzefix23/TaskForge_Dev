@@ -213,6 +213,22 @@ h1 {
   color: #4a5568;
 }
 
+.sprint-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sprint-header-actions h2 {
+  margin: 0;
+}
+
+.sprint-action-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .user-stories-list {
   display: flex;
   flex-direction: column;
@@ -369,6 +385,17 @@ h1 {
 
 .btn-danger:hover {
   background: #f56565;
+}
+
+.btn-success {
+  background: #48bb78;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #38a169;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
 }
 
 .btn-sm {

@@ -1,7 +1,10 @@
 # Documentation Administrateur - TaskForge
 
-**Version :** 0.2.0
-**Date de mise à jour :** 11-30-2025
+**Version :** 0.2.0  
+**Date de mise à jour :** 03-12-2025
+
+> 📖 **Documentation complémentaire :**  
+> - Pour le guide d'utilisation développeurs : Voir [README.md](./README.md)
 
 ## 1. Présentation
 TaskForge est une application de gestion de projet centralisée. Ce document décrit les procédures d'installation, de configuration et de maintenance pour le déploiement de l'application en environnement de production ou de pré-production via Docker.
@@ -18,13 +21,13 @@ L'application est conçue pour être conteneurisée. Le serveur hôte doit dispo
 * **Git :** Pour la récupération des sources.
 
 ### Ports requis
-Assurez-vous que les ports suivants sont ouverts et libres sur le serveur :
+**⚠️ Sécurité :** En production, seul le port 80 (ou 443 pour HTTPS) doit être exposé publiquement.
+
+Assurez-vous que le port suivant est ouvert sur le serveur :
 
 | Port | Service | Description |
 | :--- | :--- | :--- |
 | **80** | Frontend (Nginx) | Accès web utilisateurs (HTTP) |
-| **8080** | Backend API | Communication API |
-| **5432** | PostgreSQL | Base de données (optionnel si accès externe requis) |
 
 ---
 
@@ -76,7 +79,12 @@ docker-compose ps
 Une fois les services démarrés, l'application est accessible via :
 
 * **Interface Utilisateur :** `http://<IP-DU-SERVEUR>/`
-* **API Swagger (Test technique) :** `http://<IP-DU-SERVEUR>:8080/swagger-ui.html`
+* **Documentation API (Swagger UI) :** `http://<IP-DU-SERVEUR>/swagger-ui.html`
+
+**⚠️ Sécurité Swagger :** En production, il est recommandé de :
+- Désactiver Swagger en production (variable d'environnement `SPRINGDOC_SWAGGER_UI_ENABLED=false`)
+- Ou restreindre l'accès à Swagger via une authentification additionnelle dans Nginx
+- Ou limiter l'accès par IP à l'équipe de développement uniquement
 
 ---
 
@@ -115,7 +123,7 @@ docker-compose logs -f backend
 
 **Voir uniquement les logs de la base de données :**
 ```bash
-docker-compose logs -f db
+docker-compose logs -f database
 ```
 
 **Voir uniquement les logs du frontend (Nginx) :**
@@ -133,14 +141,16 @@ Les données sont stockées dans un volume Docker persistant.
 Pour effectuer une sauvegarde à chaud sans arrêter le service :
 
 ```bash
-# Syntaxe : docker-compose exec db pg_dump -U <USER> <DB_NAME> > fichier.sql
-docker-compose exec db pg_dump -U admin_prod taskforge_prod > backup_taskforge_$(date +%F).sql
+# Syntaxe : docker-compose exec database pg_dump -U <USER> <DB_NAME> > fichier.sql
+docker-compose exec database pg_dump -U admin_prod taskforge_prod > backup_taskforge_$(date +%F).sql
 ```
 *(Remplacez `admin_prod` et `taskforge_prod` par les valeurs définies dans votre `.env`)*
 
+**Note :** Le nom du service est `database` dans le docker-compose.yml.
+
 ### Restauration de la Base de Données
 ```bash
-cat backup_taskforge_YYYY-MM-DD.sql | docker-compose exec -T db psql -U admin_prod taskforge_prod
+cat backup_taskforge_YYYY-MM-DD.sql | docker-compose exec -T database psql -U admin_prod taskforge_prod
 ```
 
 ---
@@ -152,4 +162,5 @@ cat backup_taskforge_YYYY-MM-DD.sql | docker-compose exec -T db psql -U admin_pr
 | **Site inaccessible** | Conteneurs arrêtés ou port 80 bloqué | Vérifier `docker-compose ps` et le pare-feu du serveur. |
 | **Erreur de connexion DB** | Mauvais mot de passe dans `.env` | Vérifier que les variables `POSTGRES_PASSWORD` sont identiques dans le fichier `.env` et la config Spring Boot. |
 | **Erreur 500 au Login** | Backend non prêt | Attendre quelques secondes que Spring Boot ait fini de démarrer (voir logs). |
-| **Connexion refusée** | Base de données non initialisée | Vérifier les logs DB : `docker-compose logs db`. |
+| **Connexion refusée** | Base de données non initialisée | Vérifier les logs DB : `docker-compose logs database`. |
+| **Swagger inaccessible** | Routes nginx mal configurées | Vérifier que nginx.conf contient les routes `/swagger-ui.html` et `/v3/api-docs`. |

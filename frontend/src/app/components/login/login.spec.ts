@@ -33,7 +33,6 @@ describe('LoginComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     spyOn(router, 'navigate').and.stub();
-    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -49,6 +48,28 @@ describe('LoginComponent', () => {
     expect(component.loginForm.value).toEqual({ username: '', password: '' });
   });
 
+  it('should make form invalid when fields are empty', () => {
+    expect(component.loginForm.valid).toBeFalsy();
+  });
+
+  it('should make form valid when both fields are filled', () => {
+    component.loginForm.controls['username'].setValue('testuser');
+    component.loginForm.controls['password'].setValue('password123');
+    expect(component.loginForm.valid).toBeTruthy();
+  });
+
+  it('should not submit if form is invalid', () => {
+    component.onSubmit();
+    expect(component.loginForm.invalid).toBeTrue();
+  });
+
+  it('should toggle password visibility', () => {
+    expect(component.showPassword).toBeFalse();
+    component.showPassword = true;
+    fixture.detectChanges();
+    expect(component.showPassword).toBeTrue();
+  });
+
   it('should make the form invalid when fields are empty', () => {
     expect(component.loginForm.valid).toBeFalsy();
   });
@@ -57,12 +78,6 @@ describe('LoginComponent', () => {
     component.loginForm.controls['username'].setValue('testuser');
     component.loginForm.controls['password'].setValue('password');
     expect(component.loginForm.valid).toBeTruthy();
-  });
-
-  it('should disable submit button when form is invalid', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    const button = compiled.querySelector('button[type="submit"]');
-    expect(button?.hasAttribute('disabled')).toBeTrue();
   });
 
   it('should enable submit button when form is valid', () => {

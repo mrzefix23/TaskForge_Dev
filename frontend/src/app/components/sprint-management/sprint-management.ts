@@ -38,7 +38,7 @@ export class SprintManagementComponent implements OnInit {
     name: '',
     startDate: '',
     endDate: '',
-    status: 'PLANNED' as 'PLANNED' | 'ACTIVE' | 'COMPLETED'
+    status: 'PLANNED'
   };
   
   error: string | null = null;
@@ -136,7 +136,7 @@ export class SprintManagementComponent implements OnInit {
       name: sprint.name,
       startDate: sprint.startDate,
       endDate: sprint.endDate,
-      status: sprint.status
+      status: sprint.status || 'PLANNED'
     };
     this.selectedSprint = sprint;
     this.showEditModal = true;
@@ -173,6 +173,7 @@ export class SprintManagementComponent implements OnInit {
 
     const request = {
       ...this.sprintForm,
+      status: 'PLANNED' as 'PLANNED',
       projectId: this.projectId
     };
 
@@ -194,6 +195,7 @@ export class SprintManagementComponent implements OnInit {
 
     const request = {
       ...this.sprintForm,
+      status: this.selectedSprint.status,
       projectId: this.projectId
     };
 
@@ -263,6 +265,40 @@ export class SprintManagementComponent implements OnInit {
       },
       error: (err) => {
         this.error = err.error?.message || 'Erreur lors du retrait';
+      }
+    });
+  }
+
+  startSprint(sprintId: number): void {
+    this.sprintService.startSprint(sprintId).subscribe({
+      next: (updatedSprint) => {
+        this.success = 'Sprint démarré avec succès';
+        this.loadSprints();
+        if (this.selectedSprint?.id === sprintId) {
+          this.selectedSprint = updatedSprint;
+        }
+        setTimeout(() => this.success = null, 3000);
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Erreur lors du démarrage du sprint';
+        setTimeout(() => this.error = null, 5000);
+      }
+    });
+  }
+
+  completeSprint(sprintId: number): void {
+    this.sprintService.completeSprint(sprintId).subscribe({
+      next: (updatedSprint) => {
+        this.success = 'Sprint terminé avec succès';
+        this.loadSprints();
+        if (this.selectedSprint?.id === sprintId) {
+          this.selectedSprint = updatedSprint;
+        }
+        setTimeout(() => this.success = null, 3000);
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Erreur lors de la terminaison du sprint';
+        setTimeout(() => this.error = null, 5000);
       }
     });
   }

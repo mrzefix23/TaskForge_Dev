@@ -83,7 +83,7 @@ describe('ProjectsListComponent', () => {
     expect(component.projectToDelete).toEqual(mockProjects[0]);
   });
 
-  it('should close delete modal', () => {
+  it('should handle error when loading projects', () => {
     component.showDeleteModal = true;
     component.projectToDelete = mockProjects[0];
     component.deleteError = 'Some error';

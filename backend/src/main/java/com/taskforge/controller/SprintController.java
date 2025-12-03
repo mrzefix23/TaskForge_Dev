@@ -23,8 +23,8 @@ import com.taskforge.service.SprintService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/sprints")
@@ -161,5 +161,35 @@ public class SprintController {
             Principal principal) {
         List<UserStory> userStories = sprintService.getBacklogUserStories(projectId, principal.getName());
         return ResponseEntity.ok(userStories);
+    }
+    
+    @PostMapping("/{sprintId}/start")
+    @Operation(summary = "Démarrer un sprint", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sprint démarré avec succès"),
+        @ApiResponse(responseCode = "400", description = "Sprint ne peut pas être démarré (statut invalide ou sprint actif existant)"),
+        @ApiResponse(responseCode = "401", description = "Non authentifié"),
+        @ApiResponse(responseCode = "404", description = "Sprint non trouvé")
+    })
+    public ResponseEntity<Sprint> startSprint(
+            @PathVariable Long sprintId,
+            Principal principal) {
+        Sprint sprint = sprintService.startSprint(sprintId, principal.getName());
+        return ResponseEntity.ok(sprint);
+    }
+    
+    @PostMapping("/{sprintId}/complete")
+    @Operation(summary = "Terminer un sprint", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sprint terminé avec succès"),
+        @ApiResponse(responseCode = "400", description = "Sprint ne peut pas être terminé (statut invalide)"),
+        @ApiResponse(responseCode = "401", description = "Non authentifié"),
+        @ApiResponse(responseCode = "404", description = "Sprint non trouvé")
+    })
+    public ResponseEntity<Sprint> completeSprint(
+            @PathVariable Long sprintId,
+            Principal principal) {
+        Sprint sprint = sprintService.completeSprint(sprintId, principal.getName());
+        return ResponseEntity.ok(sprint);
     }
 }

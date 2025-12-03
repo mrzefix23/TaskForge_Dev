@@ -66,4 +66,19 @@ describe('CreateProjectComponent', () => {
     component.goBack();
     expect(router.navigate).toHaveBeenCalledWith(['/projects']);
   });
+
+  it('should not submit if username is missing', () => {
+    localStorage.removeItem('username');
+    component.projectForm.controls['name'].setValue('Test Project');
+
+    component.onSubmit();
+
+    expect(component.loading).toBeFalse();
+    expect(component.error).toBe('Utilisateur non authentifié.');
+  });
+
+  it('should get current username from localStorage', () => {
+    fixture.detectChanges();
+    expect(component.currentUsername).toBe('testuser');
+  });
 });

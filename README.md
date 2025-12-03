@@ -2,10 +2,24 @@
 
 TaskForge is a web-based project management application that allows users to create projects, manage issues and tasks, collaborate with their team, and track work progress in real time. The goal is to centralize project tracking and enhance team productivity.
 
+## Features
+
+- 🔐 **User Authentication**: Secure JWT-based authentication and authorization
+- 📊 **Project Management**: Create and manage multiple projects
+- 📝 **User Stories**: Define and track user stories with status updates
+- 🏃 **Sprint Planning**: Organize work into sprints with start/end dates
+- ✅ **Task Management**: Break down user stories into tasks and assign them to team members
+- 📋 **Kanban Board**: Visual workflow management with customizable columns
+- 🎯 **Version Management**: Plan and track software releases
+- 👥 **Team Collaboration**: Assign tasks and track team member contributions
+- 📚 **API Documentation**: Interactive Swagger UI for API exploration
+
 ## Project Structure
 
 - **`backend/`**: Contains the Spring Boot backend application, including RESTful APIs, database models, and business logic.
 - **`frontend/`**: Contains the Angular frontend application, including components, services, and UI design.
+- **`ADMIN_GUIDE.md`**: Comprehensive administrator guide for production deployment
+- **`docker-compose.yml`**: Docker Compose configuration for production deployment
 
 ## Prerequisites
 
@@ -29,6 +43,23 @@ Before starting the application, you need to configure the `.env` files for the 
    cp .env.example .env
    ```
 
+### Generate the JWT secret key
+
+To generate a Base64 secret key to use as the value for SECURITY_JWT_SECRET in the backend `.env` file, you can use openssl. Example (generates 64 random bytes encoded in Base64):
+
+```bash
+openssl rand -base64 64
+```
+
+Copy the output and place it in your backend `.env` file as follows:
+
+```bash
+# backend/src/main/resources/.env
+SECURITY_JWT_SECRET=the_value_generated_by_openssl
+SECURITY_JWT_EXPIRATION-MS=3600000
+```
+
+> Note: The decoded key must be sufficiently long (>= 32 bytes) to be used with HMAC SHA (requirement by the JWT library). The above example produces an appropriate security key.
 ---
 
 ## Running the Application
@@ -86,6 +117,8 @@ Ensure you have Docker and Docker Compose installed on your machine.
 
 ### 1. Build and Start the Application
 
+#### Production Mode (Recommended - Secure)
+
 1. Ensure Docker is installed and running.
 
 2. Build and start the application using Docker Compose:
@@ -95,11 +128,35 @@ Ensure you have Docker and Docker Compose installed on your machine.
 
 3. The frontend will be accessible at `http://localhost` (port 80 via Nginx).
 
-4. The backend API will be accessible at `http://localhost:8080/`.
+4. The backend API will be accessible at `http://localhost/api/`.
+
+5. The Swagger documentation will be accessible at `http://localhost/swagger-ui.html`.
+
+#### Development Mode (Ports Exposed)
+
+For local development where you need direct access to backend and database:
+
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+This exposes:
+- Frontend: `http://localhost`
+- Backend API: `http://localhost:8080/api/`
+- Swagger: `http://localhost:8080/swagger-ui.html`
+- Database: `localhost:5432`
+
 
 ### 2. Access the Database
 
-You can connect to the PostgreSQL database using a database client at `localhost:5432`. The credentials (username, password, and database name) should be configured in your `.env` file.
+**In local development:** If you need direct access to the database, you can temporarily uncomment the port 5432 mapping in `docker-compose.yml`.
+
+**In Docker production:** Use an SSH tunnel or access via the container:
+```bash
+docker-compose exec database psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+```
+
+Connection credentials are configured in your `.env` file.
 
 ---
 
@@ -145,64 +202,116 @@ npm test
 
 ---
 
-## API documentation
+## API Documentation
 
-Une fois l'application lancée, la documentation Swagger est disponible à l'adresse suivante :
+The API documentation is available via Swagger UI. It provides an interactive interface to explore and test the API endpoints.
 
-- **Interface Swagger UI** : `http://localhost:8080/swagger-ui.html`
-- **Documentation JSON OpenAPI** : `http://localhost:8080/v3/api-docs`
+### Local Development Mode (backend only)
+- **Swagger UI Interface**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI JSON Documentation**: `http://localhost:8080/v3/api-docs`
 
-### Utiliser l'authentification dans Swagger UI
+### Docker Mode
+- **Swagger UI Interface**: `http://localhost/swagger-ui.html`
+- **OpenAPI JSON Documentation**: `http://localhost/v3/api-docs`
 
-1. **Se connecter** :
-   - Aller sur `http://localhost:8080/swagger-ui.html`
-   - Cliquer sur **POST /api/auth/login**
-   - Testez avec : 
+### Using Authentication in Swagger UI
+
+1. **Login**:
+   - Go to `http://localhost:8080/swagger-ui.html`
+   - Click on **POST /api/auth/login**
+   - Test with: 
      ```json
      {
-       "username": "votre_nom_utilisateur",
-       "password": "votre_mot_de_passe"
+       "username": "your_username",
+       "password": "your_password"
      }
      ```
-   - Cliquer sur **Execute**
-   - Copier le token JWT de la réponse.
+   - Click **Execute**
+   - Copy the JWT token from the response.
 
-2. **Ajouter le token JWT** :
-   - Cliquer sur le bouton **Authorize** (icône de cadenas en haut à droite).
-   - Dans le champ `Value`, entrer : `Bearer VOTRE_TOKEN_JWT`
-   - Cliquer sur **Authorize** puis sur **Close**.
+2. **Add the JWT token**:
+   - Click the **Authorize** button (lock icon at the top right).
+   - In the `Value` field, enter: `Bearer YOUR_JWT_TOKEN`
+   - Click **Authorize** then **Close**.
 
-3. **Accéder aux endpoints protégés** :
-   - Vous pouvez maintenant accéder aux endpoints protégés en utilisant Swagger UI.
+3. **Access protected endpoints**:
+   - You can now access protected endpoints using Swagger UI.
 
-### Endpoints disponibles 
+### Available Endpoints
 
-#### Authentification (`/api/auth/`)
-- `POST /login` : Se connecter
-- `POST /register` : S'inscrire
+#### Authentication (`/api/auth/`)
+- `POST /login`: Login
+- `POST /register`: Register
 
-#### Projets (`/api/projects/`)
+#### Projects (`/api/projects/`)
+- `POST /`: Create a new project
+- `GET /myprojects`: Get projects for the logged-in user
+- `GET /{projectId}`: Get project details by ID
+- `PUT /{projectId}`: Update a project by ID
+- `DELETE /{projectId}`: Delete a project by ID (owner only)
 
-- `DELETE /{projectId}` : Supprimer un projet par son ID (propriétaire uniquement)
-- `GET /{projectId}` : Obtenir les détails d'un projet par son ID
-- `GET /myprojects` : Obtenir les projets de l'utilisateur connecté
-- `POST /api/projects/` : Créer un nouveau projet
-- `PUT /{projectId}` : Mettre à jour un projet par son ID 
+#### User Stories (`/api/user-stories/`)
+- `POST /`: Create a new user story
+- `GET /project/{projectId}`: Get all user stories for a project
+- `GET /{userStoryId}`: Get user story details
+- `PUT /{userStoryId}`: Update a user story
+- `DELETE /{userStoryId}`: Delete a user story
+- `PUT /{userStoryId}/status`: Update user story status
 
-#### Utilisateur
+#### Sprints (`/api/sprints/`)
+- `POST /`: Create a new sprint
+- `GET /project/{projectId}`: Get all sprints for a project
+- `GET /{sprintId}`: Get sprint details
+- `PUT /{sprintId}`: Update a sprint
+- `DELETE /{sprintId}`: Delete a sprint
+- `PUT /{sprintId}/status`: Update sprint status
+- `POST /{sprintId}/user-stories/{userStoryId}`: Add a user story to a sprint
+- `DELETE /{sprintId}/user-stories/{userStoryId}`: Remove a user story from a sprint
+- `GET /{sprintId}/user-stories`: Get all user stories in a sprint
 
-- `GET /api/users` : Obtenir la liste des utilisateurs
-- `GET /api/users/{id}` : Obtenir les détails d'un utilisateur par son ID
+#### Versions (`/api/versions/`)
+- `POST /`: Create a new version
+- `GET /project/{projectId}`: Get all versions for a project
+- `GET /{id}`: Get version details
+- `PUT /{id}`: Update a version
+- `DELETE /{id}`: Delete a version
+- `PUT /{id}/status`: Update version status
+- `POST /{versionId}/user-stories/{userStoryId}`: Add a user story to a version
+- `DELETE /{versionId}/user-stories/{userStoryId}`: Remove a user story from a version
+- `GET /{versionId}/user-stories`: Get all user stories in a version
 
-#### Schéma
+#### Tasks (`/api/tasks/`)
+- `POST /`: Create a new task
+- `GET /user-story/{userStoryId}`: Get all tasks for a user story
+- `GET /{taskId}`: Get task details
+- `PUT /{taskId}`: Update a task
+- `DELETE /{taskId}`: Delete a task
+- `PUT /{taskId}/status`: Update task status
+- `PUT /{taskId}/assign/{userId}`: Assign a task to a user
+- `DELETE /{taskId}/unassign`: Unassign a task
 
-Section où l'on retrouve le schéma des données utilisées dans l'API :
+#### Kanban Columns (`/api/kanban-columns/`)
+- `POST /`: Create a new Kanban column
+- `GET /project/{projectId}`: Get all Kanban columns for a project
+- `GET /{columnId}`: Get column details
+- `PUT /{columnId}`: Update a column
+- `DELETE /{columnId}`: Delete a column
+- `PUT /{columnId}/reorder`: Reorder columns
 
-- **AuthResponse** : Réponse d'authentification contenant le token JWT
-- **CreateProjectRequest** : Requête pour créer un nouveau projet
-- **GrantedAuthority** : Autorité accordée à un utilisateur
-- **LoginRequest** : Requête de connexion avec username et password
-- **Project** : Modèle représentant un projet
-- **RegisterRequest** : Requête d'inscription d'un nouvel utilisateur
-- **User** : Modèle représentant un utilisateur
-- **UserDto** : Objet de transfert de données pour les informations utilisateur
+#### Users (`/api/users/`)
+- `GET /`: Get list of users
+- `GET /{id}`: Get user details by ID
+
+---
+
+## Schema
+
+Section where the data schema used in the API can be found:
+- **AuthResponse**: Authentication response containing the JWT token
+- **CreateProjectRequest**: Request to create a new project
+- **GrantedAuthority**: Authority granted to a user
+- **LoginRequest**: Login request with username and password
+- **Project**: Model representing a project
+- **RegisterRequest**: Request to register a new user
+- **User**: Model representing a user
+- **UserDto**: Data transfer object for user information

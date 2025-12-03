@@ -7,12 +7,19 @@ interface UserStory {
   title: string;
   description: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  status: string;
   assignedTo?: { username: string }[];
 }
 
 interface Member {
   username: string;
+}
+
+interface KanbanColumn {
+  id: number;
+  name: string;
+  status: string;
+  order: number;
 }
 
 /**
@@ -42,6 +49,9 @@ export class UserStoryFormComponent implements OnChanges {
 
   /** Liste des membres disponibles pour l'assignation. */
   @Input() members: Member[] = [];
+
+  /** Liste des colonnes Kanban disponibles pour le statut. */
+  @Input() kanbanColumns: KanbanColumn[] = [];
 
   /** Message d'erreur éventuel à afficher (venant du parent). */
   @Input() error: string | null = null;
