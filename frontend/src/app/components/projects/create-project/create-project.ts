@@ -64,7 +64,7 @@ export class CreateProjectComponent implements OnInit {
    */
   loadAllUsers(): void {
     const token = localStorage.getItem('token');
-    this.http.get<User[]>('/api/users', {
+    this.http.get<User[]>('https://taskforge-dev.onrender.com/api/users', {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (users) => {

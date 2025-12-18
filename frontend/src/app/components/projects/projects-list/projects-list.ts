@@ -40,8 +40,7 @@ export class ProjectsListComponent implements OnInit {
    */
   ngOnInit(): void {
     const token = localStorage.getItem('token');
-    
-    this.http.get<Project[]>('/api/projects/myprojects', { 
+    this.http.get<Project[]>('https://taskforge-dev.onrender.com/api/projects/myprojects', { 
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (data) => {
