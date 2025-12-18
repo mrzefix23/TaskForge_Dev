@@ -67,7 +67,7 @@ export class SprintManagementComponent implements OnInit {
 
   loadProject(): void {
     const token = localStorage.getItem('token');
-    fetch(`/api/projects/${this.projectId}`, {
+    fetch(`https://taskforge-dev.onrender.com/api/projects/${this.projectId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
