@@ -7,7 +7,7 @@ import { Task } from '../models/kanban.models';
   providedIn: 'root'
 })
 export class TaskService {
-  private readonly API_URL = '/api/tasks';
+  private readonly API_URL = 'https://taskforge-dev.onrender.com/api/tasks';
 
   constructor(private http: HttpClient) {}
 

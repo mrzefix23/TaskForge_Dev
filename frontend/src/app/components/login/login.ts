@@ -48,7 +48,7 @@ export class LoginComponent {
    */
   onSubmit() {
     if (this.loginForm.valid) {
-      this.http.post<{token: string, username: string}>('/api/auth/login', this.loginForm.value).subscribe({
+      this.http.post<{token: string, username: string}>('https://taskforge-dev.onrender.com/api/auth/login', this.loginForm.value).subscribe({
         next: (res) => {
           this.success = true;
           this.error = '';

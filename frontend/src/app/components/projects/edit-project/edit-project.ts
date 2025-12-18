@@ -89,7 +89,7 @@ export class EditProjectComponent implements OnInit {
    */
   loadAllUsersAndProject(): void {
     const token = localStorage.getItem('token');
-    this.http.get<User[]>('/api/users', {
+    this.http.get<User[]>('https://taskforge-dev.onrender.com/api/users', {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (users) => {
@@ -111,7 +111,7 @@ export class EditProjectComponent implements OnInit {
    */
   loadProject(projectId: number): void {
     const token = localStorage.getItem('token');
-    this.http.get<Project>(`/api/projects/${projectId}`, {
+    this.http.get<Project>(`https://taskforge-dev.onrender.com/api/projects/${projectId}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (data) => {
@@ -159,7 +159,7 @@ export class EditProjectComponent implements OnInit {
       members: this.projectForm.value.members.map((username: string) => ({ username }))
     };
 
-    this.http.put(`/api/projects/${this.projectId}`, payload, {
+    this.http.put(`https://taskforge-dev.onrender.com/api/projects/${this.projectId}`, payload, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: () => {

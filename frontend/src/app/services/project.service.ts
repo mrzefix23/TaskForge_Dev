@@ -7,8 +7,8 @@ import { Project, Sprint } from '../models/kanban.models';
   providedIn: 'root'
 })
 export class ProjectService {
-  private readonly API_URL = '/api/projects';
-  private readonly SPRINT_API_URL = '/api/sprints';
+  private readonly API_URL = 'https://taskforge-dev.onrender.com/api/projects';
+  private readonly SPRINT_API_URL = 'https://taskforge-dev.onrender.com/api/sprints';
 
   constructor(private http: HttpClient) {}
 

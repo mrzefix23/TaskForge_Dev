@@ -108,7 +108,7 @@ export class CreateProjectComponent implements OnInit {
       members: (this.projectForm.value.members ?? []).map((username: string) => ({ username }))
     };
 
-    this.http.post('/api/projects', payload, {
+    this.http.post('https://taskforge-dev.onrender.com/api/projects', payload, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: () => {

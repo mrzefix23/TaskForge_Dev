@@ -7,7 +7,7 @@ import { UserStory } from '../models/kanban.models';
   providedIn: 'root'
 })
 export class UserStoryService {
-  private readonly API_URL = '/api/user-stories';
+  private readonly API_URL = 'https://taskforge-dev.onrender.com/api/user-stories';
 
   constructor(private http: HttpClient) {}
 

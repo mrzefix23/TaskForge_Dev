@@ -33,7 +33,7 @@ export interface UserStory {
   providedIn: 'root'
 })
 export class SprintService {
-  private apiUrl = '/api/sprints';
+  private apiUrl = 'https://taskforge-dev.onrender.com/api/sprints';
 
   constructor(private http: HttpClient) {}
 

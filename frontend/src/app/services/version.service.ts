@@ -12,7 +12,7 @@ export interface CreateVersionRequest {
 
 @Injectable({ providedIn: 'root' })
 export class VersionService {
-    private apiUrl = '/api/versions';
+    private apiUrl = 'https://taskforge-dev.onrender.com/api/versions';
 
     constructor(private http: HttpClient) { }
 

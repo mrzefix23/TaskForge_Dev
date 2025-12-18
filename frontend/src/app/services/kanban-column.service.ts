@@ -7,7 +7,7 @@ import { KanbanColumn } from '../models/kanban.models';
   providedIn: 'root'
 })
 export class KanbanColumnService {
-  private readonly API_URL = '/api/kanban-columns';
+  private readonly API_URL = 'https://taskforge-dev.onrender.com/api/kanban-columns';
 
   constructor(private http: HttpClient) {}
 

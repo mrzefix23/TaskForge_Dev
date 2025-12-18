@@ -103,7 +103,7 @@ export class ProjectsListComponent implements OnInit {
 
     const token = localStorage.getItem('token');
 
-    this.http.delete(`/api/projects/${this.projectToDelete.id}`, {
+    this.http.delete(`https://taskforge-dev.onrender.com/api/projects/${this.projectToDelete.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: () => {
