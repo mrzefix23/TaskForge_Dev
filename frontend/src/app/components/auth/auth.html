@@ -6,7 +6,15 @@
       <a routerLink="/register" class="landing-nav-link landing-nav-btn">Créer un compte</a>
     </nav>
   </header>
+
   <main class="landing-main">
+    @if (showAlert) {
+      <div class="auth-alert">
+        <span class="alert-icon">⚡</span>
+        <p>Le serveur est en cours de démarrage. Le premier chargement peut prendre environ 30 secondes. Merci de votre patience !</p>
+      </div>
+    }
+
     <h1 class="landing-title">Gérez vos projets <span class="landing-accent">simplement</span></h1>
     <p class="landing-subtitle">
       Centralisez vos tâches, collaborez avec votre équipe et suivez votre progression en temps réel.<br>
@@ -14,6 +22,7 @@
     </p>
     <a routerLink="/register" class="landing-cta-btn">Commencer</a>
   </main>
+
   <footer class="landing-footer">
     <span>&copy; {{ currentYear }} TaskForge</span>
   </footer>

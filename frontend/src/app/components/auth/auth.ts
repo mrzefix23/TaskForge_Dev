@@ -1,21 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common'; // Import nécessaire pour le @if
 
 /**
  * Composant racine pour le module d'authentification.
- * Ce composant sert principalement de conteneur ("Layout") pour les pages enfants
- * (Login, Register) ou de page d'atterrissage (Landing) selon la configuration du router.
  */
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, CommonModule],
   templateUrl: './auth.html',
   styleUrl: './auth.css'
 })
-export class AuthComponent {
+export class AuthComponent implements OnInit {
   
-  /** * Année courante utilisée pour l'affichage dynamique du copyright dans le footer.
-   */
   currentYear = new Date().getFullYear();
+  
+  // Variable pour contrôler l'affichage du message
+  showAlert = true;
+
+  ngOnInit(): void {
+    setTimeout(() => {
+      this.showAlert = false;
+    }, 10000);
+  }
 }
